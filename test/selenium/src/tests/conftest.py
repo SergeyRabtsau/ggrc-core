@@ -94,18 +94,6 @@ def new_risk(selenium):
 
 
 @pytest.yield_fixture(scope="function")
-def new_request(selenium):
-  """Creates a new request object.
-
-  Returns:
-      lib.page.widget.Requests
-  """
-  request_page = conftest_utils.create_lhn_object(
-      selenium, constants.element.Lhn.REQUESTS)
-  yield request_page
-
-
-@pytest.yield_fixture(scope="function")
 def new_issue(selenium):
   """Creates a new request object.
 
