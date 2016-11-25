@@ -95,7 +95,7 @@ def new_risk(selenium):
 
 @pytest.yield_fixture(scope="function")
 def new_issue(selenium):
-  """Creates a new request object.
+  """Creates a new issue object.
 
   Returns:
       lib.page.widget.IssueInfo
@@ -107,7 +107,7 @@ def new_issue(selenium):
 
 @pytest.yield_fixture(scope="function")
 def new_process(selenium):
-  """Creates a new request object.
+  """Creates a new process object.
 
   Returns:
       lib.page.widget.Processes
@@ -143,7 +143,7 @@ def new_system(selenium):
 
 @pytest.yield_fixture(scope="function")
 def new_product(selenium):
-  """Creates a new request object.
+  """Creates a new product object.
 
   Returns:
       lib.page.widget.Product
