@@ -7,13 +7,13 @@
 # pylint: disable=too-few-public-methods
 # pylint: disable=unused-argument
 
-import pytest    # pylint: disable=import-error
+import pytest
 
 from lib import base
 from lib import factory
+from lib.page import dashboard
 from lib.utils import conftest_utils
 from lib.utils import selenium_utils
-from lib.page import dashboard
 
 
 class TestObjectMapping(base.Test):
@@ -22,10 +22,10 @@ class TestObjectMapping(base.Test):
   @pytest.mark.smoke_tests
   def test_mapping_via_lhn(self, selenium, new_product,
                            new_project, new_system, new_data_asset,
-                           new_process, new_issue):
+                           new_process):
     """LHN mapping tests from smoke tests, section 6"""
     objects = [new_product, new_project, new_system, new_data_asset,
-               new_process, new_issue]
+               new_process]
 
     for object_ in objects:
       selenium.get(object_.url)
