@@ -1728,6 +1728,12 @@ Mustache.registerHelper("global_count", function (model_type, options) {
       options.inverse(options.contexts);
   });
 
+  Mustache.registerHelper('isMyAssessments', function (options) {
+    return GGRC.Utils.CurrentPage.isMyAssessments() ?
+      options.fn(options.contexts) :
+      options.inverse(options.contexts);
+  });
+
 Mustache.registerHelper("is_profile", function (parent_instance, options) {
   var instance;
   if (options)

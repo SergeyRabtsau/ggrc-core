@@ -7,10 +7,11 @@
   @extend %reset-list;
   @extend %clearfix;
   position: absolute;
-  right: 0px;
+  right: 0;
   margin-right: 40px;
+  display: flex;
+  align-items: center;
   li {
-    float:left;
     color: $black;
     line-height: 47px;
     font-size: 12px;
@@ -30,6 +31,27 @@
         left: auto;
         right: 0;
       }
+    }
+    .search {
+      color: $white;
+      font-weight: normal;
+      &:hover {
+        color: $white;
+        background-color: $lightBlue;
+      }
+      i {
+        color: $white;
+        opacity: 1;
+        font-size: 14px;
+      }
+    }
+    .user-email {
+      padding: 0 10px;
+      line-height: 35px;
+    }
+    #page-help {
+      border-top: 1px solid $headerBgnd;
+      padding-top: 5px;
     }
   }
   a {
