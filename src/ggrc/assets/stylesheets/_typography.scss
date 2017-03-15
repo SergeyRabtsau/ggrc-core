@@ -9,33 +9,19 @@ body {
 }
 
 h1 {
-  @extend %oneline;
+  overflow: hidden !important;
+  white-space: nowrap;
+  text-overflow: ellipsis;
   color: $headerTitle;
   font-size: 24px;
   line-height: 47px;
   height: 47px;
   font-family: $fontTitle;
   font-weight: normal;
-  width: 38%;
-  float: left;
   .lhn-trigger {
     position: absolute;
     left: -2px;
     top: 0;
-  }
-  .title-content {
-    @extend %oneline;
-    width: 85%;
-    float: left;
-  }
-  @media (max-width: 740px) {
-    width: 25%;
-  }
-  @media (max-width: 1000px) {
-    width: 40%;
-  }
-  @media (max-width: 1200px) {
-    width: 60%;
   }
 }
 
