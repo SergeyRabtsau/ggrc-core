@@ -243,6 +243,7 @@ dashboard-js-files:
   - components/object-selection/object-selection-item.js
   - components/last-assessment-date/last-assessment-date.js
   - components/tree/tree-node-actions.js
+  - components/page-header/page-header.js
   #- d3.v2.js
   #- related_graph.js
 
@@ -428,6 +429,7 @@ dashboard-js-template-files:
   - components/tree_pagination/tree_pagination.mustache
   - components/tree/tree-node-actions.mustache
   - components/simple-modal/simple-modal.mustache
+  - components/page-header/page-header.mustache
   - custom_attributes/modal_content.mustache
   - custom_attributes/info.mustache
   - custom_attribute_definitions/modal_content.mustache

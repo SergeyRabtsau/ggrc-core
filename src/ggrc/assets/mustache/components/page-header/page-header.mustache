@@ -1,0 +1,133 @@
+{{!
+  Copyright (C) 2017 Google Inc.
+  Licensed under http://www.apache.org/licenses/LICENSE-2.0 <see LICENSE file>
+}}
+
+<h1 class="entities">
+  {{#if_equals model.table_singular 'person'}}
+    {{#is_dashboard_or_all}}
+      {{#is_dashboard}}
+        My Work
+      {{else}}
+        All Objects
+      {{/is_dashboard}}
+    {{else}}
+      {{firstnonempty instance.name instance.email}}
+    {{/is_dashboard_or_all}}
+  {{/if_equals}}
+  {{^if_equals model.table_singular 'person'}}
+    {{instance.title}}
+  {{/if_equals}}
+</h1>
+
+<ul class="menu">
+  <li>
+    <a href="javascript://"
+       class="btn btn-small btn-info search"
+       data-toggle="unified-search"
+       data-join-object-type="MultitypeSearch"
+       data-original-title="search items">
+      <div class="oneline">
+        <i class="fa fa-search"></i>
+        {{#if showTitles}}Global Search{{/if}}
+      </div>
+    </a>
+  </li>
+  <li>
+    <a href="/dashboard#task_widget">
+      <div class="oneline">
+        <i class="fa fa-calendar-check-o"></i>
+        {{#if showTitles}}My Tasks{{/if}}
+        <object-counter
+          counter="user_task_count"
+          counter-overdue="user_overdue_task_count"
+          model-name="CycleTaskGroupObjectTask"
+          search-keys="contact_id;cycle.is_current;status__in"
+          search-values="current_user;true;Assigned,InProgress,Finished,Declined"
+        ></object-counter>
+      </div></a>
+  </li>
+  {{!^isMyAssessments}}
+    <li>
+      <a href="/assessments_view">
+        <div class="oneline">
+          <i class="fa fa-assessment"></i>
+          {{#if showTitles}}My Assessments{{/if}}
+        </div>
+      </a>
+    </li>
+  {{!/isMyAssessments}}
+  {{!^is_allobjectview}}
+    <li>
+      <a id="allObjectView" href="/objectBrowser#regulation_widget">
+        <div class="oneline">
+          <i class="fa fa-files-o"></i>
+          {{#if showTitles}}All Objects{{/if}}
+        </div>
+    </a>
+    </li>
+  {{!/is_allobjectview}}
+  {{#current_user_is_admin}}
+    <li>
+      <a href="/admin#people_list_widget">
+        <div class="oneline">
+          <i class="fa fa-tachometer"></i>
+          {{#if showTitles}}Administration{{/if}}
+        </div>
+      </a>
+    </li>
+  {{/current_user_is_admin}}
+  <li>
+    <a href="/import" target="_blank">
+      <div class="oneline">
+        <i class="fa fa-sign-in"></i>
+        {{#if showTitles}}Import{{/if}}
+      </div>
+    </a>
+  </li>
+  <li>
+    <a href="/export" target="_blank">
+      <div class="oneline">
+        <i class="fa fa-sign-out"></i>
+        {{#if showTitles}}Export{{/if}}
+      </div>
+    </a>
+  </li>
+  <li class="user user-dropdown dropdown">
+    <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button">
+      <div class="oneline">
+        <i class="fa fa-user"></i>
+        <i class="fa fa-caret-down"></i>
+      </div>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="drop1" role="menu">
+      <li class="user-email">
+        {{current_user.email}}
+      </li>
+      <li>
+        <a id="page-help" href="{{GGRC.config.external_help_url}}" target="_blank">
+          <i class="fa fa-question-circle"></i>
+          Help
+        </a>
+      </li>
+      <li class="notify-wrap">
+        <span>
+          <i class="fa fa-clock-o"></i>
+          Notifications
+        </span>
+        <div class="inner-list">
+          <label>
+            <input type="checkbox" name="notifications" value="Email_Digest">
+            Daily email digest
+          </label>
+        </div>
+      </li>
+      <li>
+        <a class="nav-logout" href="/logout" tabindex="-1">
+          <i class="fa fa-power-off"></i>
+          Logout
+        </a>
+      </li>
+    </ul>
+  </li>
+</ul>
