@@ -49,19 +49,16 @@ class PageHeader(object):
   BUTTON_ALL_OBJECTS = (
       By.CSS_SELECTOR, _CONTENT + ' [href^="/objectBrowser"]')
   TOGGLE_USER_DROPDOWN = (By.CSS_SELECTOR, _CONTENT + " .dropdown-toggle")
-  BUTTON_HELP = (By.CSS_SELECTOR, _CONTENT + ' [id="#page-help"]')
   GENERIC_SUCCESS_ALERT = (By.CSS_SELECTOR, ".alert-success")
+  BUTTON_ADMIN_DASHBOARD = (
+      By.CSS_SELECTOR, _CONTENT + ' [href="/admin#people_list_widget"]')
+  BUTTON_DATA_IMPORT = (
+      By.CSS_SELECTOR, _CONTENT + ' [href="/import"]')
+  BUTTON_DATA_EXPORT = (
+      By.CSS_SELECTOR, _CONTENT + ' [href="/export"]')
   # dropdown toggle
   USER_MENU = ".menu " + Common.DROPDOWN_MENU
-  BUTTON_ADMIN_DASHBOARD = (
-      By.CSS_SELECTOR,
-      Common.DROPDOWN_MENU + ' [href="/admin#people_list_widget"]')
-  BUTTON_MY_WORK = (
-      By.CSS_SELECTOR, Common.DROPDOWN_MENU + ' [href="/dashboard"]')
-  BUTTON_DATA_IMPORT = (
-      By.CSS_SELECTOR, Common.DROPDOWN_MENU + ' [href="/import"]')
-  BUTTON_DATA_EXPORT = (
-      By.CSS_SELECTOR, Common.DROPDOWN_MENU + ' [href="/export"]')
+  BUTTON_HELP = (By.CSS_SELECTOR, Common.DROPDOWN_MENU + ' #page-help')
   BUTTON_LOGOUT = (By.CSS_SELECTOR, Common.DROPDOWN_MENU + ' [href="/logout"]')
   NOTIFICATIONS = (By.CSS_SELECTOR, USER_MENU + ' .notify-wrap')
   CHECKBOX_DAILY_DIGEST = (By.CSS_SELECTOR, USER_MENU + ' input')

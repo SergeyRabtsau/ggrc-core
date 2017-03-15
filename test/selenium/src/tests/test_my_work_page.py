@@ -34,7 +34,7 @@ class TestMyWorkPage(base.Test):
     """Tests if user is redirected to My Work page after clicking on
     the my work button in user dropdown."""
     conftest_utils.navigate_to_page_with_lhn(selenium)
-    dashboard.Header(selenium).open_user_list().select_my_work()
+    dashboard.Header(selenium).select_my_work()
     assert selenium.current_url == dashboard.Dashboard.URL
 
   @pytest.mark.smoke_tests

@@ -15,40 +15,14 @@ class UserList(base.Component):
 
   def __init__(self, driver):
     super(UserList, self).__init__(driver)
-    self.button_my_work = base.Button(
-        self._driver, self.locators.BUTTON_MY_WORK)
-    self.button_admin_dashboard = base.Button(
-        self._driver, self.locators.BUTTON_ADMIN_DASHBOARD)
-    self.button_data_import = base.Button(
-        self._driver, self.locators.BUTTON_DATA_IMPORT)
-    self.button_data_export = base.Button(
-        self._driver, self.locators.BUTTON_DATA_EXPORT)
     self.button_logout = base.Button(
         self._driver, self.locators.BUTTON_LOGOUT)
     self.notifications = base.Label(
         self._driver, self.locators.NOTIFICATIONS)
     self.checkbox_daily_digest = base.Checkbox(
         self._driver, self.locators.CHECKBOX_DAILY_DIGEST)
-
-  def select_my_work(self):
-    """
-    Return: widget.DataAssets
-    """
-    self.button_my_work.click()
-    return Dashboard(self._driver)
-
-  def select_admin_dashboard(self):
-    """
-    Return: admin_dashboard.AdminDashboard
-    """
-    self.button_my_work.click()
-    return AdminDashboard(self._driver)
-
-  def select_import_data(self):
-    raise NotImplementedError
-
-  def select_export_data(self):
-    raise NotImplementedError
+    self.button_help = base.Button(
+        self._driver, self.locators.BUTTON_HELP)
 
   @decorator.wait_for_redirect
   def select_logout(self):
@@ -63,18 +37,21 @@ class UserList(base.Component):
     self.checkbox_daily_digest.uncheck()
 
 
-class Header(base.Component):
-  """Header of page dashboard."""
+class GenericHeader(base.Component):
+  """Header of page dashboard without navigation to admin panel."""
+  # pylint: disable=too-many-instance-attributes
   locators = locator.PageHeader
 
   def __init__(self, driver):
-    super(Header, self).__init__(driver)
+    super(GenericHeader, self).__init__(driver)
     self.toggle_lhn_menu = None
     self.button_dashboard = None
     self.button_search = None
     self.button_my_tasks = None
     self.button_all_objects = None
     self.toggle_user_dropdown = None
+    self.button_data_import = None
+    self.button_data_export = None
     self._refresh_elements()
 
   def _refresh_elements(self):
@@ -91,6 +68,10 @@ class Header(base.Component):
         self._driver, self.locators.TOGGLE_USER_DROPDOWN)
     self.toggle_lhn_menu = base.Toggle(
         self._driver, self.locators.TOGGLE_LHN)
+    self.button_data_import = base.Button(
+        self._driver, self.locators.BUTTON_DATA_IMPORT)
+    self.button_data_export = base.Button(
+        self._driver, self.locators.BUTTON_DATA_EXPORT)
 
   def open_lhn_menu(self):
     """Opens LHN on Dashboard.
@@ -116,18 +97,41 @@ class Header(base.Component):
       self._refresh_elements()
       self.close_lhn_menu()
 
-  def click_on_logo(self):
-    """
-    Return: widget.DataAssets
-    """
-    raise NotImplementedError
-
   def open_user_list(self):
     """
     Return: UserList
     """
     self.toggle_user_dropdown.click()
     return UserList(self._driver)
+
+  def select_my_work(self):
+    """
+    Return: widget.Dashboard
+    """
+    self.button_dashboard.click()
+    return Dashboard(self._driver)
+
+
+class Header(GenericHeader):
+  """Header of page dashboard with navigation to admin panel."""
+
+  def __init__(self, driver):
+    super(Header, self).__init__(driver)
+    self.button_admin_dashboard = None
+    self._refresh_elements()
+
+  def _refresh_elements(self):
+    """Refresh dashboard elements."""
+    super(Header, self)._refresh_elements()
+    self.button_admin_dashboard = base.Button(
+        self._driver, self.locators.BUTTON_ADMIN_DASHBOARD)
+
+  def select_admin_dashboard(self):
+    """
+    Return: widget.AdminDashboard
+    """
+    self.button_admin_dashboard.click()
+    return AdminDashboard(self._driver)
 
 
 class Dashboard(widget_bar.Dashboard, Header):
@@ -137,10 +141,9 @@ class Dashboard(widget_bar.Dashboard, Header):
 
   def __init__(self, driver):
     super(Dashboard, self).__init__(driver)
-    self.button_help = base.Button(self._driver, self.locators.BUTTON_HELP)
 
 
-class AdminDashboard(widget_bar.AdminDashboard, Header):
+class AdminDashboard(widget_bar.AdminDashboard, GenericHeader):
   """Admin Dashboard page model."""
   # pylint: disable=abstract-method
   URL = environment.APP_URL + url.ADMIN_DASHBOARD
