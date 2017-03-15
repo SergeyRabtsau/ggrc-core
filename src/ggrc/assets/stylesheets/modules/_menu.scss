@@ -6,9 +6,8 @@
 .menu {
   @extend %reset-list;
   @extend %clearfix;
-  position: absolute;
-  right: 0;
   margin-right: 40px;
+  margin-left: auto;
   display: flex;
   align-items: center;
   li {
