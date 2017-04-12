@@ -881,7 +881,8 @@ class TreeView(object):
   ITEM_LOADING = (By.CSS_SELECTOR, " .tree-item-placeholder")
   ITEM_EXPAND_BUTTON = "tree-item-actions"
   SPINNER = (By.CSS_SELECTOR, " .tree-spinner")
-  NO_RESULTS_MESSAGE = (By.CSS_SELECTOR, ".tree-no-results-message")
+  NO_RESULTS_MESSAGE = (
+      By.CSS_SELECTOR, ".widget:not(.hidden) .tree-no-results-message")
   BUTTON_SHOW_FIELDS = "{} " + Common.TREE_HEADER + " .fa-bars"
   # user input elements
   BUTTON_3BBS = "{} " + Common.TREE_LIST + " .btn-draft"
