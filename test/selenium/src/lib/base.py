@@ -576,6 +576,11 @@ class TreeViewItem(Component):
     return selenium_utils.is_value_in_attr(self.expand_btn)
 
 
+class AdminTreeView(TreeView):
+  """Class for representing Tree View list in Admin dashboard."""
+  _locators = constants.locator.AdminTreeView
+
+
 class ListCheckboxes(Component):
   """Generic list of checkboxes elements."""
 

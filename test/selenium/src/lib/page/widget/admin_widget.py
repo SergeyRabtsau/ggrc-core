@@ -42,7 +42,7 @@ class Roles(Widget):
 
   def __init__(self, driver):
     super(Roles, self).__init__(driver)
-    self.roles_tree_view = base.TreeView(
+    self.roles_tree_view = base.AdminTreeView(
         self._driver, widget_name=url.Widget.ROLES)
 
   def get_role_scopes_text_as_dict(self):
@@ -59,7 +59,7 @@ class CustomAttributes(widget_base.WidgetAdminCustomAttributes):
 
   def __init__(self, driver):
     super(CustomAttributes, self).__init__(driver)
-    self.ca_tree_view = base.TreeView(
+    self.ca_tree_view = base.AdminTreeView(
         self._driver, widget_name=url.Widget.CUSTOM_ATTRIBUTES)
 
   def expand_collapse_group(self, item_title, expand=True):

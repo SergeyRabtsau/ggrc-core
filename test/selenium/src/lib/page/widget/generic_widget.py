@@ -84,14 +84,16 @@ class Widget(base.Widget):
 
   def get_items_count(self):
     """Get elements' count from counter on filter panel."""
+    selenium_utils.wait_for_js_to_load(self._driver)
     return self.wait_for_counter_loaded().text.split()[2]
 
   def wait_member_deleted(self, count):
     """Wait until elements' counter on filter panel refreshed with new value.
     Args: count (str)
     """
+    selenium_utils.wait_for_js_to_load(self._driver)
     if count != '1':
-      new_count = ' {} '.format(int(count) - 1)
+      new_count = ' {}'.format(int(count) - 1)
       selenium_utils.wait_for_element_text(
           self._driver, locator.BaseWidgetGeneric.FILTER_PANE_COUNTER,
           new_count)
