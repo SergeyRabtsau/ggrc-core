@@ -457,7 +457,6 @@ class TestGetObjectColumnDefinitions(TestCase):
         "Last Deprecated Date",
         "State",
         "Review State",
-        "Url",
         "Evidence",
         "Delete",
     }
