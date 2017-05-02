@@ -23,6 +23,8 @@ class Documentable(object):
                                       ['title', 'link']),
       MultipleSubpropertyFullTextAttr('document_url', 'document_url',
                                       ['link']),
+      MultipleSubpropertyFullTextAttr('reference_url', 'reference_url',
+                                      ['link']),
   ]
 
   @declared_attr
@@ -80,6 +82,11 @@ class Documentable(object):
     return [d for d in self.documents
             if Document.ATTACHMENT == d.document_type]
 
+  @property
+  def reference_url(self):  # pylint: disable=no-self-argument
+    return [d for d in self.documents
+            if Document.REFERENCE_URL == d.document_type]
+
   @classmethod
   def eager_query(cls):
     """Eager query classmethod."""
@@ -107,6 +114,7 @@ class Documentable(object):
     out_json = super(Documentable, self).log_json()
     out_json["document_url"] = self._log_docs(self.document_url)
     out_json["document_evidence"] = self._log_docs(self.document_evidence)
+    out_json["reference_url"] = self._log_docs(self.reference_url)
     return out_json
 
   @classmethod
@@ -134,6 +142,11 @@ PublicDocumentable = type(
                     "titles.\nExample:\n\nhttp://my.gdrive.link/file "
                     "Title of the evidence link"
                 ),
+            },
+            "reference_url": {
+                "display_name": "Reference URL",
+                "type": reflection.AttributeInfo.Type.SPECIAL_MAPPING,
+                "description": "New line separated list of Reference URLs.",
             },
         }
     })

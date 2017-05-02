@@ -267,36 +267,6 @@ class Noted(object):
     )
 
 
-class Hyperlinked(object):
-  """Mixin that defines `url` and `reference_url` fields."""
-
-  @declared_attr
-  def url(cls):  # pylint: disable=no-self-argument
-    return deferred(db.Column(db.String), cls.__name__)
-
-  @declared_attr
-  def reference_url(cls):  # pylint: disable=no-self-argument
-    return deferred(db.Column(db.String), cls.__name__)
-
-  # REST properties
-  _publish_attrs = ['url', 'reference_url']
-
-  _aliases = {
-      "url": "Url",
-      "reference_url": "Reference URL",
-  }
-  _fulltext_attrs = [
-      'url',
-      'reference_url',
-  ]
-
-  @classmethod
-  def indexed_query(cls):
-    return super(Hyperlinked, cls).indexed_query().options(
-        orm.Load(cls).load_only("url", "reference_url"),
-    )
-
-
 class Hierarchical(object):
   """Mixin that defines `parent` and `child` fields to organize hierarchy."""
 
@@ -893,8 +863,7 @@ class WithContact(object):
   }
 
 
-class BusinessObject(Stateful, Noted, Described, Hyperlinked,
-                     Titled, Slugged):
+class BusinessObject(Stateful, Noted, Described, Titled, Slugged):
   """Mixin that groups most commonly-used mixins into one."""
   DRAFT = 'Draft'
   ACTIVE = 'Active'
@@ -944,7 +913,6 @@ __all__ = [
     "Described",
     "FinishedDate",
     "Hierarchical",
-    "Hyperlinked",
     "Identifiable",
     "Noted",
     "Notifiable",

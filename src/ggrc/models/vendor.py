@@ -6,6 +6,7 @@ from ggrc.access_control.roleable import Roleable
 from ggrc.fulltext.mixin import Indexed
 from .mixins import (BusinessObject, LastDeprecatedTimeboxed,
                      CustomAttributable)
+from .object_document import PublicDocumentable
 from .object_person import Personable
 from .relationship import Relatable
 from .track_object_state import HasObjectState
@@ -13,10 +14,10 @@ from .track_object_state import HasObjectState
 
 class Vendor(Roleable, HasObjectState, CustomAttributable, Personable,
              Relatable, LastDeprecatedTimeboxed, BusinessObject,
-             Indexed, db.Model):
+             Indexed, PublicDocumentable, db.Model):
   __tablename__ = 'vendors'
 
   _aliases = {
-      "url": "Vendor URL",
-      "reference_url": "Reference URL",
+      "document_url": None,
+      "document_evidence": None,
   }

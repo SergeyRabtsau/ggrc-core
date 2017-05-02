@@ -6,14 +6,19 @@ from ggrc.access_control.roleable import Roleable
 from ggrc.fulltext.mixin import Indexed
 from .mixins import (BusinessObject, LastDeprecatedTimeboxed,
                      CustomAttributable)
+from .object_document import PublicDocumentable
 from .object_person import Personable
 from .relationship import Relatable
 from .track_object_state import HasObjectState
 
 
-class DataAsset(Roleable, HasObjectState, CustomAttributable, Personable,
-                Relatable, LastDeprecatedTimeboxed, BusinessObject,
-                Indexed, db.Model):
+class DataAsset(Roleable, HasObjectState, PublicDocumentable,
+                CustomAttributable, Personable, Relatable,
+                LastDeprecatedTimeboxed, BusinessObject, Indexed,
+                db.Model):
   __tablename__ = 'data_assets'
 
-  _aliases = {"url": "Data Asset URL"}
+  _aliases = {
+      "document_url": None,
+      "document_evidence": None,
+  }

@@ -32,7 +32,9 @@ class Document(Roleable, Relatable, Base, Indexed, db.Model):
 
   URL = "URL"
   ATTACHMENT = "EVIDENCE"
-  document_type = deferred(db.Column(db.Enum(URL, ATTACHMENT),
+  REFERENCE_URL = "REFERENCE_URL"
+
+  document_type = deferred(db.Column(db.Enum(URL, ATTACHMENT, REFERENCE_URL),
                                      default=URL,
                                      nullable=False),
                            'Document')
@@ -103,13 +105,15 @@ class Document(Roleable, Relatable, Base, Indexed, db.Model):
     """Returns correct option, otherwise rises an error"""
     if document_type is None:
       document_type = self.URL
-    if document_type not in [self.URL, self.ATTACHMENT]:
+    if document_type not in [self.URL, self.ATTACHMENT, self.REFERENCE_URL]:
       raise exceptions.ValidationError(
           "Invalid value for attribute {attr}. "
-          "Expected options are `{url}`, `{attachment}`.".format(
+          "Expected options are `{url}`, `{attachment}`, `{reference_url}`".
+          format(
               attr=key,
               url=self.URL,
               attachment=self.ATTACHMENT,
+              reference_url=self.REFERENCE_URL
           )
       )
     return document_type

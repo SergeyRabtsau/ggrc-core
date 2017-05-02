@@ -129,10 +129,8 @@ class Base(object):
   WIDGET_INFO_HEADER_FORMAT = "{} Info"
   TYPE = "Type"
   STATE = "State"
-  REFERENCE_URL = "Reference URL"
   EFFECTIVE_DATE = "Effective Date"
   STOP_DATE = "Stop Date"
-  URL = "URL"
 
 
 class CommonModalCreate(object):
@@ -178,8 +176,6 @@ class CommonProgram(Common):
   PROGRAM = objects.get_normal_form(objects.get_singular(objects.PROGRAMS))
   TITLE = Common.TITLE
   MANAGER = "Manager"
-  PROGRAM_URL = "Program URL"
-  REFERENCE_URL = Base.REFERENCE_URL
   NOTES = "Notes"
   EFFECTIVE_DATE = Base.EFFECTIVE_DATE
   STATE = Base.STATE
@@ -334,8 +330,6 @@ class AssessmentModalSetVisibleFields(CommonModalSetVisibleFields):
   CONCLUSION_OPERATION = "Conclusion: Operation"
   FINISHED_DATE = "Finished Date"
   VERIFIED_DATE = "Verified Date"
-  URL = Base.URL
-  REFERENCE_URL = Base.REFERENCE_URL
   TYPE = Base.TYPE
   DEFAULT_SET_FIELDS = (
       CommonModalSetVisibleFields.TITLE, CommonModalSetVisibleFields.STATE,
@@ -352,8 +346,6 @@ class ControlModalSetVisibleFields(CommonModalSetVisibleFields):
       CommonControl.CONTROL)
   REVIEW_STATE = TransformationSetVisibleFields.REVIEW_STATE
   ADMIN = TransformationSetVisibleFields.ADMIN
-  URL = Base.URL
-  REFERENCE_URL = Base.REFERENCE_URL
   EFFECTIVE_DATE = Base.EFFECTIVE_DATE
   KIND_NATURE = "Kind/Nature"
   FRAUD_RELATED = "Fraud Related"
@@ -395,8 +387,6 @@ class IssueModalSetVisibleFields(CommonModalSetVisibleFields):
       CommonIssue.ISSUE)
   ADMIN = TransformationSetVisibleFields.ADMIN
   REVIEW_STATE = TransformationSetVisibleFields.REVIEW_STATE
-  URL = Base.URL
-  REFERENCE_URL = Base.REFERENCE_URL
   DEFAULT_SET_FIELDS = (
       CommonModalSetVisibleFields.TITLE, ADMIN,
       CommonModalSetVisibleFields.CODE, CommonModalSetVisibleFields.STATE,
@@ -412,8 +402,6 @@ class ProgramModalSetVisibleFields(CommonModalSetVisibleFields):
       CommonProgram.PROGRAM)
   REVIEW_STATE = TransformationSetVisibleFields.REVIEW_STATE
   MANAGER = CommonProgram.MANAGER
-  URL = Base.URL
-  REFERENCE_URL = Base.REFERENCE_URL
   EFFECTIVE_DATE = Base.EFFECTIVE_DATE
   DEFAULT_SET_FIELDS = (
       CommonModalSetVisibleFields.TITLE, CommonModalSetVisibleFields.CODE,
