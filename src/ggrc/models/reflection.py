@@ -65,7 +65,6 @@ ATTRIBUTE_ORDER = (
     "principal_assessor",
     "secondary_assessor",
     "secondary_contact",
-    "url",
     "assessment_type",
     "reference_url",
     "verify_frequency",

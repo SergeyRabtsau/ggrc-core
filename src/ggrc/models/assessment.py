@@ -57,24 +57,6 @@ def reindex_by_relationship_attr(relationship_attr):
   return Assessment.query.filter(Assessment.id.in_(resulting_subquery)).all()
 
 
-def reindex_by_relationship(relationship):
-  """Return a list of assessments which which need to be reindexed
-
-  In case Relationship changed or created or deleted
-  """
-  source_type = relationship.source_type
-  destination_type = relationship.destination_type
-  if destination_type == "Assessment" and source_type == "Document":
-    instance = relationship.destination
-  elif source_type == "Assessment" and destination_type == "Document":
-    instance = relationship.source
-  else:
-    return []
-  if isinstance(instance, (Indexed, Commentable)):
-    return [instance]
-  return []
-
-
 class Assessment(Roleable, statusable.Statusable, AuditRelationship,
                  AutoStatusChangeable, Assignable, HasObjectState, TestPlanned,
                  CustomAttributable, PublicDocumentable, Commentable,
@@ -185,10 +167,8 @@ class Assessment(Roleable, statusable.Statusable, AuditRelationship,
       'design',
       'notes',
       'operationally',
-      'reference_url',
       'test_plan',
       'title',
-      'url',
       'start_date',
       'end_date'
   }
@@ -205,7 +185,6 @@ class Assessment(Roleable, statusable.Statusable, AuditRelationship,
           "display_name": "Assessment Type",
           "mandatory": False,
       },
-      "url": "Assessment URL",
       "design": "Conclusion: Design",
       "operationally": "Conclusion: Operation",
       "related_creators": {
@@ -231,8 +210,7 @@ class Assessment(Roleable, statusable.Statusable, AuditRelationship,
   }
 
   AUTO_REINDEX_RULES = [
-      ReindexRule("RelationshipAttr", reindex_by_relationship_attr),
-      ReindexRule("Relationship", reindex_by_relationship)
+      ReindexRule("RelationshipAttr", reindex_by_relationship_attr)
   ]
 
   similarity_options = {

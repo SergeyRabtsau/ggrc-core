@@ -9,6 +9,7 @@ from ggrc.fulltext.mixin import Indexed
 from ggrc.models.associationproxy import association_proxy
 from ggrc.models import mixins
 from ggrc.models.deferred import deferred
+from ggrc.models.object_document import PublicDocumentable
 from ggrc.models.object_owner import Ownable
 from ggrc.models.object_person import Personable
 from ggrc.models.reflection import PublishOnly
@@ -18,9 +19,8 @@ from ggrc.models.track_object_state import HasObjectState
 
 class Risk(Roleable, HasObjectState, mixins.CustomAttributable,
            mixins.Stateful, Relatable, mixins.Described, Ownable, Personable,
-           mixins.Titled, mixins.LastDeprecatedTimeboxed,
-           mixins.Noted, mixins.Hyperlinked, mixins.Slugged, Indexed,
-           db.Model):
+           mixins.Titled, mixins.LastDeprecatedTimeboxed, mixins.Noted,
+           PublicDocumentable, mixins.Slugged, Indexed, db.Model):
   __tablename__ = 'risks'
 
   VALID_STATES = [
@@ -44,6 +44,8 @@ class Risk(Roleable, HasObjectState, mixins.CustomAttributable,
   ]
 
   _aliases = {
+      "document_url": None,
+      "document_evidence": None,
       "status": {
           "display_name": "State",
           "mandatory": False,

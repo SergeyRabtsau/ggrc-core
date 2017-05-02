@@ -135,7 +135,6 @@ class TestColumnOrder(unittest.TestCase):
         "start_date",
         "status",
         "kind",
-        "url",
         "reference_url",
         "name",
         "email",

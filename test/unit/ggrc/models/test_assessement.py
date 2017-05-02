@@ -50,12 +50,11 @@ class TestAssessmentMixins(test_mixins_base.TestMixinsBase):
         ('document_evidence', property),                                 # Documentable   # noqa
         ('object_people', attributes.InstrumentedAttribute),             # Personable     # noqa
         ('os_state', attributes.InstrumentedAttribute),                  # HasObjectState # noqa
-        ('reference_url', attributes.InstrumentedAttribute),             # HyperLinked    # noqa
+        ('reference_url', attributes.InstrumentedAttribute),             # Documentable   # noqa
         ('related_sources', attributes.InstrumentedAttribute),           # Relatable      # noqa
         ('related_destinations', attributes.InstrumentedAttribute),      # Relatable      # noqa
         ('slug', attributes.InstrumentedAttribute),                      # Slugged        # noqa
         ('start_date', attributes.InstrumentedAttribute),                # Timeboxed      # noqa
         ('test_plan', attributes.InstrumentedAttribute),                 # TestPlanned    # noqa
         ('title', attributes.InstrumentedAttribute),                     # Titled         # noqa
-        ('url', attributes.InstrumentedAttribute),                       # HyperLinked    # noqa
     ]

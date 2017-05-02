@@ -8,7 +8,7 @@ from sqlalchemy import orm
 from ggrc import db
 from ggrc.models.deferred import deferred
 from ggrc.models.mixins import (
-    Timeboxed, Noted, Described, Hyperlinked, WithContact,
+    Timeboxed, Noted, Described, WithContact,
     Titled, Slugged, CustomAttributable, Stateful
 )
 
@@ -27,7 +27,7 @@ from ggrc.fulltext.mixin import Indexed
 
 class Audit(Snapshotable, clonable.Clonable, PublicDocumentable,
             CustomAttributable, Personable, HasOwnContext, Relatable,
-            Timeboxed, Noted, Described, Hyperlinked, WithContact, Titled,
+            Timeboxed, Noted, Described, WithContact, Titled,
             Stateful, Slugged, Indexed, db.Model):
   """Audit model."""
 
@@ -57,8 +57,6 @@ class Audit(Snapshotable, clonable.Clonable, PublicDocumentable,
 
   assessments = db.relationship('Assessment', backref='audit')
   issues = db.relationship('Issue', backref='audit')
-  archived = deferred(db.Column(db.Boolean,
-                      nullable=False, default=False), 'Audit')
 
   _publish_attrs = [
       'report_start_date',
@@ -68,12 +66,10 @@ class Audit(Snapshotable, clonable.Clonable, PublicDocumentable,
       'gdrive_evidence_folder',
       'program',
       'object_type',
-      'archived',
       PublishOnly('audit_objects')
   ]
 
   _fulltext_attrs = [
-      'archived',
       'report_start_date',
       'report_end_date',
       'audit_firm',

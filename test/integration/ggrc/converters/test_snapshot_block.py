@@ -94,7 +94,6 @@ class TestSnapshotBlockConverter(TestCase):
             ('key_control', 'Significance'),
             ('kind', 'Kind/Nature'),
             ('means', 'Type/Means'),
-            ('url', 'Control URL'),
             ('reference_url', 'Reference URL'),
             ('verify_frequency', 'Frequency'),
             ('document_evidence', 'Evidence'),
