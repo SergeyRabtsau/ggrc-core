@@ -35,8 +35,6 @@ class Issue(Roleable, HasObjectState, TestPlanned, CustomAttributable,
   ]
 
   _aliases = {
-      "document_url": None,
-      "document_evidence": None,
       "test_plan": {
           "display_name": "Remediation Plan"
       },

@@ -85,7 +85,7 @@ _DEFAULT_COLUMN_HANDLERS_DICT = {
     "principal_assessor": handlers.UserColumnHandler,
     "program": handlers.ProgramColumnHandler,
     "recipients": list_handlers.ValueListHandler,
-    "reference_url": document.DocumentUrlHandler,
+    "reference_url": document.ReferenceUrlHandler,
     "related_assessors": related_person.RelatedAssessorsColumnHandler,
     "related_assignees": related_person.RelatedAssigneesColumnHandler,
     "related_creators": related_person.RelatedCreatorsColumnHandler,

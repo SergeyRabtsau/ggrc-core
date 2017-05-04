@@ -834,7 +834,7 @@ class TestAdvancedQueryAPI(BaseQueryAPITestCase):
     """Filter by navive object attrs with 'is empty' operator."""
     programs = self._get_first_result_set(
         self._make_query_dict("Program",
-                              expression=["program url", "is", "empty"]),
+                              expression=["notes", "is", "empty"]),
         "Program",
     )
     self.assertEqual(programs["count"], 1)
@@ -1179,16 +1179,16 @@ class TestQueryAssessmentByEvidenceURL(BaseQueryAPITestCase):
     self.assertItemsEqual([asmt["title"] for asmt in assessments_by_evidence],
                           ["Assessment title 1", "Assessment title 3"])
 
-    assessments_by_evidence = self._get_first_result_set(
+    assessments_by_url = self._get_first_result_set(
         self._make_query_dict(
             "Assessment",
-            expression=["url", "~", "i.imgur.com"],
+            expression=["Reference URL", "~", "i.imgur.com"],
         ),
         "Assessment", "values",
     )
 
-    self.assertEqual(len(assessments_by_evidence), 3)
-    self.assertItemsEqual([asmt["title"] for asmt in assessments_by_evidence],
+    self.assertEqual(len(assessments_by_url), 3)
+    self.assertItemsEqual([asmt["title"] for asmt in assessments_by_url],
                           ["Assessment title 1",
                            "Assessment title 3",
                            "Assessment title 4"])

@@ -19,7 +19,7 @@ from ggrc.models.track_object_state import HasObjectState
 
 class Section(Roleable, HasObjectState, Hierarchical, db.Model,
               CustomAttributable, Personable, Relatable, Indexed,
-              BusinessObject, PublicDocumentable):
+              PublicDocumentable, BusinessObject):
 
   __tablename__ = 'sections'
   _table_plural = 'sections'

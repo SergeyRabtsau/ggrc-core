@@ -94,10 +94,7 @@ class TestExportSnapshots(TestCase):
             "Frequency": control.verify_frequency.display_name,
             "Kind/Nature": control.kind.display_name,
             "Notes": control.notes,
-            "Urls": control.urls,
             "Review State": control.os_state,
-            "Secondary Assignee": control.secondary_assessor.email,
-            "Secondary Contact": control.secondary_contact.email,
             "Significance": u"key" if control.key_control else u"non-key",
             "State": control.status,
             "Last Deprecated Date": control.end_date.strftime("%m/%d/%Y"),
@@ -113,6 +110,7 @@ class TestExportSnapshots(TestCase):
             # Special snapshot export fields
             "Audit": audit.slug,
             "Evidence": u"\n".join(c.slug for c in control.document_evidence),
+            "Reference URL": u"\n".join(c.slug for c in control.reference_url),
             "Assertions": u"\n".join(c.name for c in control.assertions),
             "Categories": u"\n".join(c.name for c in control.categories),
             # Computed attributes
@@ -215,7 +213,7 @@ class TestExportSnapshots(TestCase):
 
             # Custom attributes
             "RT": u"",
-            "URLs": u"",
+            "Reference URL": u"",
             "checkbox": u"no",
             "date": u"",
             "dropdown": u"",

@@ -1,7 +1,7 @@
 ,,,,,,,,,,,,
 ,,,,,,,,,,,,
 Object Type,All of this should pass without any warnings,,,,,,,,,,,
-org_group,Title,Description,Notes,Admin,Org Group URL,Reference URL,Code,Effective Date,Last Deprecated Date,State,,
+org_group,Title,Description,Notes,Admin,,,Code,Effective Date,Last Deprecated Date,State,,
 ,org group 1,description of org group 1,no notes here,user@example.com,,,org-1,,,Draft,,
 ,org group 2,description of org group 2,no notes here,that.guy@email.com,,,org-2,,,Draft,,
 ,org group 3,description of org group 3,no notes here,noname@email.com,,,org-3,,,Draft,,
