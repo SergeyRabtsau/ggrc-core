@@ -57,6 +57,8 @@ class Audit(Snapshotable, clonable.Clonable, PublicDocumentable,
 
   assessments = db.relationship('Assessment', backref='audit')
   issues = db.relationship('Issue', backref='audit')
+  archived = deferred(db.Column(db.Boolean,
+                      nullable=False, default=False), 'Audit')
 
   _publish_attrs = [
       'report_start_date',
@@ -66,10 +68,12 @@ class Audit(Snapshotable, clonable.Clonable, PublicDocumentable,
       'gdrive_evidence_folder',
       'program',
       'object_type',
+      'archived',
       PublishOnly('audit_objects')
   ]
 
   _fulltext_attrs = [
+      'archived',
       'report_start_date',
       'report_end_date',
       'audit_firm',
