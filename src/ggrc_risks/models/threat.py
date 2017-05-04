@@ -14,8 +14,8 @@ from ggrc.models.track_object_state import HasObjectState
 
 
 class Threat(Roleable, HasObjectState, CustomAttributable, Personable,
-             Relatable, LastDeprecatedTimeboxed, Ownable, BusinessObject,
-             Indexed, PublicDocumentable, db.Model):
+             Relatable, LastDeprecatedTimeboxed, Ownable, PublicDocumentable,
+             BusinessObject, Indexed, db.Model):
   __tablename__ = 'threats'
 
   _aliases = {

@@ -341,7 +341,7 @@ class TestGetObjectColumnDefinitions(TestCase):
         "Archived",
         "Delete",
         "Url",
-        "Evidence",
+        "Evidence"
     }
     expected_fields = {
         "mandatory": {
@@ -457,6 +457,7 @@ class TestGetObjectColumnDefinitions(TestCase):
         "Last Deprecated Date",
         "State",
         "Review State",
+        "Url",
         "Evidence",
         "Delete",
     }
@@ -657,7 +658,6 @@ class TestGetObjectColumnDefinitions(TestCase):
         "Review State",
         "Last Deprecated Date",
         "Title",
-        "Url",
     }
     expected_fields = {
         "mandatory": {
@@ -700,7 +700,6 @@ class TestGetObjectColumnDefinitions(TestCase):
         "Review State",
         "Delete",
     }
-    names.add("{} URL".format(model._inflector.title_singular.title()))
     self._test_single_object(model, names, self.COMMON_EXPECTED)
 
 

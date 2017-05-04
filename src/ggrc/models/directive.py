@@ -19,8 +19,8 @@ from .utils import validate_option
 from .track_object_state import HasObjectState
 
 
-class Directive(HasObjectState, LastDeprecatedTimeboxed, BusinessObject,
-                PublicDocumentable, db.Model):
+class Directive(HasObjectState, LastDeprecatedTimeboxed, PublicDocumentable,
+                BusinessObject, db.Model):
   __tablename__ = 'directives'
 
   version = deferred(db.Column(db.String), 'Directive')

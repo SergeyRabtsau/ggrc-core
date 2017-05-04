@@ -16,7 +16,7 @@ from .mixins.with_last_assessment_date import WithLastAssessmentDate
 
 class Objective(WithLastAssessmentDate, Roleable, HasObjectState,
                 CustomAttributable, Auditable, Relatable, Personable,
-                Ownable, BusinessObject, Indexed, PublicDocumentable,
+                Ownable, PublicDocumentable, BusinessObject, Indexed,
                 db.Model):
   __tablename__ = 'objectives'
   _publish_attrs = []

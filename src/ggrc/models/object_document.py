@@ -56,6 +56,18 @@ class Documentable(object):
         ],
         else_=literal(False)
     )
+    documentable_type = case(
+        [
+            (
+                Relationship.destination_type == "Document",
+                Relationship.source_type
+            ),
+            (
+                Relationship.source_type == "Document",
+                Relationship.destination_type,
+            ),
+        ],
+    )
     return db.relationship(
         Document,
         # at first we check is documentable_id not False (it return id in fact)
@@ -68,7 +80,8 @@ class Documentable(object):
         # after that we can compare values.
         # this is required for saving logic consistancy
         # case return 2 types of values BOOL(false) and INT(id) not Null
-        secondaryjoin=lambda: and_(document_id, Document.id == document_id),
+        secondaryjoin=lambda: and_(document_id, Document.id == document_id,
+                                   documentable_type == cls.__name__),
         viewonly=True,
     )
 

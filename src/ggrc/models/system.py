@@ -17,8 +17,9 @@ from ggrc.models.utils import validate_option
 from ggrc.models import track_object_state
 
 
-class SystemOrProcess(track_object_state.HasObjectState, BusinessObject,
-                      LastDeprecatedTimeboxed, PublicDocumentable, db.Model):
+class SystemOrProcess(track_object_state.HasObjectState,
+                      LastDeprecatedTimeboxed, PublicDocumentable,
+                      BusinessObject, db.Model):
   # Override model_inflector
   _table_plural = 'systems_or_processes'
   __tablename__ = 'systems'
