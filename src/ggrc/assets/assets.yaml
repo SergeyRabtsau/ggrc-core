@@ -329,6 +329,7 @@ dashboard-js-files:
   - components/related-objects/related-people-mapping.js
   - components/related-objects/related-people-access-control.js
   - components/related-objects/related-people-access-control-group.js
+  - components/related-objects/related-reference-urls.js
   - components/custom-roles/custom-roles.js
   - components/custom-roles/custom-roles-modal.js
   - components/inline/inline.js
