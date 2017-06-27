@@ -17,6 +17,7 @@
     destroy: 'DELETE /api/documents/{id}',
     EVIDENCE: 'EVIDENCE',
     URL: 'URL',
+    REFERENCE_URL: 'REFERENCE_URL',
     search: function (request, response) {
       return $.ajax({
         type: 'get',
