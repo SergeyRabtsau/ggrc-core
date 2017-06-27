@@ -26,12 +26,16 @@
 
   {{#default}}
     {{#if_helpers '\
-    #if_equals' attr_name 'url' '\
-    or #if_equals' attr_name 'reference_url'}}
-      <a class="url" href="{{get_url_value attr_name instance}}" target="_blank"
-        rel="tooltip" title="{{get_default_attr_value attr_name instance}}">
-        {{get_default_attr_value attr_name instance}}
-      </a>
+    #if_equals' attr_name 'reference_url'}}
+      <related-documents instance={instance} document-type="REFERENCE_URL">
+        <div class="reference-urls-list">
+          {{#each documents}}
+            <span class="reference-urls-list__item">
+              <a class="reference-urls-list__link link" href="{{link}}" target="_blank">{{title}}</a>
+            </span>
+          {{/each}}
+        </div>
+      </related-documents>
     {{else}}
       {{get_default_attr_value attr_name instance}}
     {{/if_helpers}}
