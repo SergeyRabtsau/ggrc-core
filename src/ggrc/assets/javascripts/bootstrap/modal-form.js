@@ -135,7 +135,7 @@
     },
 
     keypress_submit: function (e) {
-      if (e.which === 13 && !$(e.target).is('textarea')) {
+      if (e.which === 13 && !$(e.target).is('textarea') && !$(e.target).hasClass('create-form__input')) {
         if (!e.isDefaultPrevented()) {
           e.preventDefault();
           this.$form().submit();
