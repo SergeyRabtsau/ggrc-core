@@ -5,32 +5,59 @@
 
 {{#instance}}
   <div class="row-fluid wrap-row">
-    <div data-test-id="title_program_url_aa7d1a65" class="span6">
-      <h6>
-        {{firstnonempty constructor.title_singular}}
-        URL
-      </h6>
-      <p>
-        {{#if url}}
-          <a data-test-id="text_program_url_aa7d1a65" class="url" href="{{schemed_url url}}" target="_blank">
-            {{url}}
-          </a>
-        {{else}}
-          <span class="empty-message">None</span>
-        {{/if}}
-      </p>
-    </div>
     <div data-test-id="title_reference_url_aa7d1a65" class="span6">
-      <h6>Reference URL</h6>
-      <p>
-        {{#if reference_url}}
-          <a data-test-id="text_reference_url_aa7d1a65" class="url" href="{{schemed_url reference_url}}" target="_blank">
-            {{reference_url}}
-          </a>
-        {{else}}
-          <span class="empty-message">None</span>
-        {{/if}}
-      </p>
+      <related-documents instance={instance} document-type="REFERENCE_URL">
+        <related-reference-urls class="related-reference-urls"
+          {(urls)}="documents"
+          {is-disabled}="isLoading"
+          {is-not-editable}="isSnapshot"
+          (createReferenceUrl)="createRelatedDocument(%event.payload)"
+          (removeReferenceUrl)="removeRelatedDocument(%event.payload)">
+          <div class="related-reference-urls__heading">
+            <spinner class="related-reference-urls__spinner" {toggle}="isLoading"></spinner>
+            <h6 class="related-reference-urls__title">Reference URL</h6>
+          </div>
+          <div class="related-reference-urls__list">
+            <object-list {(items)}="urls" {empty-message}="''">
+              <div class="related-reference-urls__list-item">
+                <document-object-list-item {instance}="{.}">
+                </document-object-list-item>
+                {{#unless isNotEditable}}
+                  <button type="button" class="related-reference-urls__remove"
+                    {{#if isDisabled}}disabled{{/if}}
+                    ($click)="removeReferenceUrl(%context)">
+                  </button>
+                {{/unless}}
+              </div>
+            </object-list>
+          </div>
+          {{#unless isNotEditable}}
+            <form class="related-reference-urls__create create-form {{#if isFormVisible}}create-form--visible{{/if}}">
+              <fieldset class="create-form__layout"
+                {{#if isDisabled}}disabled{{/if}}>
+                <input {($value)}="value"
+                class="create-form__input"
+                type="text"
+                placeholder="Add URL"
+                spellcheck="false"
+                autocomplete="false">
+                <div class="create-form__controls">
+                  <button type="submit" class="create-form__confirm" ($click)="submitCreateReferenceUrlForm(value)">
+                    <i class="fa fa-check"></i>
+                  </button>
+                  <button type="button" class="create-form__cancel" ($click)="toggleFormVisibility(false)">
+                    <i class="fa fa-times"></i>
+                  </button>
+                </div>
+              </fieldset>
+            </form>
+            <button type="button" class="related-reference-urls__toggle btn btn-small btn-gray {{#if isFormVisible}}related-reference-urls__toggle--hidden{{/if}}"
+            ($click)="toggleFormVisibility(true)">
+              Add
+            </button>
+          {{/unless}}
+        </related-reference-urls>
+      </related-documents>
     </div>
   </div>
 

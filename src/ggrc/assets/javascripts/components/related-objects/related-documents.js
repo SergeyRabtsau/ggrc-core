@@ -67,11 +67,12 @@
       setDocuments: function () {
         var instance = this.attr('instance');
         var documentType = this.attr('documentType');
+        var isSnapshot = this.attr('isSnapshot');
         var documentPath;
         var documents;
 
         // load documents for non-snapshots objects
-        if (!instance.snapshot && !instance.isRevision) {
+        if (!isSnapshot) {
           this.loadDocuments();
           return;
         }
@@ -239,10 +240,13 @@
       }
     },
     init: function () {
-      var isNew = this.viewModel.instance.isNew();
+      var instance = this.viewModel.attr('instance');
+      var isNew = instance.isNew();
+      var isSnapshot = !!(instance.snapshot || instance.isRevision);
 
       // don't need to load documents for unsaved instance
       if (!isNew) {
+        this.viewModel.attr('isSnapshot', isSnapshot);
         this.viewModel.setDocuments();
       }
     },
