@@ -224,6 +224,29 @@ tree-item {
   .sub-tier {
     padding-left: 32px;
   }
+
+  .reference-urls-list {
+    overflow: hidden;
+    white-space: nowrap;
+    width: 100%;
+    text-overflow: ellipsis;
+
+    &__item {
+
+      &:after {
+        content: ',';
+        position: relative;
+        left: -3px;
+      }
+
+      &:last-of-type {
+
+        &:after {
+          content: none;
+        }
+      }
+    }
+  }
 }
 
 tree-filter-input {
