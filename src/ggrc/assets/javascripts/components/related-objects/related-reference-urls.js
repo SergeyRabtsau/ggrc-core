@@ -27,6 +27,10 @@
         isDisabled: {
           type: 'boolean',
           value: false
+        },
+        isNotEditable: {
+          type: 'boolean',
+          value: false
         }
       },
       /**
