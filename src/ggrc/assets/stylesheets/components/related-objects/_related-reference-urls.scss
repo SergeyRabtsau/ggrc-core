@@ -1,0 +1,142 @@
+.related-reference-urls {
+
+  &__heading {
+    position: relative;
+  }
+
+  &__spinner {
+    position: absolute;
+    top: 0;
+    right: 100%;
+    margin-right: 5px;
+  }
+
+  &__list {
+
+    &-item {
+      display: inline-flex;
+      max-width: 100%;
+
+      & .related-reference-urls__remove {
+        visibility: hidden;
+      }
+
+      &:hover {
+
+        & .related-reference-urls__remove {
+          visibility: visible;
+        }
+      }
+    }
+  }
+
+  document-object-list-item {
+    min-width: 0;
+  }
+
+  & .document-object-item__body {
+    padding-right: 8px;
+  }
+
+  & .link {
+    width: 100%;
+  }
+
+  &__remove {
+    display: flex;
+    height: 28px;
+    min-width: 28px;
+    border-radius: 50%;
+    background: $darkText;
+    font-size: 18px;
+    color: $white;
+    border: none;
+
+    &:hover {
+      background: darken($darkText, 10%);
+      box-shadow: 0 1px 10px -1px rgba($black, 0.4);
+    }
+
+    &:focus {
+      outline: none;
+    }
+
+    &:after {
+      content: '\f1f8';
+      font-family: 'FontAwesome';
+      display: block;
+      height: 100%;
+      width: 100%;
+      margin: auto;
+    }
+
+    &-disabled {
+      opacity: 0.25;
+      color: red;
+
+      &:hover {
+        background: $darkText;
+        box-shadow: none;
+      }
+    }
+  }
+
+  &__toggle {
+    margin-bottom: 2em;
+    &--hidden {
+      display: none;
+    }
+  }
+}
+
+.create-form {
+  display: none;
+
+  &__layout {
+    display: inline-block;
+  }
+
+  & .create-form__layout {
+
+    & > .create-form__input {
+      box-sizing: border-box;
+      height: 30px;
+      border: 1px solid $warmGray;
+      box-shadow: none;
+      padding: 2px 8px;
+      border-radius: 2px 2px 0 2px;
+      margin-bottom: 0;
+    }
+  }
+
+  &__controls {
+    display: flex;
+    justify-content: flex-end;
+  }
+
+  &__confirm, &__cancel {
+    width: 34px;
+    height: 32px;
+    background: $white;
+    border: 1px solid $warmGray;
+    border-top: none;
+    color: $black;
+
+    &:focus {
+      outline: none;
+      color: $black;
+    }
+  }
+
+  &__confirm {
+    border-right: none;
+  }
+
+  &__cancel {
+    border-left: none;
+  }
+
+  &--visible {
+    display: block;
+  }
+}
