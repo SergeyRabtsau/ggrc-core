@@ -221,9 +221,7 @@
         var self = this;
         var document = this.createDocument(data);
 
-        var documents = this.attr('documents').concat([document]);
-
-        this.attr('documents', documents);
+        this.attr('documents').unshift(document);
         this.attr('isLoading', true);
 
         return this.saveDocument(document).then(function () {
