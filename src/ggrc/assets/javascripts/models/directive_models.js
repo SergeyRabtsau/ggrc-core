@@ -104,7 +104,11 @@ CMS.Models.Directive("CMS.Models.Standard", {
     can.extend(this.attributes, CMS.Models.Directive.attributes);
     this._super.apply(this, arguments);
   }
-}, {});
+}, {
+  after_save: function () {
+    this.dispatch('refreshRelatedDocuments');
+  }
+});
 
 CMS.Models.Directive("CMS.Models.Regulation", {
   root_object : "regulation"
@@ -134,7 +138,11 @@ CMS.Models.Directive("CMS.Models.Regulation", {
     can.extend(this.attributes, CMS.Models.Directive.attributes);
     this._super.apply(this, arguments);
   }
-}, {});
+}, {
+  after_save: function () {
+    this.dispatch('refreshRelatedDocuments');
+  }
+});
 
 CMS.Models.Directive("CMS.Models.Policy", {
   root_object : "policy"
@@ -176,7 +184,11 @@ CMS.Models.Directive("CMS.Models.Policy", {
     ]);
     this._super.apply(this, arguments);
   }
-}, {});
+}, {
+  after_save: function () {
+    this.dispatch('refreshRelatedDocuments');
+  }
+});
 
 CMS.Models.Directive("CMS.Models.Contract", {
   root_object : "contract"
@@ -207,6 +219,10 @@ CMS.Models.Directive("CMS.Models.Contract", {
     can.extend(this.attributes, CMS.Models.Directive.attributes);
     this._super.apply(this, arguments);
   }
-}, {});
+}, {
+  after_save: function () {
+    this.dispatch('refreshRelatedDocuments');
+  }
+});
 
 })(this.can);
