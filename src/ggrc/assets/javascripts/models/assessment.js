@@ -54,11 +54,11 @@
       }, {
         attr_title: 'Conclusion: Design',
         attr_name: 'design',
-        order: 14
+        order: 13
       }, {
         attr_title: 'Conclusion: Operation',
         attr_name: 'operationally',
-        order: 15
+        order: 14
       }, {
         attr_title: 'Finished Date',
         attr_name: 'finished_date',
@@ -68,14 +68,9 @@
         attr_name: 'verified_date',
         order: 10
       }, {
-        attr_title: 'Assessment URL',
-        attr_name: 'url',
-        attr_sort_field: 'assessment url',
-        order: 12
-      }, {
         attr_title: 'Reference URL',
         attr_name: 'reference_url',
-        order: 13
+        order: 12
       }, {
         attr_title: 'Creators',
         attr_name: 'creators',

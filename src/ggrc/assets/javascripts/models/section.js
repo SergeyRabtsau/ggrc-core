@@ -40,7 +40,6 @@ can.Model.Cacheable('CMS.Models.Section', {
   tree_view_options: {
     attr_view: '/static/mustache/sections/tree-item-attr.mustache',
     attr_list: can.Model.Cacheable.attr_list.concat([
-      {attr_title: 'URL', attr_name: 'url'},
       {attr_title: 'Reference URL', attr_name: 'reference_url'}
     ]),
     add_item_view: GGRC.mustache_path + '/snapshots/tree_add_item.mustache'
@@ -91,7 +90,6 @@ can.Model.Cacheable('CMS.Models.Clause', {
   tree_view_options: {
     attr_view: '/static/mustache/sections/tree-item-attr.mustache',
     attr_list: can.Model.Cacheable.attr_list.concat([
-      {attr_title: 'Clause URL', attr_name: 'url'},
       {attr_title: 'Reference URL', attr_name: 'reference_url'}
     ]),
     add_item_view: GGRC.mustache_path + '/snapshots/tree_add_item.mustache'
