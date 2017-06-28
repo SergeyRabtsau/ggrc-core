@@ -435,6 +435,7 @@ dashboard-js-template-files:
   - base_objects/info-pane-utility.mustache
   - base_objects/info_header.mustache
   - base_objects/modal_contact_fields.mustache
+  - base_objects/modal_content_urls.mustache
   - base_objects/open_close.mustache
   - base_objects/sub_tree_type_selector.mustache
   - base_objects/mapper-item-description.mustache

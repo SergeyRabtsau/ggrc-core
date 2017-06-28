@@ -50,6 +50,9 @@
     },
     object_model: function () {
       return CMS.Models[this.attr('object_type')];
+    },
+    after_save: function () {
+      this.dispatch('refreshRelatedDocuments');
     }
   });
 })(window.can, window.GGRC, window.CMS);

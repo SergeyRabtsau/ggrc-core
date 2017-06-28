@@ -52,6 +52,9 @@ can.Model.Cacheable('CMS.Models.Section', {
     this.validateNonBlank('title');
   }
 }, {
+  after_save: function () {
+    this.dispatch('refreshRelatedDocuments');
+  }
 });
 
 can.Model.Cacheable('CMS.Models.Clause', {
@@ -100,4 +103,8 @@ can.Model.Cacheable('CMS.Models.Clause', {
     this._super.apply(this, arguments);
     this.validateNonBlank('title');
   }
-}, {});
+}, {
+  after_save: function () {
+    this.dispatch('refreshRelatedDocuments');
+  }
+});

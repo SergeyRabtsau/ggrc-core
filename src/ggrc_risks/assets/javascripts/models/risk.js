@@ -45,5 +45,9 @@
         this.validatePresenceOf(reqField);
       }.bind(this));
     }
-  }, {});
+  }, {
+    after_save: function () {
+      this.dispatch('refreshRelatedDocuments');
+    }
+  });
 })(window.can);
