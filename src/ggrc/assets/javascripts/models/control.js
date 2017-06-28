@@ -52,7 +52,6 @@
           attr_name: 'last_assessment_date',
           order: 45 // between State and Primary Contact
         },
-        {attr_title: 'Control URL', attr_name: 'url'},
         {attr_title: 'Reference URL', attr_name: 'reference_url'},
         {attr_title: 'Effective Date', attr_name: 'start_date'},
         {attr_title: 'Last Deprecated Date', attr_name: 'end_date'},

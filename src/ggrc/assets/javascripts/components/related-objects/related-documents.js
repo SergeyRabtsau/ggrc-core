@@ -188,7 +188,7 @@
           console.log('Unable to find relationship');
           return can.Deferred().reject({
             error: 'Unable to find relationship'
-          })
+          });
         }
 
         documents = this.attr('documents').filter(function (item) {
