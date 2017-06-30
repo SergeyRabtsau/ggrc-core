@@ -87,16 +87,19 @@ class Documentable(object):
 
   @property
   def document_url(self):  # pylint: disable=no-self-argument
+    # pylint: disable=not-an-iterable
     return [d for d in self.documents
             if Document.URL == d.document_type]
 
   @property
   def document_evidence(self):  # pylint: disable=no-self-argument
+    # pylint: disable=not-an-iterable
     return [d for d in self.documents
             if Document.ATTACHMENT == d.document_type]
 
   @property
   def reference_url(self):  # pylint: disable=no-self-argument
+    # pylint: disable=not-an-iterable
     return [d for d in self.documents
             if Document.REFERENCE_URL == d.document_type]
 

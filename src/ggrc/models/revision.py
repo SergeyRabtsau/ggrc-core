@@ -174,6 +174,20 @@ class Revision(Base, db.Model):
         })
     populated_content = self._content.copy()
     populated_content["access_control_list"] = access_control_list
+
+    if 'url' in self._content:
+      reference_url_list = []
+      for key in ('url', 'reference_url'):
+        link = self._content[key]
+        reference_url_list.append({
+            "display_name": link,
+            "document_type": "REFERENCE_URL",
+            "link": link,
+            "title": link,
+            "id": None
+        })
+      populated_content['reference_url'] = reference_url_list
+
     return populated_content
 
   @content.setter

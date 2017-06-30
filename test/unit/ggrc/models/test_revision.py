@@ -112,3 +112,24 @@ class TestCheckPopulatedContent(unittest.TestCase):
                     return_value={}) as get_roles:
       self.assertEqual(revision.content, expected)
       get_roles.assert_called_once_with(self.object_type)
+
+  @ddt.data({'url': 'url1', 'reference_url': 'url2'})
+  def test_populated_content_urls(self, content):
+    """Test populated content for revision with urls."""
+    expected = [{'display_name': 'url1',
+                 'document_type': 'REFERENCE_URL',
+                 'id': None,
+                 'link': 'url1',
+                 'title': 'url1'},
+                {'display_name': 'url2',
+                 'document_type': 'REFERENCE_URL',
+                 'id': None,
+                 'link': 'url2',
+                 'title': 'url2'}]
+    obj = mock.Mock()
+    obj.id = self.object_id
+    obj.__class__.__name__ = self.object_type
+    revision = all_models.Revision(obj, mock.Mock(), mock.Mock(), content)
+    with mock.patch("ggrc.access_control.role.get_custom_roles_for",
+                    return_value={}):
+      self.assertEqual(revision.content["reference_url"], expected)
