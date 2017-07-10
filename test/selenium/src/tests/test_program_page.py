@@ -63,16 +63,17 @@ class TestProgramPage(base.Test):
     expected_list_texts = [
         test_utils.HtmlParser.parse_text(modal.ui_title.text),
         modal.ui_description.text, modal.ui_notes.text, modal.ui_code.text,
-        modal.ui_program_url.text, modal.ui_reference_url.text,
-        modal.ui_effective_date.text]
+        modal.ref_url.values,
+        modal.ui_effective_date.text
+    ]
     actual_list_texts = [
         program_info_page.title_entered().text,
         program_info_page.description_entered.text,
         program_info_page.notes_entered.text,
         program_info_page.code_entered.text,
-        program_info_page.program_url_entered.text,
-        program_info_page.reference_url_entered.text,
-        program_info_page.effective_date_entered.text]
+        program_info_page.ref_url.values,
+        program_info_page.effective_date_entered.text,
+    ]
     assert expected_list_texts == actual_list_texts
 
   @pytest.mark.smoke_tests
@@ -109,11 +110,10 @@ class TestProgramPage(base.Test):
     expected_list_texts = [
         test_utils.HtmlParser.parse_text(modal.ui_title.text),
         modal.ui_description.text, modal.ui_notes.text,
-        modal.ui_program_url.text, modal.ui_reference_url.text]
+        modal.ref_url.values]
     actual_list_texts = [
         updated_program_info_page.title_entered().text,
         updated_program_info_page.description_entered.text,
         updated_program_info_page.notes_entered.text,
-        updated_program_info_page.program_url_entered.text,
-        updated_program_info_page.reference_url_entered.text]
+        updated_program_info_page.ref_url.values]
     assert expected_list_texts == actual_list_texts

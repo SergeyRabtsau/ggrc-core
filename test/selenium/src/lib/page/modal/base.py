@@ -49,10 +49,9 @@ class ProgramsModal(BaseModal):
     self.ui_state = base.Dropdown(self._driver, self._locators.UI_STATE)
     self.ui_show_optional_fields = base.Toggle(
         self._driver, self._locators.BUTTON_SHOW_ALL_OPTIONAL_FIELDS)
-    self.ui_program_url = base.TextInputField(
-        self._driver, self._locators.UI_PROGRAM_URL)
-    self.ui_reference_url = base.TextInputField(
-        self._driver, self._locators.UI_REFERENCE_URL)
+    self.ref_url = base.MultiInputField(
+        self._driver, self._locators.REF_URL_CSS
+    )
     self.ui_effective_date = base.DatePicker(
         self._driver, self._locators.EFFECTIVE_DATE_DATEPICKER,
         self._locators.UI_EFFECTIVE_DATE)
@@ -87,17 +86,11 @@ class ProgramsModal(BaseModal):
     """Show or hide optional fields."""
     raise NotImplementedError
 
-  def enter_program_url(self, url):
-    """Enter program url for this program object.
-    Args: url (str)
+  def enter_program_ref_url(self, url):
+    """Enter program reference urls for this program object.
+    Args: url (str) or (iterable)
     """
-    self.ui_program_url.enter_text(url)
-
-  def enter_reference_url(self, url):
-    """Enter reference url for this program object.
-    Args: url (str)
-    """
-    self.ui_reference_url.enter_text(url)
+    self.ref_url.add_values(url)
 
   def enter_effective_date_start_month(self, day):
     """Select from datepicker start date.
@@ -126,8 +119,6 @@ class ControlsModal(BaseModal):
     self.frequency = base.Label(driver, self._locators.FREQUENCY)
     self.assertions = base.Label(driver, self._locators.ASSERTIONS)
     self.admin = base.Label(driver, self._locators.ADMIN)
-    self.control_url = base.Label(driver, self._locators.CONTROL_URL)
-    self.reference_url = base.Label(driver, self._locators.REFERENCE_URL)
     self.significance = base.Label(driver, self._locators.SIGNIFICANCE)
     self.type_or_means = base.Label(driver, self._locators.TYPE_OR_MEANS)
     self.categories = base.Label(driver, self._locators.CATEGORIES)
@@ -136,10 +127,9 @@ class ControlsModal(BaseModal):
     self.ui_test_plan = base.Iframe(driver, self._locators.UI_TEST_PLAN)
     self.ui_notes = base.Iframe(driver, self._locators.UI_NOTES)
     self.ui_code = base.TextInputField(driver, self._locators.UI_CODE)
-    self.ui_control_url = base.TextInputField(
-        driver, self._locators.UI_CONTROL_URL)
-    self.ui_reference_url = base.TextInputField(
-        driver, self._locators.UI_REFERENCE_URL)
+    # multi input fields
+    self.ref_url = base.MultiInputField(
+        driver, self._locators.REF_URL_CSS)
     # datepickers
     self.ui_effective_date = base.DatePicker(
         driver, self._locators.EFFECTIVE_DATE,
@@ -261,6 +251,3 @@ class AsmtTmplModal(BaseModal):
 class AsmtsModal(BaseModal):
   """Modal base for Assessment objects."""
   _locators = locator.ModalCreateNewAsmt
-
-  def __init__(self, driver):
-    super(AsmtsModal, self).__init__(driver)

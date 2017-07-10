@@ -81,10 +81,8 @@ class ModalNewPrograms(ModalInput):
         modal_create_new.SHORT_TITLE))
     modal.enter_notes(append_random_string(modal_create_new.SHORT_TITLE))
     modal.enter_code(append_random_string(modal_create_new.SHORT_TITLE))
-    modal.enter_program_url(prepend_random_string(
+    modal.enter_program_ref_url(prepend_random_string(
         modal_create_new.Programs.PROGRAM_URL))
-    modal.enter_reference_url(prepend_random_string(
-        modal_create_new.Programs.REFERENCE_URL))
     ModalNewPrograms.set_start_date(modal, 0)
 
 

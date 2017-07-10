@@ -369,8 +369,6 @@ class ObjectiveModalSetVisibleFields(CommonModalSetVisibleFields):
       CommonObjective.OBJECTIVE)
   REVIEW_STATE = TransformationSetVisibleFields.REVIEW_STATE
   ADMIN = TransformationSetVisibleFields.ADMIN
-  URL = Base.URL
-  REFERENCE_URL = Base.REFERENCE_URL
   EFFECTIVE_DATE = Base.EFFECTIVE_DATE
   DEFAULT_SET_FIELDS = (
       CommonModalSetVisibleFields.TITLE, ADMIN,

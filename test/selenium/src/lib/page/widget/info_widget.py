@@ -194,12 +194,8 @@ class Programs(InfoPanel):
     self.manager = base.Label(self._driver, self._locators.MANAGER)
     self.manager_entered = base.Label(
         self._driver, self._locators.MANAGER_ENTERED)
-    self.program_url = base.Label(self._driver, self._locators.PROGRAM_URL)
-    self.program_url_entered = base.Label(
-        self._driver, self._locators.PROGRAM_URL_ENTERED)
-    self.reference_url = base.Label(self._driver, self._locators.REFERENCE_URL)
-    self.reference_url_entered = base.Label(
-        self._driver, self._locators.REFERENCE_URL_ENTERED)
+    self.ref_url = base.MultiInputField(
+        self._driver, self._locators.REF_URL_CSS)
     self.code = base.Label(self._driver, self._locators.CODE)
     self.code_entered = base.Label(self._driver, self._locators.CODE_ENTERED)
     self.effective_date = base.Label(

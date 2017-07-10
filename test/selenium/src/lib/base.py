@@ -464,6 +464,60 @@ class Selectable(Element):
   """Representing list of elements that are selectable."""
 
 
+class MultiInputField(Element):
+  """Representing fields that added plus sign."""
+  _locators = constants.locator.MultiInputField
+
+  def __init__(self, driver, loc_or_el):
+    super(MultiInputField, self).__init__(driver, loc_or_el)
+    self._items = None
+    self.add_btn = Button(self.element, self._locators.ADD_BTN_CSS)
+
+  def _init_items(self):
+    """Init list of input items into multi input field."""
+    self._items = [
+        MultiInputItem(self._driver, el) for el in
+        selenium_utils.get_when_all_visible(
+            self._driver, self._locators.ITEMS)]
+
+  @property
+  def values(self):
+    """Return list of text w/o date from each multi input item field."""
+    self._init_items()
+    return [item.link.text for item in self._items]
+
+  def add_values(self, *values):
+    """Add values to multiple input field."""
+    for value in values:
+      self.add_btn.click()
+      TextInputField(self.element, self._locators.TXT_CSS).enter_text(value)
+      Button(self.element, self._locators.APPLY_BTN_CSS).click()
+
+  def del_values(self, *values):
+    """Remove values from multiple input field."""
+    raise NotImplementedError
+
+
+class MultiInputItem(Element):
+  """Representing single item in multi input field."""
+  _locators = constants.locator.MultiInputItem
+
+  def __init__(self, driver, loc_or_el):
+    super(MultiInputItem, self).__init__(driver, loc_or_el)
+
+  @property
+  def link(self):
+    """Return link element of from multi input item field."""
+    return Element(self.element, self._locators.LINK_CSS)
+
+  @property
+  def date(self):
+    """Return date as string in mm/dd/yyyy format when input item was
+    entered.
+    """
+    return Element(self.element, self._locators.DATE).text
+
+
 class Widget(AbstractPage):
   """Page like class for which we don't know initial url."""
 
