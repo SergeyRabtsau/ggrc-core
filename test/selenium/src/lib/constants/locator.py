@@ -286,12 +286,7 @@ class ModalCreateNewProgram(BaseModalCreateNew):
               '[data-test-id="new_program_dropdown_state_036a1fa6"]')
   BUTTON_HIDE_OPTIONAL_FIELDS = (By.ID, "formHide")
   BUTTON_SHOW_ALL_OPTIONAL_FIELDS = (By.ID, "formHide")
-  UI_PROGRAM_URL = (
-      By.CSS_SELECTOR,
-      '[data-test-id="new_program_field_program_url_86160053"]')
-  UI_REFERENCE_URL = (
-      By.CSS_SELECTOR,
-      '[data-test-id="new_program_field_reference_url_86160053"]')
+  REF_URL_CSS = (By.CSS_SELECTOR, '[data-id="reference_url_hidden"]')
   UI_EFFECTIVE_DATE = (By.CSS_SELECTOR,
                        '[test-id="new_program_field_effective_date_f2783a28"] '
                        '[data-id="effective_date_hidden"] .datepicker__input')
@@ -395,14 +390,7 @@ class ModalCreateNewControl(BaseModalCreateNew):
   ADMIN = (
       By.CSS_SELECTOR, '[data-test-id="control_owner_587d12d6"] label')
   BUTTON_ADD_OWNER = (By.CSS_SELECTOR, 'isolate-form .btn')
-  CONTROL_URL = (
-      By.CSS_SELECTOR, '[data-test-id="control_control_url-label_c4038873"]')
-  UI_CONTROL_URL = (
-      By.CSS_SELECTOR, '[data-test-id="control_control_url-input_c4038873"]')
-  REFERENCE_URL = (
-      By.CSS_SELECTOR, '[data-test-id="control_reference_url-label_8931063d"]')
-  UI_REFERENCE_URL = (
-      By.CSS_SELECTOR, '[data-test-id="control_reference_url-input_8931063d"]')
+  REF_URL_CSS = (By.CSS_SELECTOR, '[data-id="reference_url_hidden"]')
   SIGNIFICANCE = (
       By.CSS_SELECTOR, '[data-test-id="control_significance_18f15545"] label')
   DROPDOWN_SIGNIFICANCE = (
@@ -677,18 +665,9 @@ class WidgetInfoProgram(WidgetInfoPanel):
   MANAGER_ENTERED = (By.CSS_SELECTOR,
                      '{} [data-test-id="title_manager_7a906d2e"] '
                      '[data-test-id="text_manager_7a906d2e"]'.format(WIDGET))
-  PROGRAM_URL = (
-      By.CSS_SELECTOR,
-      '{} [data-test-id="title_program_url_aa7d1a65"] h6'.format(WIDGET))
-  PROGRAM_URL_ENTERED = (
-      By.CSS_SELECTOR,
-      '{} [data-test-id="text_program_url_aa7d1a65"]'.format(WIDGET))
-  REFERENCE_URL = (
+  REF_URL_CSS = (
       By.CSS_SELECTOR,
       '{} [data-test-id="title_reference_url_aa7d1a65"]'.format(WIDGET))
-  REFERENCE_URL_ENTERED = (
-      By.CSS_SELECTOR,
-      '[data-test-id="text_reference_url_aa7d1a65"]'.format(WIDGET))
   CODE = (By.CSS_SELECTOR,
           '{} [data-test-id="title_code_cf47bc01"] h6'.format(WIDGET))
   CODE_ENTERED = (By.CSS_SELECTOR,
@@ -1106,3 +1085,19 @@ class CustomAttributesItemContent(AdminCustomAttributes):
   EDIT_BTN = (By.CSS_SELECTOR, CONTENT_OPEN + " " + Common.TREE_LIST)
   ADD_BTN = (By.CSS_SELECTOR, CONTENT_OPEN + " .add-item .btn")
   TREE_SPINNER = (By.CSS_SELECTOR, ".tree-spinner")
+
+
+class MultiInputField(object):
+  """Locators for multi input field."""
+  _form = ".create-form__layout"
+  ADD_BTN_CSS = (By.CSS_SELECTOR, ".btn")
+  TXT_CSS = (By.CSS_SELECTOR, _form + " input")
+  APPLY_BTN_CSS = (By.CSS_SELECTOR, _form + " [type='submit']")
+  CANCEL_BTN_CSS = (By.CSS_SELECTOR, _form + " [type='button']")
+  ITEMS = (By.CSS_SELECTOR, ".document-object-item")
+
+
+class MultiInputItem(object):
+  """Locators for single item in multi input field."""
+  LINK_CSS = (By.CSS_SELECTOR, "a")
+  DATE = (By.CSS_SELECTOR, "data")
