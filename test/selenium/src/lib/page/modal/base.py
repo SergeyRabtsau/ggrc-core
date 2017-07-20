@@ -50,8 +50,7 @@ class ProgramsModal(BaseModal):
     self.ui_show_optional_fields = base.Toggle(
         self._driver, self._locators.BUTTON_SHOW_ALL_OPTIONAL_FIELDS)
     self.ref_url = base.MultiInputField(
-        self._driver, self._locators.REF_URL_CSS
-    )
+        self._driver, self._locators.REF_URL_CSS)
     self.ui_effective_date = base.DatePicker(
         self._driver, self._locators.EFFECTIVE_DATE_DATEPICKER,
         self._locators.UI_EFFECTIVE_DATE)
@@ -61,7 +60,6 @@ class ProgramsModal(BaseModal):
     # static elements
     self.title = base.Label(self._driver, self._locators.TITLE)
     self.description = base.Label(self._driver, self._locators.DESCRIPTION)
-    self.program_url = base.Label(self._driver, self._locators.PROGRAM_URL)
 
   def enter_description(self, description):
     """Enter text into description element.
