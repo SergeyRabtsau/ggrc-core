@@ -298,8 +298,6 @@ class ModalCreateNewProgram(BaseModalCreateNew):
   DESCRIPTION = (
       By.CSS_SELECTOR, '[data-test-id="label_description_2c925d94"]')
   PRIVACY = (By.CSS_SELECTOR, '[data-test-id="label_privacy_2c925d94"]')
-  PROGRAM_URL = (
-      By.CSS_SELECTOR, '[data-test-id="label_program_url_2c925d94"]')
 
 
 class ModalCreateNewOrgGroup(BaseModalCreateNew):

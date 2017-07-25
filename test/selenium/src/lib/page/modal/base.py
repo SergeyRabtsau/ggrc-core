@@ -58,7 +58,6 @@ class ProgramsModal(BaseModal):
     # static elements
     self.title = base.Label(self._driver, self._locators.TITLE)
     self.description = base.Label(self._driver, self._locators.DESCRIPTION)
-    self.program_url = base.Label(self._driver, self._locators.PROGRAM_URL)
 
   def enter_description(self, description):
     """Enter text into description element.
