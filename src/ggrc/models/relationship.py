@@ -37,16 +37,6 @@ class Relationship(Base, db.Model):
       db.ForeignKey('automappings.id', ondelete='CASCADE'),
       nullable=True,
   )
-  relationship_attrs = db.relationship(
-      lambda: RelationshipAttr,
-      collection_class=attribute_mapped_collection("attr_name"),
-      lazy='joined',  # eager loading
-      cascade='all, delete-orphan'
-  )
-  attrs = association_proxy(
-      "relationship_attrs", "attr_value",
-      creator=lambda k, v: RelationshipAttr(attr_name=k, attr_value=v)
-  )
 
   def get_related_for(self, object_type):
     """Return related object for sent type."""
@@ -83,20 +73,6 @@ class Relationship(Base, db.Model):
     self.destination_type = getattr(value, 'type', None)
     return setattr(self, self.destination_attr, value)
 
-  @staticmethod
-  def validate_attrs(mapper, connection, relationship):
-    """
-      Only white-listed attributes can be stored, so users don't use this
-      for storing arbitrary data.
-    """
-    # pylint: disable=unused-argument
-    for attr_name, attr_value in relationship.attrs.iteritems():
-      attr = RelationshipAttr(attr_name=attr_name, attr_value=attr_value)
-      RelationshipAttr.validate_attr(relationship.source,
-                                     relationship.destination,
-                                     relationship.attrs,
-                                     attr)
-
   @classmethod
   def find_related(cls, object1, object2):
     return cls.get_related_query(object1, object2).first()
@@ -114,16 +90,6 @@ class Relationship(Base, db.Model):
         or_(predicate(object1, object2), predicate(object2, object1))
     )
 
-  @classmethod
-  def update_attributes(cls, object1, object2, new_attrs):
-    r = cls.find_related(object1, object2)
-    for attr_name, attr_value in new_attrs.iteritems():
-      attr = RelationshipAttr(attr_name=attr_name, attr_value=attr_value)
-      attr = RelationshipAttr.validate_attr(r.source, r.destination,
-                                            r.attrs, attr)
-      r.attrs[attr.attr_name] = attr.attr_value
-    return r
-
   @staticmethod
   def _extra_table_args(cls):
     return (
@@ -137,18 +103,11 @@ class Relationship(Base, db.Model):
             'destination_type', 'destination_id'),
     )
 
-  _api_attrs = reflection.ApiAttributes('source', 'destination', 'attrs')
-  attrs.publish_raw = True
+  _api_attrs = reflection.ApiAttributes('source', 'destination')
 
   def _display_name(self):
     return "{}:{} <-> {}:{}".format(self.source_type, self.source_id,
                                     self.destination_type, self.destination_id)
-
-  def log_json(self):
-    json = super(Relationship, self).log_json()
-    # manually add attrs since the base log_json only captures table columns
-    json["attrs"] = self.attrs.copy()  # copy in order to detach from orm
-    return json
 
 
 class Relatable(object):
@@ -211,56 +170,6 @@ class Relatable(object):
     return cls.eager_inclusions(query, Relatable._include_links).options(
         orm.subqueryload('related_sources'),
         orm.subqueryload('related_destinations'))
-
-
-class RelationshipAttr(Identifiable, db.Model):
-  """
-    Extended attributes for relationships. Used to store relations meta-data
-    so the Relationship table can be used in place of join-tables that carry
-    extra information
-  """
-
-  __tablename__ = 'relationship_attrs'
-  relationship_id = db.Column(
-      db.Integer,
-      db.ForeignKey('relationships.id', ondelete="CASCADE"),
-      primary_key=True
-  )
-  attr_name = db.Column(db.String, nullable=False)
-  attr_value = db.Column(db.String, nullable=False)
-
-  _validators = {}
-
-  @classmethod
-  def validate_attr(cls, source, destination, attrs, attr):
-    """
-      Checks both source and destination type (with mixins) for
-      defined validators _validate_relationship_attr
-    """
-    attr_name = attr.attr_name
-    attr_value = attr.attr_value
-    validators = cls._get_validators(source) + cls._get_validators(destination)
-    for validator in validators:
-      validated_value = validator(source, destination, attrs,
-                                  attr_name, attr_value)
-      if validated_value is not None:
-        attr.attr_value = validated_value
-        return attr
-    raise ValueError("Invalid attribute {}: {}".format(attr_name, attr_value))
-
-  @classmethod
-  def _get_validators(cls, obj):
-    target_class = type(obj)
-    if target_class not in cls._validators:
-      cls._validators[target_class] = cls._gather_validators(target_class)
-    return cls._validators[target_class]
-
-  @staticmethod
-  def _gather_validators(target_class):
-    validators = set(getattr(cls, "_validate_relationship_attr", None)
-                     for cls in inspect.getmro(target_class))
-    validators.discard(None)
-    return [functools.partial(v, target_class) for v in validators]
 
 
 class Stub(collections.namedtuple("Stub", ["type", "id"])):
