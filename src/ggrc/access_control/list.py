@@ -28,6 +28,16 @@ class AccessControlList(mixins.Base, db.Model):
   object_id = db.Column(db.Integer, nullable=False)
   object_type = db.Column(db.String, nullable=False)
 
+  parent_id = db.Column(
+      db.Integer,
+      db.ForeignKey('access_control_list.id', ondelete='CASCADE'),
+      nullable=True,
+  )
+  parent = db.relationship(
+      lambda: AccessControlList,
+      remote_side=lambda: AccessControlList.id
+  )
+
   @property
   def object_attr(self):
     return '{0}_object'.format(self.object_type)
