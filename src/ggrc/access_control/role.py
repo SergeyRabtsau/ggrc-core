@@ -37,6 +37,7 @@ class AccessControlRole(Indexed, attributevalidator.AttributeValidator,
   my_work = db.Column(db.Boolean, nullable=False, default=True)
   mandatory = db.Column(db.Boolean, nullable=False, default=False)
   non_editable = db.Column(db.Boolean, nullable=False, default=False)
+  internal = db.Column(db.Boolean, nullable=False, default=False)
   default_to_current_user = db.Column(
       db.Boolean, nullable=False, default=False)
 

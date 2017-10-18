@@ -204,7 +204,7 @@ def get_access_control_roles_json():
   with benchmark("Get access roles JSON"):
     attrs = all_models.AccessControlRole.query.options(
         sqlalchemy.orm.undefer_group("AccessControlRole_complete")
-    ).all()
+    ).filter(~all_models.AccessControlRole.internal).all()
     published = []
     for attr in attrs:
       published.append(publish(attr))
