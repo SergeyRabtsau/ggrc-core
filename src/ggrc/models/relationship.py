@@ -4,6 +4,8 @@
 import functools
 import inspect
 
+import collections
+import sqlalchemy as sa
 from sqlalchemy import or_, and_
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.ext.declarative import declared_attr
@@ -259,3 +261,49 @@ class RelationshipAttr(Identifiable, db.Model):
                      for cls in inspect.getmro(target_class))
     validators.discard(None)
     return [functools.partial(v, target_class) for v in validators]
+
+
+class Stub(collections.namedtuple("Stub", ["type", "id"])):
+  """Minimal object representation."""
+
+  @classmethod
+  def from_source(cls, relationship):
+    return Stub(relationship.source_type, relationship.source_id)
+
+  @classmethod
+  def from_destination(cls, relationship):
+    return Stub(relationship.destination_type, relationship.destination_id)
+
+
+class RelationshipsCache(object):
+  def __init__(self):
+    self.cache = collections.defaultdict(set)
+
+  def populate_cache(self, stubs):
+    """Fetch all mappings for objects in stubs, cache them in self.cache."""
+    # Union is here to convince mysql to use two separate indices and
+    # merge te results. Just using `or` results in a full-table scan
+    # Manual column list avoids loading the full object which would also try to
+    # load related objects
+    cols = db.session.query(
+        Relationship.source_type, Relationship.source_id,
+        Relationship.destination_type, Relationship.destination_id)
+    relationships = cols.filter(
+        sa.tuple_(Relationship.source_type, Relationship.source_id).in_(
+            [(s.type, s.id) for s in stubs]
+        )
+    ).union_all(
+        cols.filter(
+            sa.tuple_(Relationship.destination_type,
+                   Relationship.destination_id).in_(
+                       [(s.type, s.id) for s in stubs]))
+    ).all()
+    for (src_type, src_id, dst_type, dst_id) in relationships:
+      src = Stub(src_type, src_id)
+      dst = Stub(dst_type, dst_id)
+      # only store a neighbor if we queried for it since this way we know
+      # we'll be storing complete neighborhood by the end of the loop
+      if src in stubs:
+        self.cache[src].add(dst)
+      if dst in stubs:
+        self.cache[dst].add(src)

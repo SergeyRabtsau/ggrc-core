@@ -5,18 +5,16 @@
 
 from datetime import datetime
 from logging import getLogger
-import collections
 
 import sqlalchemy as sa
-from sqlalchemy.sql.expression import tuple_
 
 from ggrc import db
 from ggrc.automapper import rules
 from ggrc import login
 from ggrc.models.audit import Audit
 from ggrc.models.automapping import Automapping
+from ggrc.models.relationship import Relationship, RelationshipsCache, Stub
 from ggrc.models.issue import Issue
-from ggrc.models.relationship import Relationship
 from ggrc.models import exceptions
 from ggrc.rbac.permissions import is_allowed_update
 from ggrc.models.cache import Cache
@@ -25,18 +23,6 @@ from ggrc.utils import benchmark
 
 # pylint: disable=invalid-name
 logger = getLogger(__name__)
-
-
-class Stub(collections.namedtuple("Stub", ["type", "id"])):
-  """Minimal object representation."""
-
-  @classmethod
-  def from_source(cls, relationship):
-    return Stub(relationship.source_type, relationship.source_id)
-
-  @classmethod
-  def from_destination(cls, relationship):
-    return Stub(relationship.destination_type, relationship.destination_id)
 
 
 class AutomapperGenerator(object):
@@ -54,49 +40,20 @@ class AutomapperGenerator(object):
   def __init__(self):
     self.processed = set()
     self.queue = set()
-    self.cache = collections.defaultdict(set)
     self.auto_mappings = set()
+    self.related_cache = RelationshipsCache()
 
   def related(self, obj):
-    if obj in self.cache:
-      return self.cache[obj]
+    if obj in self.related_cache.cache:
+      return self.related_cache.cache[obj]
 
     # Pre-fetch neighborhood for enqueued objects since we're gonna need these
     # results in a few steps. This drastically reduces number of queries.
     stubs = {s for rel in self.queue for s in rel}
     stubs.add(obj)
-    self._populate_cache(stubs)
+    self.related_cache.populate_cache(stubs)
 
-    return self.cache[obj]
-
-  def _populate_cache(self, stubs):
-    """Fetch all mappings for objects in stubs, cache them in self.cache."""
-    # Union is here to convince mysql to use two separate indices and
-    # merge te results. Just using `or` results in a full-table scan
-    # Manual column list avoids loading the full object which would also try to
-    # load related objects
-    cols = db.session.query(
-        Relationship.source_type, Relationship.source_id,
-        Relationship.destination_type, Relationship.destination_id)
-    relationships = cols.filter(
-        tuple_(Relationship.source_type, Relationship.source_id).in_(
-            [(s.type, s.id) for s in stubs]
-        )
-    ).union_all(
-        cols.filter(
-            tuple_(Relationship.destination_type,
-                   Relationship.destination_id).in_(
-                       [(s.type, s.id) for s in stubs]))
-    ).all()
-    for (src_type, src_id, dst_type, dst_id) in relationships:
-      src = Stub(src_type, src_id)
-      dst = Stub(dst_type, dst_id)
-      # only store a neighbor if we queried for it since this way we know
-      # we'll be storing complete neighborhood by the end of the loop
-      if src in stubs:
-        self.cache[src].add(dst)
-      if dst in stubs:
-        self.cache[dst].add(src)
+    return self.related_cache.cache[obj]
 
   @staticmethod
   def order(src, dst):
@@ -234,6 +191,8 @@ class AutomapperGenerator(object):
       True if a relationship was created;
       False otherwise.
     """
+    # even though self.cache is defaultdict, self.cache[key] adds key
+    # to self.cache if it is not present, and we should avoid it
     if dst in self.related(src):
       return False
     if src in self.related(dst):
@@ -243,10 +202,10 @@ class AutomapperGenerator(object):
 
     self.auto_mappings.add((src, dst))
 
-    if src in self.cache:
-      self.cache[src].add(dst)
-    if dst in self.cache:
-      self.cache[dst].add(src)
+    if src in self.related_cache.cache:
+      self.related_cache.cache[src].add(dst)
+    if dst in self.related_cache.cache:
+      self.related_cache.cache[dst].add(src)
 
     return True
 
