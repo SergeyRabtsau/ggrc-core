@@ -8,9 +8,14 @@ import functools
 import logging
 import itertools
 
+from collections import defaultdict, namedtuple
 import sqlalchemy as sa
+from sqlalchemy.orm import Session
 
-from ggrc import db
+from ggrc import login, db
+from ggrc.access_control.role import get_custom_roles_for
+from ggrc.models.mixins.assignable import Assignable
+from ggrc.models.relationship import Stub, RelationshipsCache
 from ggrc.services import signals
 from ggrc.models import all_models
 from ggrc.models.comment import Commentable
@@ -260,13 +265,165 @@ def unmap_issue_cascade(asmnt, issue):
     db.session.delete(instance)
 
 
+def related(base_objects, rel_cache):
+  """Get stubs of related objects
+
+  Args:
+    base_objects(list): Stubs of objects for which related objects
+    should be collected
+    rel_cache(RelationshipsCache): Instance of relationship cache
+
+  Returns:
+    Dict of base objects with their mappings
+  """
+  stubs = [o for o in base_objects if o not in rel_cache.cache]
+  if stubs:
+    rel_cache.populate_cache(stubs)
+
+  return {o: rel_cache.cache[o] for o in base_objects if o in rel_cache.cache}
+
+
+def handle_relationship_creation(session, flush_context):
+  """Create relations for mapped objects."""
+  # pylint: disable=unused-argument
+  base_objects = defaultdict(set)
+  related_objects = defaultdict(set)
+  for obj in session.new:
+    if isinstance(obj, all_models.Relationship) and (
+        issubclass(type(obj.source), Assignable) or
+        issubclass(type(obj.destination), Assignable)
+    ):
+      assign_obj, other = obj.source, obj.destination
+      if not issubclass(type(obj.source), Assignable):
+        assign_obj, other = other, assign_obj
+      for acl in assign_obj.access_control_list:
+        acr_id = acl.ac_role.id if acl.ac_role else acl.ac_role_id
+        ac_role = get_custom_roles_for(acl.object_type)[acr_id]
+        if ac_role in assign_obj.ASSIGNEE_TYPES:
+          assign_stub = Stub(assign_obj.type, assign_obj.id)
+          other_stub = Stub(other.type, other.id)
+          base_objects[assign_stub].add(acl)
+          related_objects[assign_stub].add(other_stub)
+
+  create_related_roles(base_objects, related_objects)
+
+
+def get_mapped_role(object_type, acr_name, mapped_obj_type):
+  """Get AC role that is mapped to provided one.
+
+  Args:
+    object_type(str): Type of object
+    acr_name(str): Name of AC role
+    mapped_obj_type(str): Type of mapped object
+
+  Returns:
+    Id of AC role with name '<Assignee type> Mapped' or
+    '<Assignee type> Document Mapped' will be returned
+  """
+  obj_roles = {
+      role_name: role_id
+      for role_id, role_name in get_custom_roles_for(object_type).items()
+  }
+  doc_part = " Document" if mapped_obj_type == "Document" else ""
+  return obj_roles.get("{}{} Mapped".format(acr_name, doc_part))
+
+
+def create_related_roles(base_objects, related_objects=None):
+  """Create mapped roles for related objects
+
+  Args:
+    base_objects(defaultdict(dict)): Objects which have Assignee role
+    related_objects(defaultdict(set)): Objects related to assigned
+  """
+  if not base_objects:
+    return
+
+  if not related_objects:
+    related_objects = related(base_objects.keys(), RelationshipsCache())
+
+  acl_row = namedtuple(
+      "acl_row", "person_id object_id object_type ac_role_id"
+  )
+  acl_parent = namedtuple("acl_parent", "context parent")
+  acl_data = {}
+  for base_stub, related_stubs in related_objects.items():
+    for related_stub in related_stubs:
+      for acl in base_objects[base_stub]:
+        acr_id = acl.ac_role.id if acl.ac_role else acl.ac_role_id
+        mapped_acr_id = get_mapped_role(
+            base_stub.type,
+            get_custom_roles_for(base_stub.type)[acr_id],
+            related_stub.type
+        )
+        if not mapped_acr_id:
+          raise Exception(
+              "Mapped role wasn't found for role with "
+              "id: {}".format(acl.ac_role_id)
+          )
+        acl_data[acl_row(
+            acl.person_id or acl.person.id,
+            related_stub.id,
+            related_stub.type,
+            mapped_acr_id,
+        )] = acl_parent(acl.context, acl)
+
+  # Find existing acl instances in db
+  existing_acls = set(db.session.query(
+      all_models.AccessControlList.person_id,
+      all_models.AccessControlList.object_id,
+      all_models.AccessControlList.object_type,
+      all_models.AccessControlList.ac_role_id
+  ).filter(
+      sa.tuple_(
+          all_models.AccessControlList.person_id,
+          all_models.AccessControlList.object_id,
+          all_models.AccessControlList.object_type,
+          all_models.AccessControlList.ac_role_id
+      ).in_(acl_data.keys())
+  ).all())
+  # Find existing acl instances in session
+  existing_acls.update({
+      (a.person_id, a.object_id, a.object_type, a.ac_role_id)
+      for a in db.session.new if isinstance(a, all_models.AccessControlList)
+  })
+
+  current_user_id = login.get_current_user_id()
+  # Create new acl instance only if it absent in db and session
+  for acl in set(acl_data.keys()) - existing_acls:
+    db.session.add(all_models.AccessControlList(
+        person_id=acl.person_id,
+        ac_role_id=acl.ac_role_id,
+        object_id=acl.object_id,
+        object_type=acl.object_type,
+        context=acl_data[acl].context,
+        modified_by_id=current_user_id,
+        parent=acl_data[acl].parent,
+    ))
+
+
+def handle_relationship_delete(relationship):
+  """Delete mapped AC roles if object unmapped from Assessment."""
+  if (issubclass(type(relationship.source), Assignable) or
+     issubclass(type(relationship.destination), Assignable)):
+    assign_obj, other = relationship.source, relationship.destination
+    if not issubclass(type(relationship.source), Assignable):
+      assign_obj, other = other, assign_obj
+    parent_ids = {acl.id for acl in assign_obj.access_control_list}
+    db.session.query(all_models.AccessControlList).filter(
+        all_models.AccessControlList.parent_id.in_(parent_ids)
+    ).delete(synchronize_session='fetch')
+
+
 def init_hook():
   """Initialize Relationship-related hooks."""
   # pylint: disable=unused-variable
-  sa.event.listen(all_models.Relationship, "before_insert",
-                  all_models.Relationship.validate_attrs)
-  sa.event.listen(all_models.Relationship, "before_update",
-                  all_models.Relationship.validate_attrs)
+  sa.event.listen(Session, "after_flush", handle_relationship_creation)
+
+  @signals.Restful.model_deleted.connect_via(all_models.Relationship)
+  def relationship_deleted_listener(sender, obj=None, src=None, service=None):
+    """Process relationship removing."""
+    # pylint: disable=unused-argument
+    handle_relationship_delete(obj)
 
   @signals.Restful.collection_posted.connect_via(all_models.Relationship)
   def handle_comment_mapping(sender, objects=None, **kwargs):
