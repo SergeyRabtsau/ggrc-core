@@ -42,7 +42,6 @@ from ggrc.converters.handlers import comments
 from ggrc.converters.handlers import default_people
 from ggrc.converters.handlers import handlers
 from ggrc.converters.handlers import list_handlers
-from ggrc.converters.handlers import related_person
 from ggrc.converters.handlers import template
 from ggrc.converters.handlers import document
 from ggrc.converters.handlers import custom_attribute
@@ -88,10 +87,6 @@ _DEFAULT_COLUMN_HANDLERS_DICT = {
     "program": handlers.ProgramColumnHandler,
     "recipients": list_handlers.ValueListHandler,
     "reference_url": document.ReferenceUrlHandler,
-    "related_assessors": related_person.RelatedAssessorsColumnHandler,
-    "related_assignees": related_person.RelatedAssigneesColumnHandler,
-    "related_creators": related_person.RelatedCreatorsColumnHandler,
-    "related_verifiers": related_person.RelatedVerifiersColumnHandler,
     "report_end_date": handlers.DateColumnHandler,
     "last_assessment_date": handlers.DateColumnHandler,
     "report_start_date": handlers.DateColumnHandler,
