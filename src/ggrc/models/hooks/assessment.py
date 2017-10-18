@@ -15,6 +15,7 @@ from collections import defaultdict
 from sqlalchemy import orm
 
 from ggrc import db
+from ggrc.access_control.role import get_custom_roles_for
 from ggrc.login import get_current_user_id
 from ggrc.models import all_models
 from ggrc.models import Assessment
@@ -35,7 +36,6 @@ def init_hook():
     """Apply custom attribute definitions and map people roles
     when generating Assessmet with template"""
     db.session.flush()
-
     audit_ids = []
     template_ids = []
     snapshot_ids = []
@@ -118,24 +118,30 @@ def generate_assignee_relations(assessment,
   person_dict = {i.id: i for i in all_models.Person.query.filter(
       all_models.Person.id.in_(people)
   )}
+
+  person_roles = []
   for person_id in people:
     person = person_dict.get(person_id)
     if person is None:
       continue
-    roles = []
     if person_id in assignee_ids:
-      roles.append("Assessor")
+      person_roles.append((person, "Assessor"))
     if person_id in verifier_ids:
-      roles.append("Verifier")
+      person_roles.append((person, "Verifier"))
     if person_id in creator_ids:
-      roles.append("Creator")
-    rel = all_models.Relationship(
-        source=person,
-        destination=assessment,
-        context=assessment.context,
-    )
-    rel.attrs = {"AssigneeType": ",".join(roles)}
-    db.session.add(rel)
+      person_roles.append((person, "Creator"))
+
+  ac_roles = {
+      acr_name: acr_id
+      for acr_id, acr_name in get_custom_roles_for(assessment.type).items()
+  }
+  db.session.add_all(
+      all_models.AccessControlList(
+          ac_role_id=ac_roles[role],
+          person=person,
+          object=assessment
+      ) for person, role in person_roles
+  )
 
 
 def get_people_ids_based_on_role(assignee_role,
