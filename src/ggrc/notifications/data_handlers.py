@@ -219,7 +219,7 @@ def assignable_open_data(notif):
         notif.object_type, notif.id,
     )
     return {}
-  people = [person for person, _ in obj.assignees]
+  people = [person for person in obj.assignees]
 
   return _get_assignable_dict(people, notif)
 
@@ -240,7 +240,7 @@ def assignable_updated_data(notif):
         notif.object_type, notif.id,
     )
     return {}
-  people = [person for person, _ in obj.assignees]
+  people = [person for person in obj.assignees]
 
   return _get_assignable_dict(people, notif)
 
@@ -256,7 +256,7 @@ def _get_declined_people(obj):
     the given object type.
   """
   if obj.type == "Assessment":
-    return [person for person, _ in obj.assignees]
+    return [person for person in obj.assignees]
   return []
 
 
@@ -294,7 +294,9 @@ def assignable_reminder(notif):
       # In case object already moved out of targeted state
       return notif_data
     assignee_group = data[obj.status]
-    people = [a for a, roles in obj.assignees if assignee_group in roles]
+    people = [
+        a for a, roles in obj.assignees.items() if assignee_group in roles
+    ]
 
     for person in people:
       notif_data[person.email] = {
@@ -447,7 +449,7 @@ def get_comment_data(notif):
   if comment_obj.recipients:
     recipients = set(comment_obj.recipients.split(","))
 
-  for person, assignee_type in comment_obj.assignees:
+  for person, assignee_type in comment_obj.assignees.items():
     if not recipients or recipients.intersection(set(assignee_type)):
       data[person.email] = generate_comment_notification(
           comment_obj, comment, person)
