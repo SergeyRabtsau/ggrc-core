@@ -61,99 +61,6 @@ def get_public_config(_):
   return public_config
 
 
-def objects_via_assignable_query(user_id, context_not_role=True):
-  """Creates a query that returns objects a user can access because she is
-     assigned via the assignable mixin.
-
-    Args:
-        user_id (int): id of the user
-
-    Returns:
-        db.session.query object that selects the following columns:
-            | id | type | context_id |
-  """
-
-  rel1 = aliased(all_models.Relationship, name="rel1")
-  rel2 = aliased(all_models.Relationship, name="rel2")
-  _attrs = aliased(all_models.RelationshipAttr, name="attrs")
-
-  def assignable_join(query):
-    """Joins relationship_attrs to the query. This filters out only the
-       relationship objects where the user is mapped with an AssigneeType.
-    """
-    return query.join(
-        _attrs, and_(
-            _attrs.relationship_id == rel1.id,
-            _attrs.attr_name == "AssigneeType",
-            case([
-                (rel1.destination_type == "Person",
-                 rel1.destination_id)
-            ], else_=rel1.source_id) == user_id))
-
-  def related_assignables():
-    """Header for the mapped_objects join"""
-    return db.session.query(
-        case([
-            (rel2.destination_type == rel1.destination_type,
-             rel2.source_id)
-        ], else_=rel2.destination_id).label('id'),
-        case([
-            (rel2.destination_type == rel1.destination_type,
-             rel2.source_type)
-        ], else_=rel2.destination_type).label('type'),
-        # related_assignables are available for Read, except for Documents
-        # which are available for modification
-        case([
-            (rel2.destination_type == 'Document',
-             rel2.context_id if context_not_role else literal('RUD'))
-        ], else_=(rel2.context_id if context_not_role else literal('R')))
-    ).select_from(rel1)
-
-  # First we fetch objects where a user is mapped as an assignee
-  assigned_objects = assignable_join(db.session.query(
-      case([
-          (rel1.destination_type == "Person",
-           rel1.source_id)
-      ], else_=rel1.destination_id),
-      case([
-          (rel1.destination_type == "Person",
-           rel1.source_type)
-      ], else_=rel1.destination_type),
-      rel1.context_id if context_not_role else literal('RU')))
-
-  # The user should also have access to objects mapped to the assigned_objects
-  # We accomplish this by filtering out relationships where the user is
-  # assigned and then joining the relationship table for the second time,
-  # retrieving the mapped objects.
-  #
-  # We have a union here because using or_ to join both by destination and
-  # source was not performing well (8s+ query times)
-  mapped_objects = assignable_join(
-      # Join by destination:
-      related_assignables()).join(rel2, and_(
-          case([
-              (rel1.destination_type == "Person",
-               rel1.source_id)
-          ], else_=rel1.destination_id) == rel2.destination_id,
-          case([
-              (rel1.destination_type == "Person",
-               rel1.source_type)
-          ], else_=rel1.destination_type) == rel2.destination_type)
-  ).union(assignable_join(
-      # Join by source:
-      related_assignables()).join(rel2, and_(
-          case([
-              (rel1.destination_type == "Person",
-               rel1.source_id)
-          ], else_=rel1.destination_id) == rel2.source_id,
-          case([
-              (rel1.destination_type == "Person",
-               rel1.source_type)
-          ], else_=rel1.destination_type) == rel2.source_type))
-  )
-  return mapped_objects.union(assigned_objects)
-
-
 class CompletePermissionsProvider(object):
   """Permission provider set in the USER_PERMISSIONS_PROVIDER setting"""
 
@@ -531,28 +438,6 @@ def load_context_relationships(permissions):
           .append(id_)
 
 
-def load_assignee_relationships(user, permissions):
-  """Load assignee relationship permissions
-
-  Args:
-      user (Person): Person object
-      permissions (dict): dict where the permissions will be stored
-  Returns:
-      None
-  """
-  for id_, type_, role_name in objects_via_assignable_query(user.id, False):
-    actions = ["read", "view_object_page"]
-    if "U" in role_name:
-      actions.append("update")
-    if "D" in role_name:
-      actions.append("delete")
-    for action in actions:
-      permissions.setdefault(action, {})\
-          .setdefault(type_, {})\
-          .setdefault('resources', list())\
-          .append(id_)
-
-
 def load_personal_context(user, permissions):
   """Load personal context for user
 
@@ -682,9 +567,6 @@ def load_permissions_for(user):
 
   with benchmark("load_permissions > load context relationships"):
     load_context_relationships(permissions)
-
-  with benchmark("load_permissions > load assignee relationships"):
-    load_assignee_relationships(user, permissions)
 
   with benchmark("load_permissions > load personal context"):
     load_personal_context(user, permissions)
