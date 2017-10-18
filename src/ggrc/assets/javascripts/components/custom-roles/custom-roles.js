@@ -1,4 +1,4 @@
-/*!
+/*
  Copyright (C) 2017 Google Inc., authors, and contributors
  Licensed under http://www.apache.org/licenses/LICENSE-2.0 <see LICENSE file>
  */
@@ -16,6 +16,8 @@
     viewModel: {
       instance: {},
       updatableGroupId: null,
+      includeRoles: [],
+      excludeRoles: [],
       save: function (args) {
         var self = this;
         this.attr('updatableGroupId', args.groupId);
@@ -24,7 +26,7 @@
             self.attr('instance').dispatch('refreshInstance');
             self.attr('updatableGroupId', null);
           });
-      }
-    }
+      },
+    },
   });
 })(window.can, window.GGRC);
