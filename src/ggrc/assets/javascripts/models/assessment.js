@@ -56,57 +56,45 @@ import {prepareCustomAttributes} from '../plugins/utils/ca-utils';
         attr_name: 'slug',
         order: 5,
       }, {
-        attr_title: 'Creators',
-        attr_name: 'creators',
-        order: 6,
-      }, {
-        attr_title: 'Assignees',
-        attr_name: 'assignees',
-        order: 7,
-      }, {
-        attr_title: 'Verifiers',
-        attr_name: 'verifiers',
-        order: 8,
-      }, {
         attr_title: 'Due Date',
         attr_name: 'start_date',
-        order: 9,
+        order: 6,
       }, {
         attr_title: 'Created Date',
         attr_name: 'created_at',
-        order: 10,
+        order: 7,
       }, {
         attr_title: 'Last Updated',
         attr_name: 'updated_at',
-        order: 11,
+        order: 8,
       }, {
         attr_title: 'Last Updated By',
         attr_name: 'modified_by',
-        order: 12,
+        order: 9,
       }, {
         attr_title: 'Verified Date',
         attr_name: 'verified_date',
-        order: 13,
+        order: 10,
       }, {
         attr_title: 'Finished Date',
         attr_name: 'finished_date',
-        order: 14,
+        order: 11,
       }, {
         attr_title: 'Reference URL',
         attr_name: 'reference_url',
-        order: 15,
+        order: 12,
       }, {
         attr_title: 'Conclusion: Design',
         attr_name: 'design',
-        order: 16,
+        order: 13,
       }, {
         attr_title: 'Conclusion: Operation',
         attr_name: 'operationally',
-        order: 17,
+        order: 14,
       }, {
         attr_title: 'Archived',
         attr_name: 'archived',
-        order: 18,
+        order: 15,
       }],
       display_attr_names: ['title', 'status', 'label', 'assignees', 'verifiers',
         'start_date', 'updated_at'],
@@ -122,25 +110,6 @@ import {prepareCustomAttributes} from '../plugins/utils/ca-utils';
       '"{{status}}" to "In Progress" - are you sure about that?',
       button: 'Confirm'
     },
-    assignable_list: [{
-      title: 'Creator(s)',
-      type: 'creator',
-      mapping: 'related_creators',
-      required: true
-    }, {
-      title: 'Assignee(s)',
-      type: 'assessor',
-      mapping: 'related_assessors',
-      required: true
-    }, {
-      title: 'Verifier(s)',
-      type: 'verifier',
-      mapping: 'related_verifiers',
-      required: false
-    }],
-    conflicts: [
-      ['assessor', 'verifier']
-    ],
     conclusions: ['Effective', 'Ineffective', 'Needs improvement',
       'Not Applicable'],
     init: function () {
@@ -150,22 +119,6 @@ import {prepareCustomAttributes} from '../plugins/utils/ca-utils';
       this.validatePresenceOf('audit');
       this.validateNonBlank('title');
 
-      this.validate(
-        'validate_creator',
-        function () {
-          if (!this.validate_creator) {
-            return 'You need to specify at least one creator';
-          }
-        }
-      );
-      this.validate(
-        'validate_assessor',
-        function () {
-          if (!this.validate_assessor) {
-            return 'You need to specify at least one assignee';
-          }
-        }
-      );
       this.validate(
         '_gca_valid',
         function () {
@@ -354,9 +307,25 @@ import {prepareCustomAttributes} from '../plugins/utils/ca-utils';
       markForAddition(this, currentUser, 'Creator');
 
       function markForAddition(instance, user, type) {
-        instance.mark_for_addition('related_objects_as_destination', user, {
-          attrs: {
-            AssigneeType: type
+        var rolesNames = type.split(',');
+        var roles = GGRC.access_control_roles;
+        var acl = instance.attr('access_control_list');
+
+        rolesNames.forEach((roleName) => {
+          var role = _.head(
+            roles.filter((role) =>
+              role.object_type === 'Assessment' &&
+              role.name === roleName)
+          );
+
+          if (role) {
+            acl.push({
+              ac_role_id: role.id,
+              person: {
+                id: user.id,
+              },
+              person_id: user.id,
+            });
           }
         });
       }

@@ -138,6 +138,7 @@ import {
       formState: {},
       noItemsText: '',
       initialState: 'Not Started',
+      assessmentMainRoles: ['Creator', 'Assessor', 'Verifier'],
       setUrlEditMode: function (value, type) {
         this.attr(type + 'EditMode', value);
       },

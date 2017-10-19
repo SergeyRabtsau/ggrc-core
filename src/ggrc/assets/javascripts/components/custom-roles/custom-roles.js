@@ -18,6 +18,7 @@
       updatableGroupId: null,
       includeRoles: [],
       excludeRoles: [],
+      conflictRoles: [],
       save: function (args) {
         var self = this;
         this.attr('updatableGroupId', args.groupId);

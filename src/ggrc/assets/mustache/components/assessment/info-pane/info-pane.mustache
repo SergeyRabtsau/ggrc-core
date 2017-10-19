@@ -276,7 +276,8 @@
                      class="assessment-attributes-panel"
                      (update-active-tab)="initGlobalAttributes">
               <div class="assessment-attributes-panel">
-                <custom-roles {instance}="instance"></custom-roles>
+                <custom-roles {exclude-roles}="assessmentMainRoles" {instance}="instance">
+                </custom-roles>
                 <assessment-custom-attributes (on-update-attributes)="saveGlobalAttributes(%event)"
                                                   {items}="globalAttributes"
                                                   {is-edit-denied}="isEditDenied"

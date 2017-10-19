@@ -3,8 +3,6 @@
  Licensed under http://www.apache.org/licenses/LICENSE-2.0 <see LICENSE file>
  */
 
-import '../related-objects/related-people-mapping';
-
 (function (can, GGRC) {
   'use strict';
 
@@ -26,6 +24,12 @@ import '../related-objects/related-people-mapping';
       infoPaneMode: true,
       withDetails: false,
       instance: {},
+      conflictRoles: ['Assessor', 'Verifier'],
+    },
+    events: {
+      '{instance} roleConflicts': function (ev, args) {
+        this.viewModel.attr('roleConflicts', args.roleConflicts);
+      },
     },
   });
 })(window.can, window.GGRC);

@@ -171,6 +171,24 @@ describe('CMS.Models.Assessment', function () {
   });
 
   describe('form_preload() method', function () {
+    beforeAll(function () {
+      GGRC.access_control_roles = [
+        {id: 1, name: 'Admin', object_type: 'Assessment'},
+        {id: 2, name: 'Admin', object_type: 'Vendor'},
+        {id: 3, name: 'Primary Contacts', object_type: 'Control'},
+        {id: 4, name: 'Secondary Contacts', object_type: 'Assessment'},
+        {id: 5, name: 'Principal Assignees', object_type: 'Control'},
+        {id: 6, name: 'Assessor', object_type: 'Assessment'},
+        {id: 7, name: 'Secondary Assignees', object_type: 'Assessment'},
+        {id: 8, name: 'Verifier', object_type: 'Assessment'},
+        {id: 9, name: 'Creator', object_type: 'Assessment'},
+      ];
+    });
+
+    afterAll(function () {
+      delete GGRC.access_control_roles;
+    });
+
     it('returns deferred indicates that auditors have been found', function () {
       var model = new CMS.Models.Assessment();
       var findAuditorsCallbackDfd = 'findAuditorsCallbackDfd';
@@ -185,13 +203,17 @@ describe('CMS.Models.Assessment', function () {
       spyOn(model, 'before_create');
       spyOn(model, 'mark_for_addition');
 
-      model.attr('audit', new can.Map({
+      model.attr('audit', {
         findAuditors: findAuditorsDfd,
-        contact: new can.Map()
-      }));
+        contact: {
+          id: 1,
+        },
+      });
+
+      spyOn(model.audit.contact, 'reify')
+        .and.returnValue({id: 6565});
 
       result = model.form_preload(true);
-
       expect(result).toBe(findAuditorsCallbackDfd);
     });
   });

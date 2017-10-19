@@ -63,7 +63,8 @@ import '../people/editable-people-group';
           this.dispatch({
             type: 'updateRoles',
             people: this.attr('people'),
-            roleId: this.attr('groupId')
+            roleId: this.attr('groupId'),
+            roleTitle: this.attr('title'),
           });
         }
       },

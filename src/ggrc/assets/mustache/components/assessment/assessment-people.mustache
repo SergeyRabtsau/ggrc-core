@@ -4,104 +4,30 @@
 }}
 
 <div class="flex-box flex-box-multi">
-    <div class="flex-box width-100">
-      {{#if roleConflicts}}
-        <div class="width-100">
-          <div class="alert alert-verifier">
-            <p>
-                Please be informed that Assignee and Verifier are the same person.
-            </p>
-          </div>
+  <div class="flex-box width-100">
+    {{#if roleConflicts}}
+      <div class="width-100">
+        <div class="alert alert-verifier">
+          <p>
+              Please be informed that Assignee and Verifier are the same person.
+          </p>
         </div>
-      {{/if}}
-    </div>
+      </div>
+    {{/if}}
+  </div>
 
-    <div class="people-groups">
-    {{#instance}}
-      {{#instance.class.assignable_list}}
-        <related-people-mapping
-          class="people-group"
-          instance="instance"
-          mapping="mapping"
-          type="type"
-          heading="title"
-          {(role-conflicts)}="roleConflicts"
-          {{#if required}}
-            required="true"
-            validate="validate"
-          {{/if}}>
-          {{#if infoPaneMode}}
-            <editable-people-group
-              (unmap)="removeRole(%event)"
-              (change-editable-mode)="changeEditableGroup(%event)"
-              (save-changes)="saveChanges()"
-              (person-selected)="personSelected(%event)"
-              {validation}="validation"
-              {editable-mode}="editableMode"
-              {is-loading}="isLoading"
-              {can-unmap}="canUnmap"
-              {required}="required"
-              {group-id}="type"
-              {instance}="instance"
-              {title}="title"
-              {people}="results">
-                <editable-people-group-header
-                  {editable-mode}="editableMode"
-                  {is-loading}="isLoading"
-                  {can-edit}="canEdit"
-                  {required}="required"
-                  {people}="people"
-                  (edit-people-group)="changeEditableMode(true)">
-                </editable-people-group-header>
-            </editable-people-group>
-          {{else}}
-            <deletable-people-group
-              (unmap)="removeRole(%event)"
-              {is-loading}="isLoading"
-              {can-unmap}="canUnmap"
-              {required}="required"
-              {group-id}="type"
-              {instance}="instance"
-              {people}="results">
-              <label class="form-label required-label people-group__title people-group__title--deletable">
-                {{title}}
-                {{#if required}}
-                  <form-validation-icon {validation}="validation"></form-validation-icon>
-                {{/if}}
-              </label>
-            </deletable-people-group>
-            <div>
-              {{#if isLoading}}
-                <spinner {toggle}="isLoading"></spinner>
-              {{else}}
-                {{#is_allowed 'update' instance}}
-                  {{^if_config_exist 'external_services.Person'}}
-                  <autocomplete
-                      search-items-type="Person"
-                      (item-selected)="addRole(%event.selectedItem, @type)"
-                      placeholder="Add person">
-                  </autocomplete>
-                  {{else}}
-                  <external-data-autocomplete
-                    {type}="'Person'"
-                    {placeholder}="'Add person'"
-                    {min-length}="2"
-                    (item-selected)="addRole(%event.selectedItem, @type)">
-                  </external-data-autocomplete>
-                  {{/if_config_exist}}
-                {{/is_allowed}}
-              {{/if}}
-            </div>
-          {{/if}}
-        </related-people-mapping>
-      {{/instance.class.assignable_list}}
-    {{/instance}}
-    </div>
+  <div class="width-100">
+    {{#if infoPaneMode}}
+      <custom-roles {instance}="instance"
+        {include-roles}="assessmentMainRoles"
+        {conflict-roles}="conflictRoles">
+      </custom-roles>
+    {{else}}
+      <custom-roles-modal
+        {instance}="instance"
+        {conflict-roles}="conflictRoles"
+        {is-new-instance}="new_object_form">
+      </custom-roles-modal>
+    {{/if}}
+  </div>
 </div>
-
-{{#unless infoPaneMode}}
-  <custom-roles-modal
-    {instance}="instance"
-    {is-new-instance}="new_object_form">
-  </custom-roles-modal>
-{{/unless}}

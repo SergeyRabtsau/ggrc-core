@@ -15,12 +15,17 @@ export default GGRC.Components('relatedPeopleAccessControl', {
     isNewInstance: false,
     includeRoles: [],
     excludeRoles: [],
+    conflictRoles: [],
 
     updateRoles: function (args) {
       this.updateAccessContolList(args.people, args.roleId);
+
+      if (this.attr('conflictRoles').length) {
+        this.checkConflicts(args.roleTitle);
+      }
       this.dispatch({
         type: 'saveCustomRole',
-        groupId: args.roleId
+        groupId: args.roleId,
       });
     },
     updateAccessContolList: function (people, roleId) {
@@ -44,6 +49,72 @@ export default GGRC.Components('relatedPeopleAccessControl', {
         .replace(listWithoutRole);
     },
 
+    checkConflicts: function (groupTitle) {
+      let groups = this.attr('groups');
+      let conflictRoles = this.attr('conflictRoles');
+      let hasConflict = false;
+
+      if (groupTitle && conflictRoles.indexOf(groupTitle) === -1) {
+        return;
+      }
+
+      hasConflict = groupTitle ?
+        this.isCurrentGroupHasConflict(groupTitle, groups, conflictRoles) :
+        this.isGroupsHasConflict(groups, conflictRoles);
+
+      this.attr('instance').dispatch({
+        type: 'roleConflicts',
+        roleConflicts: hasConflict,
+      });
+    },
+    isGroupsHasConflict: function (groups, conflictRoles) {
+      let hasConflict = false;
+
+      let conflictGroups = groups
+        .filter((group) => _.indexOf(conflictRoles, group.title) > -1);
+
+      conflictGroups.forEach((conflictGroup) => {
+        let otherConflictGroups = conflictGroups
+          .filter((group) => group.groupId !== conflictGroup.groupId);
+
+        // compare people from current group (conflictGroup)
+        // with each other group (otherConflictGroups)
+        otherConflictGroups.forEach((group) => {
+          // get 2 people ids arrays
+          var peopleIds = [conflictGroup, group]
+            .map((group) => group.people)
+            .map((people) => people.map((person) => person.id));
+
+          hasConflict = !!_.intersection(...peopleIds).length;
+        });
+      });
+
+      return hasConflict;
+    },
+    isCurrentGroupHasConflict: function (groupTitle, groups, conflictRoles) {
+      let hasConflict = false;
+
+      // get people IDs from conflict groups except current group
+      let peopleIds = groups
+        .filter((group) => groupTitle !== group.title &&
+          _.indexOf(conflictRoles, group.title) > -1)
+        .map((group) => group.people)
+        .map((people) => people.map((person) => person.id));
+      
+      // get people IDs from current conflict group
+      let currentGroupPeopleIds = groups
+        .filter((group) => groupTitle === group.title)
+        .map((group) => group.people)
+        .map((people) => people.map((person) => person.id))[0];
+
+      peopleIds.forEach((peopleGroupIds) => {
+        if (_.intersection(peopleGroupIds, currentGroupPeopleIds).length) {
+          hasConflict = true;
+        }
+      });
+
+      return hasConflict;
+    },
     buildGroups: function (role, roleAssignments) {
       var includeRoles = this.attr('includeRoles');
       var groupId = role.id;
@@ -139,6 +210,7 @@ export default GGRC.Components('relatedPeopleAccessControl', {
     },
     inserted: function () {
       this.refreshGroups();
+      this.viewModel.checkConflicts();
     },
     '{viewModel.instance.access_control_list} change':
     function () {
