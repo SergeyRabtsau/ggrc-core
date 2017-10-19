@@ -201,12 +201,8 @@ class WithAction(object):
     def _create(self, parent, action):
       # get assignee type
       current_user = get_current_user()
-      # pylint: disable=protected-access
-      rel = parent._relationships_map.get((current_user.type, current_user.id))
-      if rel:
-        assignee_type = rel.attrs["AssigneeType"]
-      else:
-        assignee_type = None
+      assignee_types = parent.assignees.get(current_user, [])
+      assignee_type = ",".join(assignee_types) or None
       # create object
       cad_id = action.custom_attribute_definition_id
       if not cad_id:
