@@ -93,7 +93,7 @@ Copyright (C) 2017 Google Inc.
                         <li>
                             {{#unless instance._disabled}}
                             {{#unless instance.archived}}
-                                {{#if instance.assignees.Verifier.length}}
+                                {{#if verifiers.length}}
                                     <reminder
                                             {instance}="instance"
                                             {type}="statusToPerson"
@@ -176,7 +176,7 @@ Copyright (C) 2017 Google Inc.
 
         {{#unless isEditDenied}}
                 <object-state-toolbar {{#if is_info_pin}}class="pane-header__toolbar-item"{{/if}}
-                                    {verifiers}="instance.assignees.Verifier"
+                                    {verifiers}="verifiers"
                                     {instance}="instance"
                                     (on-state-change)="onStateChange(%event)">
                 </object-state-toolbar>

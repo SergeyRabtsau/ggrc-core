@@ -33,15 +33,6 @@
     {{/using}}
   {{/case}}
 
-  {{#case 'creators'}}
-      <tree-people-list-field {source}="instance.assignees" filter="Creator" stub="false"/>
-  {{/case}}
-  {{#case 'assignees'}}
-      <tree-people-list-field {source}="instance.assignees" filter="Assessor" stub="false"/>
-  {{/case}}
-  {{#case 'verifiers'}}
-      <tree-people-list-field {source}="instance.assignees" filter="Verifier" stub="false"/>
-  {{/case}}
   {{#case 'modified_by'}}
       <tree-people-list-field {source}="instance.modified_by"/>
   {{/case}}

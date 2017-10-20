@@ -15,6 +15,7 @@ import '../../custom-attributes/custom-attributes-actions';
     template: tpl,
     viewModel: {
       instance: null,
+      verifiers: [],
       onStateChange: function (event) {
         this.dispatch({
           type: 'onStateChange',

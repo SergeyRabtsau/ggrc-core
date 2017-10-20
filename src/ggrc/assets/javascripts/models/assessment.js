@@ -96,7 +96,7 @@ import {prepareCustomAttributes} from '../plugins/utils/ca-utils';
         attr_name: 'archived',
         order: 15,
       }],
-      display_attr_names: ['title', 'status', 'label', 'assignees', 'verifiers',
+      display_attr_names: ['title', 'status', 'label', 'Assessor', 'Verifier',
         'start_date', 'updated_at'],
     },
     sub_tree_view_options: {
@@ -187,28 +187,7 @@ import {prepareCustomAttributes} from '../plugins/utils/ca-utils';
         model.attr('documents', attributes.documents, true);
       }
 
-      if (attributes.assignees) {
-        this.leaveUniqueAssignees(model, attributes, 'Verifier');
-        this.leaveUniqueAssignees(model, attributes, 'Assessor');
-        this.leaveUniqueAssignees(model, attributes, 'Creator');
-      }
-
       return model;
-    },
-    leaveUniqueAssignees: function (model, attributes, type) {
-      var assignees = attributes.assignees[type];
-      var unique = [];
-      if (assignees) {
-        unique = _.uniq(assignees, function (item) {
-          return item.id;
-        });
-      }
-
-      if (!model.attr('assignees')) {
-        model.attr('assignees', new can.Map());
-      }
-
-      model.assignees.attr(type, unique);
     },
     /**
      * Replace Cacheble#findInCacheById method with the latest feature of can.Model - store

@@ -41,6 +41,23 @@ import {
         referenceUrls: CMS.Models.Document.REFERENCE_URL,
       },
       define: {
+        verifiers: {
+          get: function () {
+            let acl = this.attr('instance.access_control_list');
+            let verifierRoleId = this.attr('_verifierRoleId');
+            let verifiers;
+
+            if (!verifierRoleId) {
+              return [];
+            }
+
+            verifiers = acl
+              .filter((item) => item.ac_role_id == verifierRoleId)
+              .map((item) => item.person);
+
+            return verifiers;
+          },
+        },
         isSaving: {
           type: 'boolean',
           value: false,
@@ -132,6 +149,7 @@ import {
       modal: {
         open: false,
       },
+      _verifierRoleId: undefined,
       isUpdatingRelatedItems: false,
       isAssessmentSaving: false,
       onStateChangeDfd: {},
@@ -448,12 +466,23 @@ import {
         can.batch.stop();
         this.attr('modal.state.open', true);
       },
+      setVerifierRoleId: function () {
+        let verifierRoleIds = GGRC.access_control_roles
+          .filter((item) => item.object_type === 'Assessment' &&
+            item.name === 'Verifier')
+          .map((item) => item.id);
+
+        let verifierRoleId = _.head(verifierRoleIds);
+        this.attr('_verifierRoleId', verifierRoleId);
+      },
     },
     init: function () {
       this.viewModel.initializeFormFields();
       this.viewModel.initGlobalAttributes();
       this.viewModel.updateRelatedItems();
       this.viewModel.initializeDeferredSave();
+
+      this.viewModel.setVerifierRoleId();
     },
     events: {
       '{viewModel.instance} refreshMapping': function () {

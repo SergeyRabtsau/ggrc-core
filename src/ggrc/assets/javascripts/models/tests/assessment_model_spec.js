@@ -123,38 +123,6 @@ describe('CMS.Models.Assessment', function () {
       });
   });
 
-  describe('leaveUniqueAssignees() method', function () {
-    var assessment;
-    var method;
-
-    beforeAll(function () {
-      method = CMS.Models.Assessment.leaveUniqueAssignees;
-    });
-
-    beforeEach(function () {
-      assessment = new can.Map({id: 123, title: 'asmt 123'});
-    });
-
-    it('creates assignees object on an instance that lacks one', function () {
-      var actual;
-
-      var attributes = new can.Map({
-        assignees: {
-          Creator: [{id: 5, email: 'john@doe.com'}]
-        }
-      });
-
-      assessment.attr('assignees', undefined);
-
-      method(assessment, attributes, 'Creator');
-
-      actual = assessment.attr('assignees.Creator');
-      expect(actual).toBeDefined();
-      expect(actual.length).toBe(1);
-      expect(actual[0].attr()).toEqual({id: 5, email: 'john@doe.com'});
-    });
-  });
-
   describe('model() method', function () {
     it('does not update backup if backup was not created', function () {
       spyOn(_, 'extend');
