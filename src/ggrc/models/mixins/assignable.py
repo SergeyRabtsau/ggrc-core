@@ -19,6 +19,12 @@ class Assignable(object):
 
   ASSIGNEE_TYPES = ("Creator", "Assessor", "Verifier")
 
+  _aliases = {
+      "Assessor": {"display_name": "Assignees"},
+      "Creator": {"display_name": "Creators"},
+      "Verifier": {"display_name": "Verifiers"},
+  }
+
   @property
   def assignees(self):
     """Property that returns assignees

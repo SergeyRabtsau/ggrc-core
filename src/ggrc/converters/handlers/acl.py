@@ -14,7 +14,7 @@ class AccessControlRoleColumnHandler(handlers.UsersColumnHandler):
     super(AccessControlRoleColumnHandler, self).__init__(
         row_converter, key, **options)
     self.role = models.AccessControlRole.query.filter_by(
-        name=self.display_name,
+        name=(options.get("attr_name") or self.display_name),
         object_type=self.row_converter.obj.type
     ).one()
 
