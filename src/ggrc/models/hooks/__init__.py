@@ -8,6 +8,7 @@ from ggrc.models.hooks import audit
 from ggrc.models.hooks import comment
 from ggrc.models.hooks import issue
 from ggrc.models.hooks import relationship
+from ggrc.models.hooks import access_control_list
 
 
 ALL_HOOKS = [
@@ -16,6 +17,7 @@ ALL_HOOKS = [
     comment,
     issue,
     relationship,
+    access_control_list,
 ]
 
 
