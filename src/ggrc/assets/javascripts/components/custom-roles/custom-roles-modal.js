@@ -18,6 +18,7 @@
       updatableGroupId: null,
       isNewInstance: false,
       conflictRoles: [],
+      orderOfRoles: [],
     },
   });
 })(window.can, window.GGRC);

@@ -265,4 +265,49 @@ describe('GGRC.relatedPeopleAccessControl', function () {
       }
     );
   });
+
+  describe('"setGroupOrder" method', function () {
+    const groups = [
+      {title: 'Primary Contacts', id: 1},
+      {title: 'Secondary Contacts', id: 2},
+      {title: 'Verifier', id: 3},
+      {title: 'Admin', id: 4},
+      {title: 'Creator', id: 5},
+      {title: 'Assessor', id: 6},
+    ];
+
+    function checkOrder(orderArray) {
+      let result = viewModel.setGroupOrder(groups, orderArray);
+
+      expect(result.length).toBe(6);
+      expect(result[0].title).toEqual('Primary Contacts');
+      expect(result[2].title).toEqual('Verifier');
+      expect(result[5].title).toEqual('Assessor');
+    }
+
+    it('should not change order of groups. Empty order array', function () {
+      checkOrder([]);
+    });
+
+    it('should not change order of groups. Without order array', function () {
+      checkOrder();
+    });
+
+    it('should not change order of groups. Order array has wrong titles',
+      function () {
+        let orderArray = ['My Role', 'Primary', 'Contacts'];
+        checkOrder(orderArray);
+      }
+    );
+
+    it('should change order of groups', function () {
+      let orderArray = ['Creator', 'Assessor', 'Verifier'];
+      let result = viewModel.setGroupOrder(groups, orderArray);
+
+      expect(result.length).toBe(6);
+      expect(result[0].title).toEqual('Creator');
+      expect(result[1].title).toEqual('Assessor');
+      expect(result[2].title).toEqual('Verifier');
+    });
+  });
 });

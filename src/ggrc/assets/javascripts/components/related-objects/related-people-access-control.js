@@ -16,6 +16,7 @@ export default GGRC.Components('relatedPeopleAccessControl', {
     includeRoles: [],
     excludeRoles: [],
     conflictRoles: [],
+    orderOfRoles: [],
 
     updateRoles: function (args) {
       this.updateAccessContolList(args.people, args.roleId);
@@ -100,7 +101,7 @@ export default GGRC.Components('relatedPeopleAccessControl', {
           _.indexOf(conflictRoles, group.title) > -1)
         .map((group) => group.people)
         .map((people) => people.map((person) => person.id));
-      
+
       // get people IDs from current conflict group
       let currentGroupPeopleIds = groups
         .filter((group) => groupTitle === group.title)
@@ -169,6 +170,29 @@ export default GGRC.Components('relatedPeopleAccessControl', {
 
       return roles;
     },
+    setGroupOrder: function (groups, orderOfRoles) {
+      if (!Array.isArray(orderOfRoles)) {
+        return groups;
+      }
+
+      orderOfRoles.forEach(function (roleName, index) {
+        let roleIndex = _.findIndex(groups, {title: roleName});
+        let group;
+        let firstGroup;
+
+        if (roleIndex === -1 || roleIndex === index) {
+          return;
+        }
+
+        group = groups[roleIndex];
+        firstGroup = groups[index];
+
+        groups[index] = group;
+        groups[roleIndex] = firstGroup;
+      });
+
+      return groups;
+    },
     getRoleList: function () {
       var roleAssignments;
       var roles;
@@ -199,6 +223,10 @@ export default GGRC.Components('relatedPeopleAccessControl', {
 
         return a.required ? -1 : 1;
       });
+
+      if (this.attr('orderOfRoles.length')) {
+        groups = this.setGroupOrder(groups, this.attr('orderOfRoles').attr());
+      }
 
       return groups;
     }

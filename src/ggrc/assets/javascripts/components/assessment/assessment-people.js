@@ -25,6 +25,7 @@
       withDetails: false,
       instance: {},
       conflictRoles: ['Assessor', 'Verifier'],
+      orderOfRoles: ['Creator', 'Assessor', 'Verifier'],
     },
     events: {
       '{instance} roleConflicts': function (ev, args) {

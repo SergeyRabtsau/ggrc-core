@@ -19,12 +19,14 @@
   <div class="width-100">
     {{#if infoPaneMode}}
       <custom-roles {instance}="instance"
+        {order-of-roles}="orderOfRoles"
         {include-roles}="assessmentMainRoles"
         {conflict-roles}="conflictRoles">
       </custom-roles>
     {{else}}
       <custom-roles-modal
         {instance}="instance"
+        {order-of-roles}="orderOfRoles"
         {conflict-roles}="conflictRoles"
         {is-new-instance}="new_object_form">
       </custom-roles-modal>

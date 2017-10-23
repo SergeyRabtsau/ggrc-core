@@ -19,6 +19,7 @@
       includeRoles: [],
       excludeRoles: [],
       conflictRoles: [],
+      orderOfRoles: [],
       save: function (args) {
         var self = this;
         this.attr('updatableGroupId', args.groupId);
