@@ -492,7 +492,8 @@
     Roleable: {
       access_control_roles: Search(function (binding) {
           return CMS.Models.AccessControlRole.findAll({
-            object_type: binding.instance.model_singular
+            object_type: binding.instance.model_singular,
+            internal: false,
           });
       }, 'AccessControlRole')
     },
