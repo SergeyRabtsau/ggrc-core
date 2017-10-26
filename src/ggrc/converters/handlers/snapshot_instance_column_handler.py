@@ -10,6 +10,7 @@ from ggrc import db
 from ggrc import models
 from ggrc.converters import errors
 from ggrc.converters.handlers.handlers import MappingColumnHandler
+from ggrc.models.mixins.assignable import Assignable
 from ggrc.snapshotter.rules import Types
 
 
@@ -104,7 +105,14 @@ class SnapshotInstanceColumnHandler(MappingColumnHandler):
         db.session.add(mapping)
       elif self.unmap and mapping:
         db.session.delete(mapping)
-    db.session.flush(relationships)
+    # Flush assignable ACL from session to have possibility to create
+    # related ACLs with link to current one in parent_id
+    acls = [
+        obj for obj in db.session.new
+        if isinstance(obj, models.AccessControlList) and
+        obj.ac_role.name in Assignable.ASSIGNEE_TYPES
+    ]
+    db.session.flush(relationships + acls)
     self.dry_run = True
 
   def get_value(self):
