@@ -2,6 +2,7 @@
 # Licensed under http://www.apache.org/licenses/LICENSE-2.0 <see LICENSE file>
 
 """Test audit RBAC"""
+from ggrc import app  # noqa  # pylint: disable=unused-import
 import copy
 
 from os.path import abspath
@@ -219,16 +220,14 @@ class TestPermissionsOnAssessmentRelatedAssignables(TestCase):
     )
     audit = factories.AuditFactory()
     assessment = factories.AssessmentFactory(audit=audit)
-    object_person_rel = factories.RelationshipFactory(
-        source=assessment,
-        destination=self.reader
+    ac_role = all_models.AccessControlRole.query.filter_by(
+        object_type=assessment.type, name="Assessor"
+    ).first()
+    factories.AccessControlListFactory(
+        ac_role=ac_role,
+        object=assessment,
+        person=self.reader
     )
-    factories.RelationshipAttrFactory(
-        relationship_id=object_person_rel.id,
-        attr_name="AssigneeType",
-        attr_value="Assessor"
-    )
-
     factories.RelationshipFactory(source=audit, destination=assessment)
     document = factories.DocumentFactory()
     document_id = document.id

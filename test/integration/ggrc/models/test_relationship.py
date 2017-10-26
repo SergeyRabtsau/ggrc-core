@@ -39,23 +39,8 @@ class TestRelationship(TestCase):
             "source": {"id": source.id, "type": source.type},
             "destination": {"id": destination.id, "type": destination.type},
             "context": {"id": None},
-            "attrs": attrs,
         }
     }])
-
-  @ddt.data(
-      ("AssigneeType", "Creator", 200),
-      ("Invalid", "Data", 400),
-      ("AssigneeType", "Monkey", 400),
-  )
-  @ddt.unpack
-  def test_attrs_validation(self, attr, value, status_code):
-    """Test validation attrs on relationship creation."""
-    data = self.build_relationship_json(self.person,
-                                        self.assessment,
-                                        **{attr: value})
-    resp = self.client.post(self.REL_URL, data=data, headers=self.HEADERS)
-    self.assertStatus(resp, status_code)
 
   def test_changing_log_on_doc_change(self):
     """Changing object documents should generate new object revision."""

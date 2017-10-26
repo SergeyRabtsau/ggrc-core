@@ -409,3 +409,36 @@ class TestCase(BaseTestCase, object):
   def refresh_object(cls, obj, id_=None):
     """Returns a new instance of a model, fresh and warm from the database."""
     return obj.query.filter_by(id=obj.id if id_ is None else id_).first()
+
+  @classmethod
+  def create_assignees(cls, obj, persons):
+    """Create assignees for object.
+
+    This is used only during object creation because we cannot create
+    assignees at that point yet.
+
+    Args:
+      obj: Assignable object.
+      persons: [("(string) email", "Assignee roles"), ...] A list of people
+        and their roles
+    Returns:
+      [(person, acr_role), ...] A list of persons with their roles.
+    """
+    from ggrc.access_control.role import get_custom_roles_for
+    ac_roles = {
+        acr_name: acr_id
+        for acr_id, acr_name in get_custom_roles_for(obj.type).items()
+    }
+    assignees = []
+    with factories.single_commit():
+      for person, roles in persons:
+        person = factories.PersonFactory(email=person)
+
+        for role in roles.split(","):
+          factories.AccessControlListFactory(
+              person=person,
+              ac_role_id=ac_roles[role],
+              object=obj
+          )
+          assignees.append((person, role))
+    return assignees

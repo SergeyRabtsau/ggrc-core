@@ -1045,39 +1045,6 @@ class TestSortingQuery(TestCase, WithQueryApi):
     super(TestSortingQuery, self).setUp()
     self.client.get("/login")
 
-  @classmethod
-  def create_assignees(cls, obj, persons):
-    """Create assignees for object.
-
-    This is used only during object creation because we cannot create
-    assignees at that point yet.
-
-    Args:
-      obj: Assignable object.
-      persons: [("(string) email", "Assignee roles"), ...] A list of people
-        and their roles
-    Returns:
-      [(person, object-person relationship,
-        object-person relationship attributes), ...] A list of persons with
-      their relationships and relationship attributes.
-    """
-    assignees = []
-    for person, roles in persons:
-      person = factories.PersonFactory(email=person)
-
-      object_person_rel = factories.RelationshipFactory(
-          source=obj,
-          destination=person
-      )
-
-      object_person_rel_attrs = factories.RelationshipAttrFactory(
-          relationship_id=object_person_rel.id,
-          attr_name="AssigneeType",
-          attr_value=roles
-      )
-      assignees += [(person, object_person_rel, object_person_rel_attrs)]
-    return assignees
-
   def create_assessment(self, title=None, people=None):
     """Create default assessment with some default assignees in all roles.
     Args:
@@ -1106,14 +1073,14 @@ class TestSortingQuery(TestCase, WithQueryApi):
     defined_verifiers = len([1 for _, role in people
                              if "Verifier" in role])
 
-    self.create_assignees(assessment, people)
+    assignee_roles = self.create_assignees(assessment, people)
 
-    creators = [assignee for assignee, roles in assessment.assignees
-                if "Creator" in roles]
-    assignees = [assignee for assignee, roles in assessment.assignees
-                 if "Assessor" in roles]
-    verifiers = [assignee for assignee, roles in assessment.assignees
-                 if "Verifier" in roles]
+    creators = [assignee for assignee, role in assignee_roles
+                if role == "Creator"]
+    assignees = [assignee for assignee, role in assignee_roles
+                 if role == "Assessor"]
+    verifiers = [assignee for assignee, role in assignee_roles
+                 if role == "Verifier"]
 
     self.assertEqual(len(creators), defined_creators)
     self.assertEqual(len(assignees), defined_assessors)

@@ -6,6 +6,8 @@
 
 import ddt
 
+import sqlalchemy as sa
+
 from ggrc import db
 from ggrc.models import AccessControlList
 from ggrc.models import AccessControlRole
@@ -13,8 +15,6 @@ from ggrc.models import Assessment
 from ggrc.models import Audit
 from ggrc.models import Control
 from ggrc.models import Person
-from ggrc.models import Relationship
-from ggrc.models import RelationshipAttr
 from ggrc_workflows.models import TaskGroup
 
 from integration.ggrc import TestCase
@@ -61,15 +61,20 @@ class TestOrder(TestCase, WithQueryApi):
   @ddt.unpack
   def test_assessment_roles(self, role, role_alias):
     """Assessment assignees/verifiers/creators ordering"""
-    sorted_titles = [title for title, in db.session.query(Assessment.title)
-                     .filter(
-                         Relationship.destination_type == "Assessment",
-                         Relationship.destination_id == Assessment.id,
-                         Relationship.source_type == "Person",
-                         Relationship.id == RelationshipAttr.relationship_id,
-                         RelationshipAttr.attr_value == role,
-                         Person.id == Relationship.source_id)
-                     .order_by(Person.email)]
+    query = db.session.query(Assessment.title).join(
+        AccessControlList,
+        sa.and_(
+            AccessControlList.object_type == "Assessment",
+            AccessControlList.object_id == Assessment.id,
+        )
+    ).join(
+        AccessControlRole,
+        AccessControlRole.id == AccessControlList.ac_role_id
+    ).join(
+        Person, Person.id == AccessControlList.person_id
+    ).filter(AccessControlRole.name == role).order_by(Person.email)
+
+    sorted_titles = [a[0] for a in query]
     self._check_ordering("Assessment", sorted_titles, role_alias)
 
   @ddt.data("Admin",

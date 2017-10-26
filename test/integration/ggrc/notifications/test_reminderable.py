@@ -71,36 +71,6 @@ class TestReminderable(TestCase):
     return db.session.query(models.Notification).join(
         models.NotificationType).filter(notif_filter)
 
-  @classmethod
-  def create_assignees(cls, obj, persons):
-    """Create assignees for object.
-
-    Args:
-      obj: Assignable object.
-      persons: [("(string) email", "Assignee roles"), ...] A list of people
-        and their roles
-    Returns:
-      [(person, object-person relationship,
-        object-person relationship attributes), ...] A list of persons with
-      their relationships and relationship attributes.
-    """
-    assignees = []
-    for person, roles in persons:
-      person = factories.PersonFactory(email=person)
-
-      object_person_rel = factories.RelationshipFactory(
-          source=obj,
-          destination=person
-      )
-
-      object_person_rel_attrs = factories.RelationshipAttrFactory(
-          relationship_id=object_person_rel.id,
-          attr_name="AssigneeType",
-          attr_value=roles
-      )
-      assignees += [(person, object_person_rel, object_person_rel_attrs)]
-    return assignees
-
   def create_assessment(self, people=None):
     """Create default assessment with some default assignees in all roles.
 
@@ -121,13 +91,13 @@ class TestReminderable(TestCase):
           ("verifier_2@example.com", "Verifier"),
       ]
 
-    self.create_assignees(assessment, people)
+    assignee_roles = self.create_assignees(assessment, people)
 
-    creators = [assignee for assignee, roles in assessment.assignees
+    creators = [assignee for assignee, roles in assignee_roles
                 if "Creator" in roles]
-    assignees = [assignee for assignee, roles in assessment.assignees
+    assignees = [assignee for assignee, roles in assignee_roles
                  if "Assessor" in roles]
-    verifiers = [assignee for assignee, roles in assessment.assignees
+    verifiers = [assignee for assignee, roles in assignee_roles
                  if "Verifier" in roles]
 
     self.assertEqual(len(creators), 1)

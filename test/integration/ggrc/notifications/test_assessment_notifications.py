@@ -34,6 +34,10 @@ class TestAssessmentNotification(TestCase):
     self.auditor = Person.query.filter_by(email="user@example.com").one()
     self.api.set_user(self.auditor)
     audit = factories.AuditFactory()
+    assessor_acr = all_models.AccessControlRole.query.filter_by(
+        object_type="Assessment",
+        name="Assessor",
+    ).first()
 
     self.api.post(Assessment, {
         "assessment": {
@@ -43,30 +47,29 @@ class TestAssessmentNotification(TestCase):
                 "id": audit.id,
                 "type": "Audit",
             },
-            "access_control_list": [{
-                "person": {
-                    "id": self.auditor.id,
-                    "type": "Person",
+            "access_control_list": [
+                {
+                    "person": {
+                        "id": self.auditor.id,
+                        "type": "Person",
+                    },
+                    "ac_role_id": self.primary_role_id,
+                    "context": None
                 },
-                "ac_role_id": self.primary_role_id,
-                "context": None
-            }],
+                {
+                    "person": {
+                        "id": self.auditor.id,
+                        "type": "Person",
+                    },
+                    "ac_role_id": assessor_acr.id,
+                    "context": None
+                }
+            ],
             "status": "In Progress",
         }
     })
 
     self.assessment = Assessment.query.filter_by(title="Assessment1").one()
-    auditor = Person.query.filter_by(email="user@example.com").one()
-    assessment_person_rel = factories.RelationshipFactory(
-        source=self.assessment,
-        destination=auditor
-    )
-
-    factories.RelationshipAttrFactory(
-        relationship_id=assessment_person_rel.id,
-        attr_name="AssigneeType",
-        attr_value="Assessor"
-    )
 
     self.cad1 = factories.CustomAttributeDefinitionFactory(
         definition_type="assessment",
@@ -167,6 +170,10 @@ class TestAssessmentNotification(TestCase):
 
   def test_access_conrol_list(self):
     """Test notification when access conrol list is changed"""
+    assessor_acr = all_models.AccessControlRole.query.filter_by(
+        object_type="Assessment",
+        name="Assessor",
+    ).first()
     response = self.api.put(self.assessment, {
         "access_control_list": [
             {
@@ -176,7 +183,16 @@ class TestAssessmentNotification(TestCase):
                 },
                 "ac_role_id": self.secondary_role_id,
                 "context": None
-            }],
+            },
+            {
+                "person": {
+                    "id": self.auditor.id,
+                    "type": "Person",
+                },
+                "ac_role_id": assessor_acr.id,
+                "context": None
+            }
+        ],
     })
     self.assert200(response)
 

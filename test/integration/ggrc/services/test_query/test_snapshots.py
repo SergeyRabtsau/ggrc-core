@@ -821,7 +821,10 @@ class TestSnapshotIndexing(TestCase, WithQueryApi):
       factories.RelationshipFactory(source=program, destination=control1)
       factories.RelationshipFactory(source=program, destination=control2)
       factories.AccessControlListFactory(
-          ac_role=factories.AccessControlRoleFactory(name=test_role_name),
+          ac_role=factories.AccessControlRoleFactory(
+              name=test_role_name,
+              object_type="Control"
+          ),
           person=person1,
           object_id=control1_id,
           object_type="Control",

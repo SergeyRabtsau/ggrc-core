@@ -53,18 +53,20 @@ class TestReader(TestCase):
     self.obj_json = response.json
     self.obj = all_models.Assessment.query.get(obj_id)
 
-  def _post_relationship(self, user, obj_id):
+  def _add_creator(self, asmnt, user):
     """Helper method for creating assignees on an object"""
-    return self.api.post(all_models.Relationship, {
-        "relationship": {"source": {
-            "id": obj_id,
-            "type": "Assessment"
-        }, "destination": {
-            "id": user.id,
-            "type": "Person"
-        }, "attrs": {
-            "AssigneeType": "Creator"
-        }, "context": None},
+    acr = all_models.AccessControlRole.query.filter(
+        all_models.AccessControlRole.object_type == "Assessment",
+        all_models.AccessControlRole.name == "Creator",
+    ).first()
+    return self.api.put(asmnt, {
+        "access_control_list": [{
+            "ac_role_id": acr.id,
+            "person": {
+                "id": user.id
+            },
+            "type": "AccessControlList",
+        }]
     })
 
   def test_basic_with_no_assignee(self):
@@ -79,7 +81,7 @@ class TestReader(TestCase):
     self.assertEqual(response.status_code, 200)
     response = self.api.put(self.obj, self.obj_json)
     self.assertEqual(response.status_code, 403)
-    response = self._post_relationship(self.users["reader"], self.obj.id)
+    response = self._add_creator(self.obj, self.users["reader"])
     self.assertEqual(response.status_code, 403)
 
     # Creator should have no access. We skip the put request because we can't
@@ -87,7 +89,7 @@ class TestReader(TestCase):
     self.api.set_user(self.users["creator"])
     response = self.api.get(all_models.Assessment, self.obj.id)
     self.assertEqual(response.status_code, 403)
-    response = self._post_relationship(self.users["reader"], self.obj.id)
+    response = self._add_creator(self.obj, self.users["reader"])
     self.assertEqual(response.status_code, 403)
 
   def test_basic_with_assignee(self):
@@ -95,8 +97,8 @@ class TestReader(TestCase):
 
     # Admin adds reader as an assignee
     self.api.set_user(self.users["admin"])
-    response = self._post_relationship(self.users["reader"], self.obj.id)
-    self.assertEqual(response.status_code, 201)
+    response = self._add_creator(self.obj, self.users["reader"])
+    self.assertEqual(response.status_code, 200)
 
     # Reader is now allowed to update the object
     self.api.set_user(self.users["reader"])
@@ -106,8 +108,8 @@ class TestReader(TestCase):
     self.assertEqual(response.status_code, 200)
 
     # Reader adds creator as an assignee
-    response = self._post_relationship(self.users["creator"], self.obj.id)
-    self.assertEqual(response.status_code, 201)
+    response = self._add_creator(self.obj, self.users["creator"])
+    self.assertEqual(response.status_code, 200)
 
     # Creator now has CRUD access
     self.api.set_user(self.users["creator"])
@@ -116,8 +118,8 @@ class TestReader(TestCase):
     response = self.api.put(self.obj, response.json)
 
     # Creator should even be allowed to add new assignees
-    response = self._post_relationship(self.users["admin"], self.obj.id)
-    self.assertEqual(response.status_code, 201)
+    response = self._add_creator(self.obj, self.users["admin"])
+    self.assertEqual(response.status_code, 200)
 
   def test_read_of_mapped_objects(self):
     """Test if assignees get Read access on all mapped objects"""
@@ -152,7 +154,8 @@ class TestReader(TestCase):
 
     # Editor adds creator as an assignee
     self.api.set_user(self.users["editor"])
-    response = self._post_relationship(self.users["creator"], self.obj.id)
+    response = self._add_creator(self.obj, self.users["creator"])
+    self.assertEqual(response.status_code, 200)
 
     # Creator should now have read access on the mapped object
     self.api.set_user(self.users["creator"])

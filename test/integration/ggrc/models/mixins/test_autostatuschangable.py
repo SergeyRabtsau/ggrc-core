@@ -6,6 +6,7 @@
 import ddt
 
 from ggrc import models
+from ggrc.access_control.role import get_custom_roles_for
 
 from integration.ggrc import TestCase
 from integration.ggrc import api_helper
@@ -59,7 +60,7 @@ class TestMixinAutoStatusChangeable(TestCase):
                      getattr(models.Assessment, test_state))
     self.modify_assignee(assessment,
                          "creator@example.com",
-                         "Creator,Assessor")
+                         ["Creator", "Assessor"])
     assessment = self.refresh_object(assessment)
     self.assertEqual(assessment.status,
                      getattr(models.Assessment, test_state))
@@ -181,39 +182,6 @@ class TestMixinAutoStatusChangeable(TestCase):
     assessment = self.refresh_object(assessment)
     self.assertEqual(assessment.status, models.Assessment.PROGRESS_STATE)
 
-  @classmethod
-  def create_assignees(cls, obj, persons):
-    """Create assignees for object.
-
-    This is used only during object creation because we cannot create
-    assignees at that point yet.
-
-    Args:
-      obj: Assignable object.
-      persons: [("(string) email", "Assignee roles"), ...] A list of people
-        and their roles
-    Returns:
-      [(person, object-person relationship,
-        object-person relationship attributes), ...] A list of persons with
-      their relationships and relationship attributes.
-    """
-    assignees = []
-    for person, roles in persons:
-      person = factories.PersonFactory(email=person)
-
-      object_person_rel = factories.RelationshipFactory(
-          source=obj,
-          destination=person
-      )
-
-      object_person_rel_attrs = factories.RelationshipAttrFactory(
-          relationship_id=object_person_rel.id,
-          attr_name="AssigneeType",
-          attr_value=roles
-      )
-      assignees += [(person, object_person_rel, object_person_rel_attrs)]
-    return assignees
-
   def create_assignees_restful(self, obj, persons):
     """Add assignees via RESTful API instead of directly via backend.
 
@@ -241,25 +209,7 @@ class TestMixinAutoStatusChangeable(TestCase):
       relationships += [relationship]
     return relationships
 
-  @staticmethod
-  def get_person_relationship(obj, email):
-    """Return person's Relationship to object.
-
-    Args:
-      obj: object that is linked to person via Relationship
-      email: email address of user
-    Returns:
-      Relationship that has as source object and as destination person
-      (or vice versa).
-    """
-    object_relationships = obj.related_sources + obj.related_destinations
-
-    person_rel = next(rel for rel in object_relationships
-                      if email in {getattr(rel.source, "email", None),
-                                   getattr(rel.destination, "email", None)})
-    return person_rel
-
-  def modify_assignee(self, obj, email, new_role):
+  def modify_assignee(self, obj, email, new_roles):
     """Modfiy assignee type.
 
     Args:
@@ -267,12 +217,18 @@ class TestMixinAutoStatusChangeable(TestCase):
       email: Person's email
       new_role: New roles for AssigneeType
     """
-    person_rel = self.get_person_relationship(obj, email)
-
-    self.api_helper.modify_object(person_rel, {
-        "attrs": {
-            "AssigneeType": new_role
-        }
+    person = models.Person.query.filter_by(email=email).first()
+    ac_roles = {
+        acr_name: acr_id
+        for acr_id, acr_name in get_custom_roles_for(obj.type).items()
+    }
+    self.api_helper.modify_object(obj, {
+        "access_control_list": [{
+            "ac_role_id": ac_roles[role],
+            "person": {
+                "id": person.id
+            },
+        } for role in new_roles]
     })
 
   def delete_assignee(self, obj, email):
@@ -285,8 +241,7 @@ class TestMixinAutoStatusChangeable(TestCase):
       obj: object
       email: assignee's email
     """
-    person_rel = self.get_person_relationship(obj, email)
-    self.api_helper.delete(person_rel)
+    self.modify_assignee(obj, email, [])
 
   def create_assessment(self, people=None):
     """Create default assessment with some default assignees in all roles.
@@ -316,13 +271,13 @@ class TestMixinAutoStatusChangeable(TestCase):
     defined_verifiers = len([1 for _, role in people
                              if "Verifier" in role])
 
-    self.create_assignees(assessment, people)
+    assignee_roles = self.create_assignees(assessment, people)
 
-    creators = [assignee for assignee, roles in assessment.assignees
+    creators = [assignee for assignee, roles in assignee_roles
                 if "Creator" in roles]
-    assignees = [assignee for assignee, roles in assessment.assignees
+    assignees = [assignee for assignee, roles in assignee_roles
                  if "Assessor" in roles]
-    verifiers = [assignee for assignee, roles in assessment.assignees
+    verifiers = [assignee for assignee, roles in assignee_roles
                  if "Verifier" in roles]
 
     self.assertEqual(len(creators), defined_creators)
