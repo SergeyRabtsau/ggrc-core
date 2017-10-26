@@ -32,6 +32,23 @@ class TestAssessment(ggrc.TestCase):
     super(TestAssessment, self).setUp()
     self.api = ggrc.api_helper.Api()
 
+  def assert_mapped_role(self, role, person_email, mapped_obj):
+    """Check if required role was created for mapped object"""
+    query = all_models.AccessControlList.query.join(
+        all_models.AccessControlRole,
+        all_models.AccessControlRole.id ==
+          all_models.AccessControlList.ac_role_id
+    ).join(
+        all_models.Person,
+        all_models.Person.id == all_models.AccessControlList.person_id
+    ).filter(
+        all_models.AccessControlList.object_id == mapped_obj.id,
+        all_models.AccessControlList.object_type == mapped_obj.type,
+        all_models.Person.email == person_email,
+        all_models.AccessControlRole.name == role,
+    )
+    self.assertEqual(query.count(), 1)
+
   def test_auto_slug_generation(self):
     """Test auto slug generation"""
     factories.AssessmentFactory(title="Some title")
@@ -114,6 +131,261 @@ class TestAssessment(ggrc.TestCase):
     self._check_csv_response(response, {})
     assessment = all_models.Assessment.query.first()
     self.assertEqual(assessment.audit_id, correct_audit_id)
+
+  def test_post_mapped_roles(self):
+    """Test mapped roles creation when new assessment created"""
+    audit = factories.AuditFactory()
+    person = factories.PersonFactory()
+    person_email = person.email
+
+    ac_roles = {
+        role_name: role_id
+        for role_id, role_name in get_custom_roles_for("Assessment").items()
+        if role_name in ["Assessor", "Creator", "Verifier"]
+    }
+    response = self.api.post(all_models.Assessment, {
+        "assessment": {
+            "audit": {
+                "id": audit.id,
+                "type": "Audit"
+            },
+            "access_control_list": [
+                {
+                    "ac_role_id": role_id,
+                    "person": {
+                      "id": person.id
+                    }
+                }
+                for role_id in ac_roles.values()
+            ],
+            "context": {
+                "id": audit.context.id,
+                "type": "Context"
+            },
+            "title": "Some title"
+        }
+    })
+    self.assertEqual(response.status_code, 201)
+
+    db.session.add(audit)
+    assessment = all_models.Assessment.query.get(
+        response.json["assessment"]["id"]
+    )
+    for role in ac_roles:
+      self.assert_mapped_role(role, person_email, assessment)
+      self.assert_mapped_role("{} Mapped".format(role), person_email, audit)
+
+  def test_put_mapped_roles(self):
+    """Test mapped roles creation when assessment updated"""
+    ac_roles = {
+        role_name: role_id
+        for role_id, role_name in get_custom_roles_for("Assessment").items()
+        if role_name in ["Assessor", "Creator", "Verifier"]
+    }
+    with factories.single_commit():
+      person = factories.PersonFactory()
+      person_email = person.email
+      audit = factories.AuditFactory()
+      assessment = factories.AssessmentFactory(audit=audit)
+      factories.AccessControlListFactory(
+          ac_role_id=ac_roles["Assessor"], person=person, object=assessment
+      )
+      factories.AccessControlListFactory(
+          ac_role_id=ac_roles["Creator"], person=person, object=assessment
+      )
+      factories.RelationshipFactory(source=audit, destination=assessment)
+
+    verifiers = all_models.AccessControlList.query.join(
+        all_models.AccessControlRole,
+        all_models.AccessControlList.ac_role_id ==
+            all_models.AccessControlRole.id
+    ).filter(
+        all_models.AccessControlRole.name == "Verifier Mapped",
+        all_models.AccessControlList.person == person,
+        all_models.AccessControlList.object_id == assessment.id,
+        all_models.AccessControlList.object_type == assessment.type,
+    )
+    # Check there is no Verified Mapped roles in db
+    self.assertEqual(verifiers.count(), 0)
+
+    # Add verifier to Assessment
+    response = self.api.put(assessment, {
+        "access_control_list": [
+            {
+                "ac_role_id": role_id,
+                "person": {
+                  "id": person.id
+                }
+            }
+            for role_id in ac_roles.values()
+        ]
+    })
+    self.assertEqual(response.status_code, 200)
+
+    db.session.add_all([audit, assessment])
+    self.assert_mapped_role("Verifier", person_email, assessment)
+    self.assert_mapped_role("Verifier Mapped", person_email, audit)
+
+  def test_import_mapped_roles(self):
+    """Test creation of mapped roles in assessment import."""
+    with factories.single_commit():
+      audit = factories.AuditFactory()
+      asmnt = factories.AssessmentFactory(audit=audit)
+      factories.RelationshipFactory(source=audit, destination=asmnt)
+
+      control = factories.ControlFactory()
+      snapshot = self._create_snapshots(audit, [control])[0]
+      factories.RelationshipFactory(source=asmnt, destination=snapshot)
+
+      users = ["user1@mail.com", "user2@mail.com"]
+      for user in users:
+        factories.PersonFactory(email=user)
+
+    users_str = "\n".join(users)
+    response = self.import_data(collections.OrderedDict([
+        ("object_type", "Assessment"),
+        ("Code*", asmnt.slug),
+        ("Assignees", users_str),
+        ("Creators", users_str),
+        ("Verifiers", users_str),
+    ]))
+    self._check_csv_response(response, {})
+
+    # Add objects back to session to have access to their id and type
+    db.session.add_all([audit, snapshot])
+    for role in ["Assessor Mapped", "Creator Mapped", "Verifier Mapped"]:
+      for user in users:
+        self.assert_mapped_role(role, user, audit)
+        self.assert_mapped_role(role, user, snapshot)
+
+  def test_document_mapped_roles(self):
+    """Test creation of mapped document roles."""
+    ac_roles = {
+        role_name: role_id
+        for role_id, role_name in get_custom_roles_for("Assessment").items()
+        if role_name in ["Assessor", "Creator", "Verifier"]
+    }
+    with factories.single_commit():
+      person = factories.PersonFactory()
+      person_email = person.email
+      audit = factories.AuditFactory()
+      assessment = factories.AssessmentFactory(audit=audit)
+      for ac_role in ["Assessor", "Creator", "Verifier"]:
+        factories.AccessControlListFactory(
+            ac_role_id=ac_roles[ac_role], person=person, object=assessment
+        )
+      factories.RelationshipFactory(source=audit, destination=assessment)
+      document = factories.DocumentFactory()
+      factories.RelationshipFactory(source=assessment, destination=document)
+
+    db.session.add(document)
+    for role in ["Assessor Document Mapped",
+                 "Creator Document Mapped",
+                 "Verifier Document Mapped"]:
+      self.assert_mapped_role(role, person_email, document)
+
+  def test_deletion_mapped_roles(self):
+    """Test deletion of mapped roles."""
+    with factories.single_commit():
+      person = factories.PersonFactory()
+      person_email = person.email
+      audit = factories.AuditFactory()
+      assessment = factories.AssessmentFactory(audit=audit)
+      for ac_role_id in self.assignee_roles.values():
+        factories.AccessControlListFactory(
+            ac_role_id=ac_role_id,
+            person=person,
+            object=assessment
+        )
+      factories.RelationshipFactory(source=audit, destination=assessment)
+
+    # Remove verifier and assignee from Assessment
+    response = self.api.put(assessment, {
+        "access_control_list": [
+            {
+                "ac_role_id": self.assignee_roles["Creators"],
+                "person": {
+                    "id": person.id
+                }
+            }
+        ]
+    })
+    self.assertEqual(response.status_code, 200)
+    db.session.add(audit)
+    self.assert_mapped_role("Creators", person_email, assessment)
+    self.assert_mapped_role("Creators Mapped", person_email, audit)
+
+  def test_deletion_multiple_assignee(self):
+    """Test deletion of multiple mapped roles."""
+    with factories.single_commit():
+      persons = [factories.PersonFactory() for _ in range(2)]
+      person_ids = [p.id for p in persons]
+      person_email = persons[1].email
+      audit = factories.AuditFactory()
+      assessment = factories.AssessmentFactory(audit=audit)
+      for ac_role_id in self.assignee_roles.values():
+        for person in persons:
+          factories.AccessControlListFactory(
+              ac_role_id=ac_role_id,
+              person=person,
+              object=assessment
+          )
+      factories.RelationshipFactory(source=audit, destination=assessment)
+
+    # Remove assignee roles for first person
+    response = self.api.put(assessment, {
+        "access_control_list": [
+            {
+                "ac_role_id": role_id,
+                "person": {
+                    "id": person_ids[1]
+                }
+
+            }
+            for role_id in self.assignee_roles.values()
+        ]
+    })
+    self.assertEqual(response.status_code, 200)
+    assignee_acl = all_models.AccessControlList.query.filter_by(
+        person_id=person_ids[0]
+    )
+    # All roles for first person should be removed
+    self.assertEqual(assignee_acl.count(), 0)
+    db.session.add(audit)
+    for ac_role in self.assignee_roles.keys():
+      self.assert_mapped_role(ac_role, person_email, assessment)
+      self.assert_mapped_role(
+          "{} Mapped".format(ac_role), person_email, audit
+      )
+
+  def test_assignee_deletion_unmap(self):
+    """Test deletion of assignee roles when snapshot is unmapped."""
+    with factories.single_commit():
+      person = factories.PersonFactory()
+      person_email = person.email
+      audit = factories.AuditFactory()
+      assessment = factories.AssessmentFactory(audit=audit)
+      for ac_role_id in self.assignee_roles.values():
+        factories.AccessControlListFactory(
+            ac_role_id=ac_role_id,
+            person=person,
+            object=assessment
+        )
+      factories.RelationshipFactory(source=audit, destination=assessment)
+      snapshot = self._create_snapshots(audit, [factories.ControlFactory()])[0]
+      rel = factories.RelationshipFactory(
+          source=assessment, destination=snapshot
+      )
+    for ac_role in self.assignee_roles.keys():
+      self.assert_mapped_role(
+          "{} Mapped".format(ac_role), person_email, snapshot
+      )
+    response = self.api.delete(rel)
+    self.assertEqual(response.status_code, 200)
+    snap_acls = all_models.AccessControlList.query.filter_by(
+        object_type="Snapshot"
+    )
+    self.assertEqual(snap_acls.count(), 0)
 
 
 @base.with_memcache
@@ -199,13 +471,12 @@ class TestAssessmentUpdates(ggrc.TestCase):
 
 
 @ddt.ddt
-class TestAssessmentGeneration(ggrc.TestCase):
+class TestAssessmentGeneration(TestAssessment):
   """Test assessment generation"""
   # pylint: disable=invalid-name
 
   def setUp(self):
     super(TestAssessmentGeneration, self).setUp()
-    self.api = ggrc.api_helper.Api()
     with factories.single_commit():
       self.audit = factories.AuditFactory()
       self.control = factories.ControlFactory(test_plan="Control Test Plan")
@@ -317,6 +588,32 @@ class TestAssessmentGeneration(ggrc.TestCase):
     response = self.assessment_post(template)
     self.assertEqual(response.json["assessment"]["test_plan"],
                      template.procedure_description)
+
+  def test_mapped_roles_template(self):
+    """Test mapped assignee roles for assessment generated from template """
+    template = factories.AssessmentTemplateFactory()
+    auditor_role = all_models.Role.query.filter_by(name="Auditor").first()
+    audit_context = factories.ContextFactory()
+    self.audit.context = audit_context
+
+    users = ["user1@example.com", "user2@example.com"]
+    for user in users:
+      auditor = factories.PersonFactory(email=user)
+      rbac_factories.UserRoleFactory(
+          context=audit_context,
+          person=auditor,
+          role=auditor_role,
+      )
+
+    self.assessment_post(template)
+    # Add objects back to session to have access to their id and type
+    mapped_objects = [self.audit, self.snapshot]
+    db.session.add_all(mapped_objects)
+    for obj in mapped_objects:
+      self.assert_mapped_role("Verifier Mapped", users[0], obj)
+      self.assert_mapped_role("Verifier Mapped", users[1], obj)
+      self.assert_mapped_role("Assessor Mapped", self.audit.contact.email, obj)
+      self.assert_mapped_role("Creator Mapped", "user@example.com", obj)
 
   def test_control_test_plan(self):
     """Test test_plan from control"""
