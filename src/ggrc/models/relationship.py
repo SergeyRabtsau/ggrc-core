@@ -1,18 +1,12 @@
 # Copyright (C) 2017 Google Inc.
 # Licensed under http://www.apache.org/licenses/LICENSE-2.0 <see LICENSE file>
 
-import functools
-import inspect
-
 import collections
 import sqlalchemy as sa
 from sqlalchemy import or_, and_
-from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.ext.declarative import declared_attr
-from sqlalchemy.orm.collections import attribute_mapped_collection
 
 from ggrc import db
-from ggrc.models.mixins import Identifiable
 from ggrc.models.mixins import Base
 from ggrc.models import reflection
 
@@ -203,9 +197,13 @@ class RelationshipsCache(object):
         )
     ).union_all(
         cols.filter(
-            sa.tuple_(Relationship.destination_type,
-                   Relationship.destination_id).in_(
-                       [(s.type, s.id) for s in stubs]))
+            sa.tuple_(
+                Relationship.destination_type,
+                Relationship.destination_id
+            ).in_(
+                [(s.type, s.id) for s in stubs]
+            )
+        )
     ).all()
     for (src_type, src_id, dst_type, dst_id) in relationships:
       src = Stub(src_type, src_id)

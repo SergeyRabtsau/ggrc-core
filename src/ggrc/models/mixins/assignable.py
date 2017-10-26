@@ -10,8 +10,6 @@ Creator, etc.
 from collections import defaultdict
 
 from ggrc.access_control.role import get_custom_roles_for
-from ggrc.models import person
-from ggrc.models import reflection
 
 
 class Assignable(object):

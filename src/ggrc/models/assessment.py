@@ -35,7 +35,7 @@ from ggrc.models.object_person import Personable
 from ggrc.models import reflection
 from ggrc.models.relationship import Relatable
 from ggrc.models.track_object_state import HasObjectState
-from ggrc.fulltext.mixin import Indexed, ReindexRule
+from ggrc.fulltext.mixin import Indexed
 
 
 class Assessment(Roleable, statusable.Statusable, AuditRelationship,
