@@ -156,7 +156,7 @@ import {
       formState: {},
       noItemsText: '',
       initialState: 'Not Started',
-      assessmentMainRoles: ['Creator', 'Assessor', 'Verifier'],
+      assessmentMainRoles: ['Creators', 'Assignees', 'Verifiers'],
       setUrlEditMode: function (value, type) {
         this.attr(type + 'EditMode', value);
       },
@@ -469,7 +469,7 @@ import {
       setVerifierRoleId: function () {
         let verifierRoleIds = GGRC.access_control_roles
           .filter((item) => item.object_type === 'Assessment' &&
-            item.name === 'Verifier')
+            item.name === 'Verifiers')
           .map((item) => item.id);
 
         let verifierRoleId = _.head(verifierRoleIds);

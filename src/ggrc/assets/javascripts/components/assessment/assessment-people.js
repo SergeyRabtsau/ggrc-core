@@ -24,8 +24,8 @@
       infoPaneMode: true,
       withDetails: false,
       instance: {},
-      conflictRoles: ['Assessor', 'Verifier'],
-      orderOfRoles: ['Creator', 'Assessor', 'Verifier'],
+      conflictRoles: ['Assignees', 'Verifiers'],
+      orderOfRoles: ['Creators', 'Assignees', 'Verifiers'],
     },
     events: {
       '{instance} roleConflicts': function (ev, args) {

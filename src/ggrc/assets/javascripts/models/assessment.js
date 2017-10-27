@@ -27,7 +27,7 @@ import {prepareCustomAttributes} from '../plugins/utils/ca-utils';
       assessment_type: 'Control',
       status: 'Not Started',
       send_by_default: true,  // notifications when a comment is added
-      recipients: 'Assessor,Creator,Verifier'  // user roles to be notified
+      recipients: 'Assignees,Creators,Verifiers'  // user roles to be notified
     },
     statuses: ['Not Started', 'In Progress', 'In Review',
       'Verified', 'Completed', 'Deprecated', 'Rework Needed'],
@@ -96,7 +96,7 @@ import {prepareCustomAttributes} from '../plugins/utils/ca-utils';
         attr_name: 'archived',
         order: 15,
       }],
-      display_attr_names: ['title', 'status', 'label', 'Assessor', 'Verifier',
+      display_attr_names: ['title', 'status', 'label', 'Assignees', 'Verifiers',
         'start_date', 'updated_at'],
     },
     sub_tree_view_options: {
@@ -263,20 +263,20 @@ import {prepareCustomAttributes} from '../plugins/utils/ca-utils';
       if (this.audit) {
         auditLead = this.audit.contact.reify();
         if (currentUser === auditLead) {
-          markForAddition(this, auditLead, 'Creator,Assessor');
+          markForAddition(this, auditLead, 'Creators,Assignees');
         } else {
-          markForAddition(this, auditLead, 'Assessor');
-          markForAddition(this, currentUser, 'Creator');
+          markForAddition(this, auditLead, 'Assignees');
+          markForAddition(this, currentUser, 'Creators');
         }
 
         return this.audit.findAuditors().then(function (list) {
           list.forEach(function (item) {
-            var type = 'Verifier';
+            var type = 'Verifiers';
             if (item.person === auditLead) {
-              type += ',Assessor';
+              type += ',Assignees';
             }
             if (item.person === currentUser) {
-              type += ',Creator';
+              type += ',Creators';
             }
             markForAddition(self, item.person, type);
           });
