@@ -301,7 +301,7 @@ class TestAssignableNotificationUsingImports(TestAssignableNotification):
     self.import_data(OrderedDict([
         (u"object_type", u"Assessment"),
         (u"Code*", asmt.slug),
-        (u"Verifier", u"bob@dylan.com"),
+        (u"Verifiers", u"bob@dylan.com"),
     ]))
 
     query = self._get_notifications(notif_type="assessment_updated")
@@ -458,7 +458,7 @@ class TestAssignableNotificationUsingImports(TestAssignableNotification):
     self.import_data(OrderedDict([
         (u"object_type", u"Assessment"),
         (u"Code*", asmt_slug),
-        (u"Verifier", None),
+        (u"Verifiers", None),
         (u"State*", Assessment.START_STATE),
     ]))
 
@@ -1130,11 +1130,11 @@ class TestAssignableNotificationUsingAPI(TestAssignableNotification):
 
     asmt = Assessment.query.get(asmts["A 5"].id)
 
-    # add an Assessor, there should be no notifications because the Assessment
+    # add an Assignee, there should be no notifications because the Assessment
     # has not been started yet
     person = factories.PersonFactory()
     response, relationship = self.objgen.generate_relationship(
-        person, asmt, attrs={"AssigneeType": "Assessor"})
+        person, asmt, attrs={"AssigneeType": "Assignees"})
     self.assertEqual(response.status_code, 201)
 
     change_notifs = self._get_notifications(notif_type="assessment_updated")
@@ -1152,7 +1152,7 @@ class TestAssignableNotificationUsingAPI(TestAssignableNotification):
     # assign another Assignee, change notification should be created
     person2 = factories.PersonFactory()
     response, relationship2 = self.objgen.generate_relationship(
-        person2, asmt, attrs={"AssigneeType": "Assessor"})
+        person2, asmt, attrs={"AssigneeType": "Assignees"})
     self.assertEqual(response.status_code, 201)
     rel2_id = relationship2.id
 
@@ -1167,7 +1167,7 @@ class TestAssignableNotificationUsingAPI(TestAssignableNotification):
     relationship2 = Relationship.query.get(rel2_id)
 
     self.api_helper.modify_object(
-        relationship2, {"AssigneeType": "Assessor,Verifier"})
+        relationship2, {"AssigneeType": "Assignees,Verifiers"})
 
     change_notifs = self._get_notifications(notif_type="assessment_updated")
     self.assertEqual(change_notifs.count(), 1)
@@ -1190,7 +1190,7 @@ class TestAssignableNotificationUsingAPI(TestAssignableNotification):
     relationship2 = Relationship.query.get(rel2_id)
 
     self.api_helper.modify_object(
-        relationship2, {"AssigneeType": "Assessor"})  # not Verifier anymore
+        relationship2, {"AssigneeType": "Assignees"})  # not Verifier anymore
 
     change_notifs = self._get_notifications(notif_type="assessment_updated")
     self.assertEqual(change_notifs.count(), 1)
@@ -1213,7 +1213,7 @@ class TestAssignableNotificationUsingAPI(TestAssignableNotification):
 
     # person = factories.PersonFactory()
     # response, relationship = self.objgen.generate_relationship(
-    #     person, asmt, attrs={"AssigneeType": "Assessor"})
+    #     person, asmt, attrs={"AssigneeType": "Assignees"})
     # self.assertEqual(response.status_code, 201)
 
     # reopened_notifs = self._get_notifications(

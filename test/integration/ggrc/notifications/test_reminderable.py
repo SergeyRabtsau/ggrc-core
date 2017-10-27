@@ -84,21 +84,21 @@ class TestReminderable(TestCase):
 
     if not people:
       people = [
-          ("creator@example.com", "Creator"),
-          ("assessor_1@example.com", "Assessor"),
-          ("assessor_2@example.com", "Assessor"),
-          ("verifier_1@example.com", "Verifier"),
-          ("verifier_2@example.com", "Verifier"),
+          ("creator@example.com", "Creators"),
+          ("assessor_1@example.com", "Assignees"),
+          ("assessor_2@example.com", "Assignees"),
+          ("verifier_1@example.com", "Verifiers"),
+          ("verifier_2@example.com", "Verifiers"),
       ]
 
     assignee_roles = self.create_assignees(assessment, people)
 
     creators = [assignee for assignee, roles in assignee_roles
-                if "Creator" in roles]
+                if "Creators" in roles]
     assignees = [assignee for assignee, roles in assignee_roles
-                 if "Assessor" in roles]
+                 if "Assignees" in roles]
     verifiers = [assignee for assignee, roles in assignee_roles
-                 if "Verifier" in roles]
+                 if "Verifiers" in roles]
 
     self.assertEqual(len(creators), 1)
     self.assertEqual(len(assignees), 2)
@@ -133,7 +133,7 @@ class TestReminderable(TestCase):
       })
 
       notifications = self._get_notifications(
-          False, "assessment_assessor_reminder",
+          False, "assessment_assignees_reminder",
       ).all()
       self.assertEqual(len(notifications), 1)
 
@@ -157,7 +157,7 @@ class TestReminderable(TestCase):
       self.send_reminder(assessment)
 
       notifications = self._get_notifications(
-          False, "assessment_assessor_reminder",
+          False, "assessment_assignees_reminder",
       ).all()
       self.assertEqual(len(notifications), 1)
 
@@ -184,7 +184,7 @@ class TestReminderable(TestCase):
 
       self.assertEqual(
           self._get_notifications(
-              False, "assessment_assessor_reminder").count(),
+              False, "assessment_assignees_reminder").count(),
           0)
 
     with freeze_time("2015-04-02 01:01:01"):
@@ -208,7 +208,7 @@ class TestReminderable(TestCase):
       self.send_reminder(assessment)
 
       notifications = self._get_notifications(
-          False, "assessment_assessor_reminder",
+          False, "assessment_assignees_reminder",
       ).all()
       self.assertEqual(len(notifications), 1)
 

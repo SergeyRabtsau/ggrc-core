@@ -125,11 +125,11 @@ def generate_assignee_relations(assessment,
     if person is None:
       continue
     if person_id in assignee_ids:
-      person_roles.append((person, "Assessor"))
+      person_roles.append((person, "Assignees"))
     if person_id in verifier_ids:
-      person_roles.append((person, "Verifier"))
+      person_roles.append((person, "Verifiers"))
     if person_id in creator_ids:
-      person_roles.append((person, "Creator"))
+      person_roles.append((person, "Creators"))
 
   ac_roles = {
       acr_name: acr_id
@@ -188,11 +188,11 @@ def relate_assignees(assessment, snapshot, template, audit):
   if template:
     template_settings = template.default_people
   else:
-    template_settings = {"assessors": "Principal Assignees",
+    template_settings = {"assignees": "Principal Assignees",
                          "verifiers": "Auditors"}
   acl_dict = generate_role_object_dict(snapshot, audit)
-  assignee_ids = get_people_ids_based_on_role("assessors",
-                                              "Audit Lead",  # default assessor
+  assignee_ids = get_people_ids_based_on_role("assignees",
+                                              "Audit Lead",  # default assignee
                                               template_settings,
                                               acl_dict)
   verifier_ids = get_people_ids_based_on_role("verifiers",

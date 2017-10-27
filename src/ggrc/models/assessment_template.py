@@ -31,7 +31,7 @@ class AssessmentTemplate(assessment.AuditRelationship, relationship.Relatable,
   object.
   """
   __tablename__ = "assessment_templates"
-  _mandatory_default_people = ("assessors",)
+  _mandatory_default_people = ("assignees",)
 
   PER_OBJECT_CUSTOM_ATTRIBUTABLE = True
 
@@ -89,13 +89,13 @@ class AssessmentTemplate(assessment.AuditRelationship, relationship.Relatable,
           "mandatory": False,
           "description": "Options are:\n{}".format('\n'.join(VALID_STATES))
       },
-      "default_assessors": {
-          "display_name": "Default Assignee",
+      "default_assignees": {
+          "display_name": "Default Assignees",
           "mandatory": True,
           "filter_by": "_nop_filter",
       },
       "default_verifier": {
-          "display_name": "Default Verifier",
+          "display_name": "Default Verifiers",
           "mandatory": False,
           "filter_by": "_nop_filter",
       },
@@ -191,7 +191,7 @@ class AssessmentTemplate(assessment.AuditRelationship, relationship.Relatable,
   def validate_default_people(self, key, value):
     """Check that default people lists are not empty.
 
-    Check if the default_people contains both assessors and verifiers. The
+    Check if the default_people contains both assignees and verifiers. The
     values of those fields must be truthy, and if the value is a string it
     must be a valid default people label. If the value is not a string, it
     should be a list of valid user ids, but that is too expensive to test in

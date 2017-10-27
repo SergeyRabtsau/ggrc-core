@@ -26,8 +26,8 @@ class Reminderable(object):
     from ggrc.models import notification
 
     if obj.status in data:
-      assessor_type = data[obj.status]
-      notif_name = "{}_{}_reminder".format(obj.type, assessor_type)
+      assignee_type = data[obj.status]
+      notif_name = "{}_{}_reminder".format(obj.type, assignee_type)
       notif_type = notification.NotificationType.query.filter_by(
           name=notif_name).first()
       notification_handlers._add_notification(obj, notif_type)

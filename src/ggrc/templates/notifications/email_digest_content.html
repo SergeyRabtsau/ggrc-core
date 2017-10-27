@@ -15,11 +15,11 @@ Licensed under http://www.apache.org/licenses/LICENSE-2.0 <see LICENSE file>
                   Hi, {{ macro.user_name(digest['user']) }}.
                 </h1>
 
-                {% if digest.get('assessment_assessor_reminder') %}
+                {% if digest.get('assessment_assignees_reminder') %}
                 <h2 {{ style.sub_title() }} >Reminders</h2>
                 <ul {{ style.list_wrap() }} >
                   This is a friendly reminder that you have an open control assessments assigned to you in GGRC.
-                  {% for assessment_id, assessment_data in digest['assessment_assessor_reminder'].items() %}
+                  {% for assessment_id, assessment_data in digest['assessment_assignees_reminder'].items() %}
                   <li {{ style.list_item() }} >
                     {% if assessment_data['end_date'] %}
                       Assessment "<a href="{{ assessment_data['url'] }}">{{ assessment_data['title'] }}</a>" is due on {{ assessment_data['end_date'] }}.

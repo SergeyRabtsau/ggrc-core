@@ -1059,28 +1059,28 @@ class TestSortingQuery(TestCase, WithQueryApi):
 
     if not people:
       people = [
-          ("creator@example.com", "Creator"),
-          ("assessor_1@example.com", "Assessor"),
-          ("assessor_2@example.com", "Assessor"),
-          ("verifier_1@example.com", "Verifier"),
-          ("verifier_2@example.com", "Verifier"),
+          ("creator@example.com", "Creators"),
+          ("assessor_1@example.com", "Assignees"),
+          ("assessor_2@example.com", "Assignees"),
+          ("verifier_1@example.com", "Verifiers"),
+          ("verifier_2@example.com", "Verifiers"),
       ]
 
     defined_assessors = len([1 for _, role in people
-                             if "Assessor" in role])
+                             if "Assignees" in role])
     defined_creators = len([1 for _, role in people
-                            if "Creator" in role])
+                            if "Creators" in role])
     defined_verifiers = len([1 for _, role in people
-                             if "Verifier" in role])
+                             if "Verifiers" in role])
 
     assignee_roles = self.create_assignees(assessment, people)
 
     creators = [assignee for assignee, role in assignee_roles
-                if role == "Creator"]
+                if role == "Creators"]
     assignees = [assignee for assignee, role in assignee_roles
-                 if role == "Assessor"]
+                 if role == "Assignees"]
     verifiers = [assignee for assignee, role in assignee_roles
-                 if role == "Verifier"]
+                 if role == "Verifiers"]
 
     self.assertEqual(len(creators), defined_creators)
     self.assertEqual(len(assignees), defined_assessors)
@@ -1091,19 +1091,19 @@ class TestSortingQuery(TestCase, WithQueryApi):
   def test_sorting_assessments_by_assignees(self):
     """Test assessments are sorted by multiple assignees correctly"""
     people_set_1 = [
-        ("2creator@example.com", "Creator"),
-        ("assessor_2@example.com", "Assessor"),
-        ("assessor_1@example.com", "Assessor"),
-        ("1verifier_1@example.com", "Verifier"),
-        ("2verifier_2@example.com", "Verifier"),
+        ("2creator@example.com", "Creators"),
+        ("assessor_2@example.com", "Assignees"),
+        ("assessor_1@example.com", "Assignees"),
+        ("1verifier_1@example.com", "Verifiers"),
+        ("2verifier_2@example.com", "Verifiers"),
     ]
     self.create_assessment("Assessment_1", people_set_1)
     people_set_2 = [
-        ("1creator@example.com", "Creator"),
-        ("1assessor@example.com", "Assessor"),
-        ("2assessor@example.com", "Assessor"),
-        ("verifier_1@example.com", "Verifier"),
-        ("verifier_2@example.com", "Verifier"),
+        ("1creator@example.com", "Creators"),
+        ("1assessor@example.com", "Assignees"),
+        ("2assessor@example.com", "Assignees"),
+        ("verifier_1@example.com", "Verifiers"),
+        ("verifier_2@example.com", "Verifiers"),
     ]
     self.create_assessment("Assessment_2", people_set_2)
 

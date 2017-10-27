@@ -59,8 +59,6 @@ class Assessment(Roleable, statusable.Statusable, AuditRelationship,
   NOT_DONE_STATES = statusable.Statusable.NOT_DONE_STATES | {REWORK_NEEDED, }
   VALID_STATES = tuple(NOT_DONE_STATES | statusable.Statusable.DONE_STATES)
 
-  ASSIGNEE_TYPES = (u"Creator", u"Assessor", u"Verifier")
-
   class Labels(object):  # pylint: disable=too-few-public-methods
     """Choices for label enum."""
     AUDITOR_PULLS_EVIDENCE = u'Auditor pulls evidence'
@@ -78,10 +76,10 @@ class Assessment(Roleable, statusable.Statusable, AuditRelationship,
           "handler":
               reminderable.Reminderable.handle_state_to_person_reminder,
           "data": {
-              statusable.Statusable.START_STATE: "Assessor",
-              "In Progress": "Assessor"
+              statusable.Statusable.START_STATE: "Assignees",
+              "In Progress": "Assignees"
           },
-          "reminders": {"assessment_assessor_reminder", }
+          "reminders": {"assessment_assignees_reminder", }
       }
   }
 

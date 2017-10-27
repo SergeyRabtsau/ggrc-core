@@ -3,8 +3,8 @@
 
 """Contains the Assignable mixin.
 
-This allows adding various assignee types to the object, like Verifier,
-Creator, etc.
+This allows adding various assignee types to the object, like Verifiers,
+Creators, etc.
 """
 
 from collections import defaultdict
@@ -15,13 +15,7 @@ from ggrc.access_control.role import get_custom_roles_for
 class Assignable(object):
   """Mixin for models with assignees"""
 
-  ASSIGNEE_TYPES = ("Creator", "Assessor", "Verifier")
-
-  _aliases = {
-      "Assessor": {"display_name": "Assignees"},
-      "Creator": {"display_name": "Creators"},
-      "Verifier": {"display_name": "Verifiers"},
-  }
+  ASSIGNEE_TYPES = ("Creators", "Assignees", "Verifiers")
 
   @property
   def assignees(self):

@@ -42,10 +42,9 @@ class Commentable(object):
   # pylint: disable=too-few-public-methods
 
   VALID_RECIPIENTS = frozenset([
-      "Assessor",
-      "Assignee",
-      "Creator",
-      "Verifier",
+      "Assignees",
+      "Creators",
+      "Verifiers",
   ])
 
   @validates("recipients")
@@ -77,7 +76,7 @@ class Commentable(object):
   recipients = db.Column(
       db.String,
       nullable=True,
-      default=u"Assessor,Creator,Verifier")
+      default=u"Assignees,Creators,Verifiers")
 
   send_by_default = db.Column(db.Boolean, nullable=True, default=True)
 

@@ -24,20 +24,23 @@ from integration.ggrc_basic_permissions.models import (
 from appengine import base
 
 
-class TestAssessment(ggrc.TestCase):
-  """Assessment test cases"""
-  # pylint: disable=invalid-name
-
+class TestAssessmentBase(ggrc.TestCase):
+  """Base class for Assessment tests"""
   def setUp(self):
-    super(TestAssessment, self).setUp()
+    super(TestAssessmentBase, self).setUp()
     self.api = ggrc.api_helper.Api()
+    self.assignee_roles = {
+        role_name: role_id
+        for role_id, role_name in get_custom_roles_for("Assessment").items()
+        if role_name in ["Assignees", "Creators", "Verifiers"]
+    }
 
   def assert_mapped_role(self, role, person_email, mapped_obj):
     """Check if required role was created for mapped object"""
     query = all_models.AccessControlList.query.join(
         all_models.AccessControlRole,
         all_models.AccessControlRole.id ==
-          all_models.AccessControlList.ac_role_id
+        all_models.AccessControlList.ac_role_id
     ).join(
         all_models.Person,
         all_models.Person.id == all_models.AccessControlList.person_id
@@ -49,6 +52,40 @@ class TestAssessment(ggrc.TestCase):
     )
     self.assertEqual(query.count(), 1)
 
+  def assessment_post(self, template=None, extra_data=None):
+    """Helper function to POST an assessment"""
+    assessment_dict = {
+        "_generated": True,
+        "audit": {
+            "id": self.audit.id,
+            "type": "Audit"
+        },
+        "object": {
+            "id": self.snapshot.id,
+            "type": "Snapshot"
+        },
+        "context": {
+            "id": self.audit.context.id,
+            "type": "Context"
+        },
+        "title": "Temp title"
+    }
+    if template:
+      assessment_dict["template"] = {
+          "id": template.id,
+          "type": "AssessmentTemplate"
+      }
+    if extra_data:
+      assessment_dict.update(extra_data)
+
+    return self.api.post(all_models.Assessment, {
+        "assessment": assessment_dict
+    })
+
+
+class TestAssessment(TestAssessmentBase):
+  """Assessment test cases"""
+  # pylint: disable=invalid-name
   def test_auto_slug_generation(self):
     """Test auto slug generation"""
     factories.AssessmentFactory(title="Some title")
@@ -61,7 +98,10 @@ class TestAssessment(ggrc.TestCase):
 
     self.assertTrue(asmt.send_by_default)
     recipients = asmt.recipients.split(",") if asmt.recipients else []
-    self.assertEqual(sorted(recipients), ["Assessor", "Creator", "Verifier"])
+    self.assertEqual(
+        sorted(recipients),
+        ["Assignees", "Creators", "Verifiers"]
+    )
 
   def test_audit_changes_api(self):
     """Test that users can't change the audit mapped to an assessment."""
@@ -138,11 +178,6 @@ class TestAssessment(ggrc.TestCase):
     person = factories.PersonFactory()
     person_email = person.email
 
-    ac_roles = {
-        role_name: role_id
-        for role_id, role_name in get_custom_roles_for("Assessment").items()
-        if role_name in ["Assessor", "Creator", "Verifier"]
-    }
     response = self.api.post(all_models.Assessment, {
         "assessment": {
             "audit": {
@@ -153,10 +188,10 @@ class TestAssessment(ggrc.TestCase):
                 {
                     "ac_role_id": role_id,
                     "person": {
-                      "id": person.id
+                        "id": person.id
                     }
                 }
-                for role_id in ac_roles.values()
+                for role_id in self.assignee_roles.values()
             ],
             "context": {
                 "id": audit.context.id,
@@ -171,36 +206,35 @@ class TestAssessment(ggrc.TestCase):
     assessment = all_models.Assessment.query.get(
         response.json["assessment"]["id"]
     )
-    for role in ac_roles:
+    for role in self.assignee_roles:
       self.assert_mapped_role(role, person_email, assessment)
       self.assert_mapped_role("{} Mapped".format(role), person_email, audit)
 
   def test_put_mapped_roles(self):
     """Test mapped roles creation when assessment updated"""
-    ac_roles = {
-        role_name: role_id
-        for role_id, role_name in get_custom_roles_for("Assessment").items()
-        if role_name in ["Assessor", "Creator", "Verifier"]
-    }
     with factories.single_commit():
       person = factories.PersonFactory()
       person_email = person.email
       audit = factories.AuditFactory()
       assessment = factories.AssessmentFactory(audit=audit)
       factories.AccessControlListFactory(
-          ac_role_id=ac_roles["Assessor"], person=person, object=assessment
+          ac_role_id=self.assignee_roles["Assignees"],
+          person=person,
+          object=assessment
       )
       factories.AccessControlListFactory(
-          ac_role_id=ac_roles["Creator"], person=person, object=assessment
+          ac_role_id=self.assignee_roles["Creators"],
+          person=person,
+          object=assessment
       )
       factories.RelationshipFactory(source=audit, destination=assessment)
 
     verifiers = all_models.AccessControlList.query.join(
         all_models.AccessControlRole,
         all_models.AccessControlList.ac_role_id ==
-            all_models.AccessControlRole.id
+        all_models.AccessControlRole.id
     ).filter(
-        all_models.AccessControlRole.name == "Verifier Mapped",
+        all_models.AccessControlRole.name == "Verifiers Mapped",
         all_models.AccessControlList.person == person,
         all_models.AccessControlList.object_id == assessment.id,
         all_models.AccessControlList.object_type == assessment.type,
@@ -214,17 +248,17 @@ class TestAssessment(ggrc.TestCase):
             {
                 "ac_role_id": role_id,
                 "person": {
-                  "id": person.id
+                    "id": person.id
                 }
             }
-            for role_id in ac_roles.values()
+            for role_id in self.assignee_roles.values()
         ]
     })
     self.assertEqual(response.status_code, 200)
 
     db.session.add_all([audit, assessment])
-    self.assert_mapped_role("Verifier", person_email, assessment)
-    self.assert_mapped_role("Verifier Mapped", person_email, audit)
+    self.assert_mapped_role("Verifiers", person_email, assessment)
+    self.assert_mapped_role("Verifiers Mapped", person_email, audit)
 
   def test_import_mapped_roles(self):
     """Test creation of mapped roles in assessment import."""
@@ -253,35 +287,32 @@ class TestAssessment(ggrc.TestCase):
 
     # Add objects back to session to have access to their id and type
     db.session.add_all([audit, snapshot])
-    for role in ["Assessor Mapped", "Creator Mapped", "Verifier Mapped"]:
+    for role in ["Assignees Mapped", "Creators Mapped", "Verifiers Mapped"]:
       for user in users:
         self.assert_mapped_role(role, user, audit)
         self.assert_mapped_role(role, user, snapshot)
 
   def test_document_mapped_roles(self):
     """Test creation of mapped document roles."""
-    ac_roles = {
-        role_name: role_id
-        for role_id, role_name in get_custom_roles_for("Assessment").items()
-        if role_name in ["Assessor", "Creator", "Verifier"]
-    }
     with factories.single_commit():
       person = factories.PersonFactory()
       person_email = person.email
       audit = factories.AuditFactory()
       assessment = factories.AssessmentFactory(audit=audit)
-      for ac_role in ["Assessor", "Creator", "Verifier"]:
+      for ac_role_id in self.assignee_roles.values():
         factories.AccessControlListFactory(
-            ac_role_id=ac_roles[ac_role], person=person, object=assessment
+            ac_role_id=ac_role_id,
+            person=person,
+            object=assessment
         )
       factories.RelationshipFactory(source=audit, destination=assessment)
       document = factories.DocumentFactory()
       factories.RelationshipFactory(source=assessment, destination=document)
 
     db.session.add(document)
-    for role in ["Assessor Document Mapped",
-                 "Creator Document Mapped",
-                 "Verifier Document Mapped"]:
+    for role in ["Assignees Document Mapped",
+                 "Creators Document Mapped",
+                 "Verifiers Document Mapped"]:
       self.assert_mapped_role(role, person_email, document)
 
   def test_deletion_mapped_roles(self):
@@ -416,7 +447,7 @@ class TestAssessmentUpdates(ggrc.TestCase):
               "audit_title": audit.title,
               "people_value": [],
               "default_people": {
-                  "assessors": "Admin",
+                  "assignees": "Admin",
                   "verifiers": "Admin",
               },
               "context": {"id": audit.context.id},
@@ -432,7 +463,7 @@ class TestAssessmentUpdates(ggrc.TestCase):
     with freezegun.freeze_time("2016-04-01 18:22:09"):
       self.generator.generate_comment(
           self.assessment,
-          "Verifier",
+          "Verifiers",
           "some comment",
           send_notification="true"
       )
@@ -471,7 +502,7 @@ class TestAssessmentUpdates(ggrc.TestCase):
 
 
 @ddt.ddt
-class TestAssessmentGeneration(TestAssessment):
+class TestAssessmentGeneration(TestAssessmentBase):
   """Test assessment generation"""
   # pylint: disable=invalid-name
 
@@ -481,36 +512,6 @@ class TestAssessmentGeneration(TestAssessment):
       self.audit = factories.AuditFactory()
       self.control = factories.ControlFactory(test_plan="Control Test Plan")
       self.snapshot = self._create_snapshots(self.audit, [self.control])[0]
-
-  def assessment_post(self, template=None, extra_data=None):
-    """Helper function to POST an assessment"""
-    assessment_dict = {
-        "_generated": True,
-        "audit": {
-            "id": self.audit.id,
-            "type": "Audit"
-        },
-        "object": {
-            "id": self.snapshot.id,
-            "type": "Snapshot"
-        },
-        "context": {
-            "id": self.audit.context.id,
-            "type": "Context"
-        },
-        "title": "Temp title"
-    }
-    if template:
-      assessment_dict["template"] = {
-          "id": template.id,
-          "type": "AssessmentTemplate"
-      }
-    if extra_data:
-      assessment_dict.update(extra_data)
-
-    return self.api.post(all_models.Assessment, {
-        "assessment": assessment_dict
-    })
 
   def test_autogenerated_title(self):
     """Test autogenerated assessment title"""
@@ -547,12 +548,12 @@ class TestAssessmentGeneration(TestAssessment):
             context=self.audit.context).count(), 2, "Auditors not present")
 
     response = self.assessment_post()
-    self.assert_assignees("Verifier", response, *users)
+    self.assert_assignees("Verifiers", response, *users)
 
     db.session.add(self.audit)
-    self.assert_assignees("Assessor", response, self.audit.contact.email)
+    self.assert_assignees("Assignees", response, self.audit.contact.email)
 
-    self.assert_assignees("Creator", response, "user@example.com")
+    self.assert_assignees("Creators", response, "user@example.com")
 
   def test_mapped_roles_autogenerated(self):
     """Test mapped assignee roles for generated assessment"""
@@ -574,10 +575,12 @@ class TestAssessmentGeneration(TestAssessment):
     mapped_objects = [self.audit, self.snapshot]
     db.session.add_all(mapped_objects)
     for obj in mapped_objects:
-      self.assert_mapped_role("Verifier Mapped", users[0], obj)
-      self.assert_mapped_role("Verifier Mapped", users[1], obj)
-      self.assert_mapped_role("Assessor Mapped", self.audit.contact.email, obj)
-      self.assert_mapped_role("Creator Mapped", "user@example.com", obj)
+      self.assert_mapped_role("Verifiers Mapped", users[0], obj)
+      self.assert_mapped_role("Verifiers Mapped", users[1], obj)
+      self.assert_mapped_role(
+          "Assignees Mapped", self.audit.contact.email, obj
+      )
+      self.assert_mapped_role("Creators Mapped", "user@example.com", obj)
 
   def test_template_test_plan(self):
     """Test if generating assessments from template sets default test plan"""
@@ -610,10 +613,12 @@ class TestAssessmentGeneration(TestAssessment):
     mapped_objects = [self.audit, self.snapshot]
     db.session.add_all(mapped_objects)
     for obj in mapped_objects:
-      self.assert_mapped_role("Verifier Mapped", users[0], obj)
-      self.assert_mapped_role("Verifier Mapped", users[1], obj)
-      self.assert_mapped_role("Assessor Mapped", self.audit.contact.email, obj)
-      self.assert_mapped_role("Creator Mapped", "user@example.com", obj)
+      self.assert_mapped_role("Verifiers Mapped", users[0], obj)
+      self.assert_mapped_role("Verifiers Mapped", users[1], obj)
+      self.assert_mapped_role(
+          "Assignees Mapped", self.audit.contact.email, obj
+      )
+      self.assert_mapped_role("Creators Mapped", "user@example.com", obj)
 
   def test_control_test_plan(self):
     """Test test_plan from control"""
@@ -694,25 +699,25 @@ class TestAssessmentGeneration(TestAssessment):
 
   def test_autogenerated_assignees_verifiers_with_model(self):
     """Test autogenerated assessment assignees based on template settings."""
-    assessor = "user1@example.com"
+    assignee = "user1@example.com"
     verifier = "user2@example.com"
     with factories.single_commit():
       self.audit.context = factories.ContextFactory()
       auditors = {u: factories.PersonFactory(email=u).id
-                  for u in [assessor, verifier]}
+                  for u in [assignee, verifier]}
       template = factories.AssessmentTemplateFactory(
           test_plan_procedure=False,
           procedure_description="Assessment Template Test Plan",
           default_people={
-              "assessors": [auditors[assessor]],
+              "assignees": [auditors[assignee]],
               "verifiers": [auditors[verifier]],
           },
       )
 
     response = self.assessment_post(template)
-    self.assert_assignees("Verifier", response, verifier)
-    self.assert_assignees("Assessor", response, assessor)
-    self.assert_assignees("Creator", response, "user@example.com")
+    self.assert_assignees("Verifiers", response, verifier)
+    self.assert_assignees("Assignees", response, assignee)
+    self.assert_assignees("Creators", response, "user@example.com")
 
   @ddt.data(
       ("Principal Assignees", None, ),
@@ -781,7 +786,7 @@ class TestAssessmentGeneration(TestAssessment):
               object_type=self.snapshot.child_type,
               ac_role_id=ac_role_id,
           )
-      default_people = {"assessors": assessor_role}
+      default_people = {"assignees": assessor_role}
       if verifier_role is not None:
         default_people["verifiers"] = verifier_role
       template = factories.AssessmentTemplateFactory(
@@ -793,22 +798,22 @@ class TestAssessmentGeneration(TestAssessment):
       db.session.add(self.snapshot.revision)
     response = self.assessment_post(template)
     if assessor_role == verifier_role:
-      self.assert_assignees("Verifier", response, assessor, verifier)
-      self.assert_assignees("Assessor", response, assessor, verifier)
+      self.assert_assignees("Verifiers", response, assessor, verifier)
+      self.assert_assignees("Assignees", response, assessor, verifier)
     elif verifier_role is None:
-      self.assert_assignees("Verifier", response)
-      self.assert_assignees("Assessor", response, assessor)
+      self.assert_assignees("Verifiers", response)
+      self.assert_assignees("Assignees", response, assessor)
     else:
-      self.assert_assignees("Verifier", response, verifier)
-      self.assert_assignees("Assessor", response, assessor)
-    self.assert_assignees("Creator", response, "user@example.com")
+      self.assert_assignees("Verifiers", response, verifier)
+      self.assert_assignees("Assignees", response, assessor)
+    self.assert_assignees("Creators", response, "user@example.com")
 
   @ddt.data(True, False)
   def test_autogenerated_audit_lead(self, add_verifier):
     """Test autogenerated assessment with audit lead settings."""
     email = "user_1@example.com"
     with factories.single_commit():
-      default_people = {"assessors": "Audit Lead"}
+      default_people = {"assignees": "Audit Lead"}
       if add_verifier:
         default_people["verifiers"] = "Audit Lead"
       template = factories.AssessmentTemplateFactory(
@@ -819,12 +824,12 @@ class TestAssessmentGeneration(TestAssessment):
       self.audit.contact = factories.PersonFactory(email=email)
       db.session.add(self.audit)
     response = self.assessment_post(template)
-    self.assert_assignees("Assessor", response, email)
+    self.assert_assignees("Assignees", response, email)
     if add_verifier:
-      self.assert_assignees("Verifier", response, email)
+      self.assert_assignees("Verifiers", response, email)
     else:
-      self.assert_assignees("Verifier", response)
-    self.assert_assignees("Creator", response, "user@example.com")
+      self.assert_assignees("Verifiers", response)
+    self.assert_assignees("Creators", response, "user@example.com")
 
   @ddt.data(True, False)
   def test_autogenerated_auditors(self, add_verifier):
@@ -841,7 +846,7 @@ class TestAssessmentGeneration(TestAssessment):
             context=audit_context,
             role=auditor_role,
             person=auditor)
-      default_people = {"assessors": "Auditors"}
+      default_people = {"assignees": "Auditors"}
       if add_verifier:
         default_people["verifiers"] = "Auditors"
       template = factories.AssessmentTemplateFactory(
@@ -850,12 +855,12 @@ class TestAssessmentGeneration(TestAssessment):
           default_people=default_people
       )
     response = self.assessment_post(template)
-    self.assert_assignees("Assessor", response, *users)
+    self.assert_assignees("Assignees", response, *users)
     if add_verifier:
-      self.assert_assignees("Verifier", response, *users)
+      self.assert_assignees("Verifiers", response, *users)
     else:
-      self.assert_assignees("Verifier", response)
-    self.assert_assignees("Creator", response, "user@example.com")
+      self.assert_assignees("Verifiers", response)
+    self.assert_assignees("Creators", response, "user@example.com")
 
   def test_autogenerated_no_tmpl(self):
     """Test autogenerated assessment without template ."""
@@ -887,9 +892,9 @@ class TestAssessmentGeneration(TestAssessment):
       self.snapshot.revision.content = self.control.log_json()
       db.session.add(self.snapshot.revision)
     response = self.assessment_post()
-    self.assert_assignees("Assessor", response, *prince_assignees)
-    self.assert_assignees("Verifier", response, *auditors)
-    self.assert_assignees("Creator", response, "user@example.com")
+    self.assert_assignees("Assignees", response, *prince_assignees)
+    self.assert_assignees("Verifiers", response, *auditors)
+    self.assert_assignees("Creators", response, "user@example.com")
 
   @ddt.data(
       ("Principal Assignees", None, ),
@@ -934,7 +939,7 @@ class TestAssessmentGeneration(TestAssessment):
       auditors[assessor_role].append(factories.PersonFactory(email=assessor))
       if verifier_role is not None:
         auditors[verifier_role].append(factories.PersonFactory(email=verifier))
-      default_people = {"assessors": assessor_role}
+      default_people = {"assignees": assessor_role}
       if verifier_role is not None:
         default_people["verifiers"] = verifier_role
       self.audit.contact = factories.PersonFactory(email=assessor_audit)
@@ -954,12 +959,12 @@ class TestAssessmentGeneration(TestAssessment):
           default_people=default_people
       )
     response = self.assessment_post(template)
-    self.assert_assignees("Assessor", response, assessor_audit)
+    self.assert_assignees("Assignees", response, assessor_audit)
     if verifier_role:
-      self.assert_assignees("Verifier", response, verifier_audit)
+      self.assert_assignees("Verifiers", response, verifier_audit)
     else:
-      self.assert_assignees("Verifier", response)
-    self.assert_assignees("Creator", response, "user@example.com")
+      self.assert_assignees("Verifiers", response)
+    self.assert_assignees("Creators", response, "user@example.com")
 
   @ddt.data(
       ("principal_assessor", "Principal Assignees"),
@@ -978,7 +983,7 @@ class TestAssessmentGeneration(TestAssessment):
       template = factories.AssessmentTemplateFactory(
           test_plan_procedure=False,
           procedure_description="Assessment Template Test Plan",
-          default_people={"assessors": role_name}
+          default_people={"assignees": role_name}
       )
       content = self.control.log_json()
       content.pop("access_control_list")
@@ -986,7 +991,7 @@ class TestAssessmentGeneration(TestAssessment):
       self.snapshot.revision.content = content
       db.session.add(self.snapshot.revision)
     response = self.assessment_post(template)
-    self.assert_assignees("Assessor", response, email)
+    self.assert_assignees("Assignees", response, email)
 
   @ddt.data(1, 2, 3, 4)
   def test_remap_doc_from_assessment(self, test_asmt_num):

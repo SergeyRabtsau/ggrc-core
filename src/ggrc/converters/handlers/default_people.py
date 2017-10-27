@@ -3,7 +3,7 @@
 
 """Handlers for default people fields in assessment templates.
 
-These should be used on default verifiers and default assessors.
+These should be used on default verifiers and default assignees.
 """
 
 from ggrc.models import AssessmentTemplate, Person
@@ -12,10 +12,10 @@ from ggrc.converters.handlers import handlers
 
 
 class DefaultPersonColumnHandler(handlers.ColumnHandler):
-  """Handler for default verifiers and assessors."""
+  """Handler for default verifiers and assignees."""
 
   KEY_MAP = {
-      "default_assessors": "assessors",
+      "default_assignees": "assignees",
       "default_verifier": "verifiers",
   }
 
@@ -26,9 +26,9 @@ class DefaultPersonColumnHandler(handlers.ColumnHandler):
   }
 
   def _parse_email_values(self):
-    """Parse an email list of default assessors.
+    """Parse an email list of default assignees.
 
-    This is the "other" option in the default assessor dropdown menu.
+    This is the "other" option in the default assignee dropdown menu.
     """
     # This is not good and fast, because it executes query for each
     # field from each row that contains people list.
@@ -66,9 +66,9 @@ class DefaultPersonColumnHandler(handlers.ColumnHandler):
     return people
 
   def _parse_label_values(self):
-    """Parse predefined default assessors.
+    """Parse predefined default assignees.
 
-    These values are the normal selection in the default assessor dropdown.
+    These values are the normal selection in the default assignees dropdown.
     """
     value = self.PEOPLE_LABELS_MAP.get(self.raw_value.strip().lower())
     if not value:
@@ -78,7 +78,7 @@ class DefaultPersonColumnHandler(handlers.ColumnHandler):
     return value
 
   def parse_item(self):
-    """Parse values for default assessors."""
+    """Parse values for default assignees."""
     if "@" in self.raw_value:
       return self._parse_email_values()
     else:
@@ -87,13 +87,13 @@ class DefaultPersonColumnHandler(handlers.ColumnHandler):
   def set_obj_attr(self):
     """Set default_people attribute.
 
-    This is a joint function for default assessors and verifiers. The first
+    This is a joint function for default assignees and verifiers. The first
     column that gets handled will save the value to "_default_people" and the
     second column that gets handled will take that value, include it with its
     own and store it into the correct "default_people" field.
 
     NOTE: This is a temporary hack that that should be refactored once this
-    code is merged into the develop branch. The joining of default_assessors
+    code is merged into the develop branch. The joining of default_assignees
     and default_verifiers should be done by pre_commit_checks for imports.
     """
     if not self.value or self.row_converter.ignore:

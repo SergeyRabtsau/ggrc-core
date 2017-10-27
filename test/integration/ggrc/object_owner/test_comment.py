@@ -26,7 +26,7 @@ class TestCommentObjectOwner(TestCase):
     self.import_file("assessment_full_no_warnings.csv")
     asmt1 = Assessment.query.filter_by(slug="Assessment 1").first()
     _, comment = self.generator.generate_comment(
-        asmt1, "Verifier", "some comment", send_notification="false")
+        asmt1, "Verifiers", "some comment", send_notification="false")
 
     acl = AccessControlList.query.filter_by(
         object_id=comment.id,

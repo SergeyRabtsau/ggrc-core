@@ -110,7 +110,7 @@ class TestAssessmentDataHandlers(TestCase):
     """Test data handlers for comment to assessment"""
     asmt1 = Assessment.query.filter_by(slug="A 1").first()
     _, comment = self.generator.generate_comment(
-        asmt1, "Verifier", "some comment", send_notification="true")
+        asmt1, "Verifiers", "some comment", send_notification="true")
 
     notifs = self._get_notification(comment, "comment_created").all()
     self.assertEqual(1, len(notifs))

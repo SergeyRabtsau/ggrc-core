@@ -479,7 +479,7 @@ class TestCommentWithActionMixin(TestCase):
 
     acrs = all_models.AccessControlRole.query.filter(
         all_models.AccessControlRole.object_type == "Assessment",
-        all_models.AccessControlRole.name.in_(["Assessor", "Creator"]),
+        all_models.AccessControlRole.name.in_(["Assignees", "Creators"]),
     )
 
     for acr in acrs:
@@ -505,7 +505,7 @@ class TestCommentWithActionMixin(TestCase):
     self.assertIsNotNone(relationship)
     comment = all_models.Comment.query.get(relationship.destination_id)
     self.assertEqual(comment.description, "comment")
-    self.assertEqual(comment.assignee_type, "Assessor,Creator")
+    self.assertEqual(comment.assignee_type, "Assignees,Creators")
     self.assertEqual(comment.context_id, assessment.context_id)
 
   def test_add_custom_comment(self):

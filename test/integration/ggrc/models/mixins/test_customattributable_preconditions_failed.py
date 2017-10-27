@@ -166,7 +166,7 @@ class TestPreconditionsFailed(TestCase):
         attribute_value="comment_required",
     )
     comment = factories.CommentFactory(
-        assignee_type="Assessor",
+        assignee_type="Assignees",
         description="Mandatory comment",
     )
     comment.custom_attribute_revision_upd({
@@ -236,7 +236,7 @@ class TestPreconditionsFailed(TestCase):
         attribute_value="comment_required",
     )
     comment = factories.CommentFactory(
-        assignee_type="Assessor",
+        assignee_type="Assignees",
         description="Mandatory comment",
     )
     comment.custom_attribute_revision_upd({

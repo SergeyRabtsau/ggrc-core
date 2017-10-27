@@ -57,7 +57,7 @@ class TestReader(TestCase):
     """Helper method for creating assignees on an object"""
     acr = all_models.AccessControlRole.query.filter(
         all_models.AccessControlRole.object_type == "Assessment",
-        all_models.AccessControlRole.name == "Creator",
+        all_models.AccessControlRole.name == "Creators",
     ).first()
     return self.api.put(asmnt, {
         "access_control_list": [{

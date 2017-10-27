@@ -1,9 +1,9 @@
 Object type,,,,,,,,,,,,,,,,,,,,,,,,,
 Assessment,Code*,Template,Audit*,Title*,reference url,Evidence File,Assessment Procedure,Assignees*,Creators*,Verifiers,Recipients,,Send by default,Due Date,Stop Date,Finished Date,Verified Date,State*,,Conclusion: Design,Conclusion: Operation,,,
 ,A 1,,Audit,No template Assessment 1,https://i.imgur.com/17h9PH3.gif,https://i.imgur.com/t41OTZH.png with a title,,user@example.com,user@example.com,user@example.com,,,no,,,,,not started,,,,,,
-,A 2,,Audit,No template Assessment 2,,https://i.imgur.com/CWa5lKv.gif,,user@example.com,user@example.com,user@example.com,"Assessor , 	Creator,	Verifier",,,,,,,not started,,,,,,
-,A 3,,Audit,No template Assessment 3,,,,user@example.com,user@example.com,user@example.com,"Creator
-Verifier",,Yes,,,,,not started,,,,,,
+,A 2,,Audit,No template Assessment 2,,https://i.imgur.com/CWa5lKv.gif,,user@example.com,user@example.com,user@example.com,"Assignees , 	Creators,	Verifiers",,,,,,,not started,,,,,,
+,A 3,,Audit,No template Assessment 3,,,,user@example.com,user@example.com,user@example.com,"Creators
+Verifiers",,Yes,,,,,not started,,,,,,
 ,,,,,,,,,,,,,,,,,,,,,,,,,
 ,,,,,,,,,,,,,,,,,,,,,,,,,
 Object type,,,,,,,,,,,,,,,,,,,,,,,,,

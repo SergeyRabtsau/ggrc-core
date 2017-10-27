@@ -61,7 +61,7 @@ _DEFAULT_COLUMN_HANDLERS_DICT = {
     "comments": comments.CommentColumnHandler,
     "company": handlers.TextColumnHandler,
     "contact": handlers.UserColumnHandler,
-    "default_assessors": default_people.DefaultPersonColumnHandler,
+    "default_assignees": default_people.DefaultPersonColumnHandler,
     "default_verifier": default_people.DefaultPersonColumnHandler,
     "delete": handlers.DeleteColumnHandler,
     "description": handlers.TextareaColumnHandler,

@@ -52,7 +52,7 @@ def _create_obj_dict(obj, audit_id, context_id, assessment_id=None):
           "template_object_type": "Control",
           "default_people": {
               "verifiers": "Auditors",
-              "assessors": "Audit Lead"
+              "assignees": "Audit Lead"
           },
           "context": {
               "id": context_id,

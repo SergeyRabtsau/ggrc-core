@@ -52,17 +52,17 @@ class TestAssessmentTemplatesImport(TestCase):
             "created": 3,
             "row_errors": {
                 errors.MISSING_VALUE_ERROR.format(
-                    line=5, column_name="Default Verifier")
+                    line=5, column_name="Default Verifiers")
             },
             "row_warnings": {
                 errors.UNKNOWN_USER_WARNING.format(
                     line=5,
-                    column_name="Default Verifier",
+                    column_name="Default Verifiers",
                     email="user3@a.com",
                 ),
                 errors.UNKNOWN_USER_WARNING.format(
                     line=5,
-                    column_name="Default Verifier",
+                    column_name="Default Verifiers",
                     email="user1@a.com"
                 ),
             },

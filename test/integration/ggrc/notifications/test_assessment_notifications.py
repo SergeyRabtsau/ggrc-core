@@ -34,9 +34,9 @@ class TestAssessmentNotification(TestCase):
     self.auditor = Person.query.filter_by(email="user@example.com").one()
     self.api.set_user(self.auditor)
     audit = factories.AuditFactory()
-    assessor_acr = all_models.AccessControlRole.query.filter_by(
+    assignee_acr = all_models.AccessControlRole.query.filter_by(
         object_type="Assessment",
-        name="Assessor",
+        name="Assignees",
     ).first()
 
     self.api.post(Assessment, {
@@ -61,7 +61,7 @@ class TestAssessmentNotification(TestCase):
                         "id": self.auditor.id,
                         "type": "Person",
                     },
-                    "ac_role_id": assessor_acr.id,
+                    "ac_role_id": assignee_acr.id,
                     "context": None
                 }
             ],
@@ -170,9 +170,9 @@ class TestAssessmentNotification(TestCase):
 
   def test_access_conrol_list(self):
     """Test notification when access conrol list is changed"""
-    assessor_acr = all_models.AccessControlRole.query.filter_by(
+    assignee_acr = all_models.AccessControlRole.query.filter_by(
         object_type="Assessment",
-        name="Assessor",
+        name="Assignees",
     ).first()
     response = self.api.put(self.assessment, {
         "access_control_list": [
@@ -189,7 +189,7 @@ class TestAssessmentNotification(TestCase):
                     "id": self.auditor.id,
                     "type": "Person",
                 },
-                "ac_role_id": assessor_acr.id,
+                "ac_role_id": assignee_acr.id,
                 "context": None
             }
         ],

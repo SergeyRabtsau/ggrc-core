@@ -47,9 +47,9 @@ class TestMixinAutoStatusChangeable(TestCase):
     assignee edit.
     """
     people = [
-        ("creator@example.com", "Creator"),
-        ("assessor_1@example.com", "Assessor"),
-        ("assessor_2@example.com", "Assessor"),
+        ("creator@example.com", "Creators"),
+        ("assessor_1@example.com", "Assignees"),
+        ("assessor_2@example.com", "Assignees"),
     ]
 
     assessment = self.create_assessment(people)
@@ -60,11 +60,11 @@ class TestMixinAutoStatusChangeable(TestCase):
                      getattr(models.Assessment, test_state))
     self.modify_assignee(assessment,
                          "creator@example.com",
-                         ["Creator", "Assessor"])
+                         ["Creators", "Assignees"])
     assessment = self.refresh_object(assessment)
     self.assertEqual(assessment.status,
                      getattr(models.Assessment, test_state))
-    new_assessors = [("assessor_3_added_later@example.com", "Verifier")]
+    new_assessors = [("assessor_3_added_later@example.com", "Verifiers")]
     self.create_assignees_restful(assessment, new_assessors)
     assessment = self.refresh_object(assessment)
     self.assertEqual(assessment.status,
@@ -257,28 +257,28 @@ class TestMixinAutoStatusChangeable(TestCase):
 
     if not people:
       people = [
-          ("creator@example.com", "Creator"),
-          ("assessor_1@example.com", "Assessor"),
-          ("assessor_2@example.com", "Assessor"),
-          ("verifier_1@example.com", "Verifier"),
-          ("verifier_2@example.com", "Verifier"),
+          ("creator@example.com", "Creators"),
+          ("assessor_1@example.com", "Assignees"),
+          ("assessor_2@example.com", "Assignees"),
+          ("verifier_1@example.com", "Verifiers"),
+          ("verifier_2@example.com", "Verifiers"),
       ]
 
     defined_assessors = len([1 for _, role in people
-                             if "Assessor" in role])
+                             if "Assignees" in role])
     defined_creators = len([1 for _, role in people
-                            if "Creator" in role])
+                            if "Creators" in role])
     defined_verifiers = len([1 for _, role in people
-                             if "Verifier" in role])
+                             if "Verifiers" in role])
 
     assignee_roles = self.create_assignees(assessment, people)
 
     creators = [assignee for assignee, roles in assignee_roles
-                if "Creator" in roles]
+                if "Creators" in roles]
     assignees = [assignee for assignee, roles in assignee_roles
-                 if "Assessor" in roles]
+                 if "Assignees" in roles]
     verifiers = [assignee for assignee, roles in assignee_roles
-                 if "Verifier" in roles]
+                 if "Verifiers" in roles]
 
     self.assertEqual(len(creators), defined_creators)
     self.assertEqual(len(assignees), defined_assessors)
@@ -302,11 +302,11 @@ class TestMixinAutoStatusChangeable(TestCase):
     return obj
 
   def create_simple_assessment(self):
-    """Create simple assessment with some assessors and in FINAL state."""
+    """Create simple assessment with some assignees and in FINAL state."""
     people = [
-        ("creator@example.com", "Creator"),
-        ("assessor_1@example.com", "Assessor"),
-        ("assessor_2@example.com", "Assessor"),
+        ("creator@example.com", "Creators"),
+        ("assessor_1@example.com", "Assignees"),
+        ("assessor_2@example.com", "Assignees"),
     ]
 
     assessment = self.create_assessment(people)
@@ -330,11 +330,11 @@ class TestMixinAutoStatusChangeable(TestCase):
     return assessment
 
   def create_assessment_in_ready_to_review(self):
-    """Create an assessment with some assessors in READY TO REVIEW state."""
+    """Create an assessment with some assignees in READY TO REVIEW state."""
     people = [
-        ("creator@example.com", "Creator"),
-        ("assessor_1@example.com", "Assessor"),
-        ("assessor_2@example.com", "Assessor"),
+        ("creator@example.com", "Creators"),
+        ("assessor_1@example.com", "Assignees"),
+        ("assessor_2@example.com", "Assignees"),
     ]
 
     assessment = self.create_assessment(people)

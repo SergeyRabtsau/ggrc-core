@@ -240,7 +240,7 @@ class AttributeInfo(object):
     return cls.gather_attrs(tgt_class, '_update_raw')
 
   @classmethod
-  def get_acl_definitions(cls, object_class, aliases=None):
+  def get_acl_definitions(cls, object_class):
     """Return list of ACL dicts."""
     from ggrc.access_control.role import AccessControlRole
     from ggrc import db
@@ -254,21 +254,17 @@ class AttributeInfo(object):
       for object_type, name, mandatory in names_query:
         flask.g.acl_role_names[object_type].add((name, mandatory))
 
-    acl_definitions = {}
-    for name, mandatory in flask.g.acl_role_names[object_class.__name__]:
-      field_name = "{}:{}".format(cls.ALIASES_PREFIX, name)
-      alias_name = None
-      if aliases:
-        alias_name = aliases.get(name, {}).get("display_name")
-      acl_definitions[field_name] = {
-          "display_name": alias_name or name,
-          "attr_name": name,
-          "mandatory": mandatory,
-          "unique": False,
-          "description": "List of people with '{}' role".format(name),
-          "type": cls.Type.AC_ROLE,
-      }
-    return acl_definitions
+    return {
+        "{}:{}".format(cls.ALIASES_PREFIX, name): {
+            "display_name": name,
+            "attr_name": name,
+            "mandatory": mandatory,
+            "unique": False,
+            "description": "List of people with '{}' role".format(name),
+            "type": cls.Type.AC_ROLE,
+        }
+        for name, mandatory in flask.g.acl_role_names[object_class.__name__]
+    }
 
   @classmethod
   def _generate_mapping_definition(cls, rules_set, prefix, display_name_tmpl):
@@ -423,7 +419,7 @@ class AttributeInfo(object):
         definition.update(value)
       definitions[key] = definition
 
-    definitions.update(cls.get_acl_definitions(object_class, definitions))
+    definitions.update(cls.get_acl_definitions(object_class))
 
     if object_class.__name__ not in EXCLUDE_CUSTOM_ATTRIBUTES:
       definitions.update(cls.get_custom_attr_definitions(

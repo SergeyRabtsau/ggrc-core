@@ -87,7 +87,7 @@ class TestCommentNotification(TestCase):
     self.import_file("assessment_with_templates.csv")
     asmt1 = Assessment.query.filter_by(slug="A 1").first()
     self.generator.generate_comment(
-        asmt1, "Verifier", "some comment", send_notification="true")
+        asmt1, "Verifiers", "some comment", send_notification="true")
 
     notifications = self._get_notifications(notif_type="comment_created").all()
     self.assertEqual(len(notifications), 1,
@@ -116,19 +116,19 @@ class TestCommentNotification(TestCase):
     asmt_ids = (asmt1.id, asmt4.id, asmt6.id)
 
     self.generator.generate_comment(
-        asmt1, "Verifier", "comment X on asmt " + str(asmt1.id),
+        asmt1, "Verifiers", "comment X on asmt " + str(asmt1.id),
         send_notification="true")
     self.generator.generate_comment(
-        asmt6, "Verifier", "comment A on asmt " + str(asmt6.id),
+        asmt6, "Verifiers", "comment A on asmt " + str(asmt6.id),
         send_notification="true")
     self.generator.generate_comment(
-        asmt4, "Verifier", "comment FOO on asmt " + str(asmt4.id),
+        asmt4, "Verifiers", "comment FOO on asmt " + str(asmt4.id),
         send_notification="true")
     self.generator.generate_comment(
-        asmt4, "Verifier", "comment BAR on asmt " + str(asmt4.id),
+        asmt4, "Verifiers", "comment BAR on asmt " + str(asmt4.id),
         send_notification="true")
     self.generator.generate_comment(
-        asmt1, "Verifier", "comment Y on asmt " + str(asmt1.id),
+        asmt1, "Verifiers", "comment Y on asmt " + str(asmt1.id),
         send_notification="true")
 
     _, notif_data = common.get_daily_notifications()

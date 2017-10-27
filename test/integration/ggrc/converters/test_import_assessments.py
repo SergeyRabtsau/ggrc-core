@@ -99,8 +99,8 @@ class TestAssessmentImport(TestCase):
     # Test first Assessment line in the CSV file
     asmt_1 = models.Assessment.query.filter_by(slug="Assessment 1").first()
     users = {
-        "user 1": {"Assessor"},
-        "user 2": {"Assessor", "Creator"}
+        "user 1": {"Assignees"},
+        "user 2": {"Assignees", "Creators"}
     }
     self._test_assessment_users(asmt_1, users)
     self.assertEqual(asmt_1.status, models.Assessment.START_STATE)
@@ -108,8 +108,8 @@ class TestAssessmentImport(TestCase):
     # Test second Assessment line in the CSV file
     asmt_2 = models.Assessment.query.filter_by(slug="Assessment 2").first()
     users = {
-        "user 1": {"Assessor"},
-        "user 2": {"Creator"},
+        "user 1": {"Assignees"},
+        "user 2": {"Creators"},
         "user 3": {},
         "user 4": {},
         "user 5": {},
@@ -385,7 +385,7 @@ class TestAssessmentImport(TestCase):
     assessment = models.Assessment.query.filter(
         models.Assessment.slug == slug
     ).first()
-    self._test_assigned_user(assessment, assignee_id, "Assessor")
+    self._test_assigned_user(assessment, assignee_id, "Assignees")
 
   def test_create_import_creators(self):
     "Test for creation assessment with mapped creator"
@@ -406,7 +406,7 @@ class TestAssessmentImport(TestCase):
     assessment = models.Assessment.query.filter(
         models.Assessment.slug == slug
     ).first()
-    self._test_assigned_user(assessment, creator_id, "Creator")
+    self._test_assigned_user(assessment, creator_id, "Creators")
 
   def test_update_import_creators(self):
     "Test for creation assessment with mapped creator"
@@ -416,7 +416,7 @@ class TestAssessmentImport(TestCase):
     with factories.single_commit():
       assessment = factories.AssessmentFactory(slug=slug)
       creator_id = factories.PersonFactory(name=name, email=email).id
-    self._test_assigned_user(assessment, None, "Creator")
+    self._test_assigned_user(assessment, None, "Creators")
     self.import_data(OrderedDict([
         ("object_type", "Assessment"),
         ("Code*", slug),
@@ -425,7 +425,7 @@ class TestAssessmentImport(TestCase):
     assessment = models.Assessment.query.filter(
         models.Assessment.slug == slug
     ).first()
-    self._test_assigned_user(assessment, creator_id, "Creator")
+    self._test_assigned_user(assessment, creator_id, "Creators")
 
   def test_update_import_assignee(self):
     "Test for creation assessment with mapped creator"
@@ -435,7 +435,7 @@ class TestAssessmentImport(TestCase):
     with factories.single_commit():
       assessment = factories.AssessmentFactory(slug=slug)
       assignee_id = factories.PersonFactory(name=name, email=email).id
-    self._test_assigned_user(assessment, None, "Assessor")
+    self._test_assigned_user(assessment, None, "Assignees")
     self.import_data(OrderedDict([
         ("object_type", "Assessment"),
         ("Code*", slug),
@@ -444,7 +444,7 @@ class TestAssessmentImport(TestCase):
     assessment = models.Assessment.query.filter(
         models.Assessment.slug == slug
     ).first()
-    self._test_assigned_user(assessment, assignee_id, "Assessor")
+    self._test_assigned_user(assessment, assignee_id, "Assignees")
 
   def test_update_import_verifiers(self):
     """Test import does not delete verifiers if empty value imported"""
@@ -464,7 +464,7 @@ class TestAssessmentImport(TestCase):
     assessment = models.Assessment.query.filter(
         models.Assessment.slug == slug
     ).first()
-    self.assertEqual([verifier_id], [i.id for i in assessment.verifiers])
+    self._test_assigned_user(assessment, verifier_id, "Verifiers")
     self.import_data(OrderedDict([
         ("object_type", "Assessment"),
         ("Code*", slug),
@@ -473,7 +473,7 @@ class TestAssessmentImport(TestCase):
     assessment = models.Assessment.query.filter(
         models.Assessment.slug == slug
     ).first()
-    self.assertEqual([verifier_id], [i.id for i in assessment.verifiers])
+    self._test_assigned_user(assessment, verifier_id, "Verifiers")
 
   @ddt.data(
       (

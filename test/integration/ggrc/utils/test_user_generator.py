@@ -154,9 +154,12 @@ class TestUserGenerator(TestCase):
       ]))
       assessment = Assessment.query.filter(
           Assessment.slug == assessment_slug).first()
-      self.assertEqual("aturing@example.com", assessment.creators[0].email)
+      acl_roles = {
+          acl.ac_role.name: acl for acl in assessment.access_control_list
+      }
+      self.assertIn("aturing@example.com", acl_roles["Creators"].person.email)
       self.assertEqual("cbabbage@example.com",
-                       assessment.access_control_list[0].person.email)
+                       acl_roles["Secondary Contacts"].person.email)
 
   @mock.patch('ggrc.settings.INTEGRATION_SERVICE_URL', new='endpoint')
   @mock.patch('ggrc.settings.AUTHORIZED_DOMAIN', new='example.com')
@@ -173,8 +176,8 @@ class TestUserGenerator(TestCase):
           ("object_type", "Assessment_Template"),
           ("Code*", slug),
           ("Audit*", audit.slug),
-          ("Default Assignee", "aturing@example.com"),
-          ("Default Verifier", "aturing@example.com\ncbabbage@example.com"),
+          ("Default Assignees", "aturing@example.com"),
+          ("Default Verifiers", "aturing@example.com\ncbabbage@example.com"),
           ("Title", "Title"),
           ("Object Under Assessment", 'Control'),
       ]))
@@ -183,7 +186,7 @@ class TestUserGenerator(TestCase):
           AssessmentTemplate.slug == slug).first()
 
       self.assertEqual(len(assessment_template.default_people['verifiers']), 2)
-      self.assertEqual(len(assessment_template.default_people['assessors']), 1)
+      self.assertEqual(len(assessment_template.default_people['assignees']), 1)
 
   @mock.patch('ggrc.settings.INTEGRATION_SERVICE_URL', new='endpoint')
   @mock.patch('ggrc.settings.AUTHORIZED_DOMAIN', new='example.com')
@@ -202,8 +205,8 @@ class TestUserGenerator(TestCase):
           ("object_type", "Assessment_Template"),
           ("Code*", slug),
           ("Audit*", audit.slug),
-          ("Default Assignee", "aturing@example.com"),
-          ("Default Verifier", "aturing@example.com\ncbabbage@example.com"),
+          ("Default Assignees", "aturing@example.com"),
+          ("Default Verifiers", "aturing@example.com\ncbabbage@example.com"),
           ("Title", "Title"),
           ("Object Under Assessment", 'Control'),
       ]))

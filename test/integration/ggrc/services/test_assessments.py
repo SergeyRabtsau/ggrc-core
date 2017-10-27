@@ -47,7 +47,7 @@ class TestCollection(TestCase, WithQueryApi):
     results = self._get_first_result_set(query, "Assessment", "values")
     self.assertEqual(expected_ids, [i['id'] for i in results])
 
-  @ddt.data("Assessor", "Creator", "Verifier")
+  @ddt.data("Assignees", "Creators", "Verifiers")
   def test_delete_assessment_by_role(self, role_name):
     """Delete assessment not allowed for based on Assignee Type."""
     with factories.single_commit():

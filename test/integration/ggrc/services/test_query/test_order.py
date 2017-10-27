@@ -55,11 +55,8 @@ class TestOrder(TestCase, WithQueryApi):
                      .order_by(Person.email)]
     self._check_ordering("Audit", sorted_titles, "Audit Captain")
 
-  @ddt.data(("Assessor", "Assignees"),
-            ("Verifier", "Verifiers"),
-            ("Creator", "Creators"))
-  @ddt.unpack
-  def test_assessment_roles(self, role, role_alias):
+  @ddt.data("Assignees", "Creators", "Verifiers")
+  def test_assessment_roles(self, role):
     """Assessment assignees/verifiers/creators ordering"""
     query = db.session.query(Assessment.title).join(
         AccessControlList,
@@ -75,7 +72,7 @@ class TestOrder(TestCase, WithQueryApi):
     ).filter(AccessControlRole.name == role).order_by(Person.email)
 
     sorted_titles = [a[0] for a in query]
-    self._check_ordering("Assessment", sorted_titles, role_alias)
+    self._check_ordering("Assessment", sorted_titles, role)
 
   @ddt.data("Admin",
             "Primary Contacts",
