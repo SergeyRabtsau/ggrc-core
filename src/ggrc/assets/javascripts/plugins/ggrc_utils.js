@@ -1,11 +1,11 @@
-/*!
+/*
  Copyright (C) 2017 Google Inc.
  Licensed under http://www.apache.org/licenses/LICENSE-2.0 <see LICENSE file>
  */
 
 (function ($, GGRC, moment, Permission, CMS) {
   'use strict';
-  var ROLE_TYPES = ['Assessor', 'Creator', 'Verifier'];
+
   /**
    * A module containing various utility functions.
    */
@@ -545,31 +545,39 @@
 
       return deferred;
     },
+
+    /**
+     * Build string of assignees types separated by commas.
+     * @param {Object} instance - Object instance
+     * @return {String} assignees types separated by commas
+     */
     getAssigneeType: function (instance) {
-      var currentUser = GGRC.current_user;
-      var userType = null;
+      const assigneeRoles = ['Assignees', 'Creators', 'Verifiers'];
+      let currentUser = GGRC.current_user;
+      let roles = GGRC.access_control_roles
+        .filter((item) => item.object_type === instance.type &&
+          assigneeRoles.indexOf(item.name) > -1);
+      let userType = null;
 
       if (!instance || !currentUser) {
         return;
       }
-      _.each(ROLE_TYPES, function (type) {
-        var users = instance.assignees.attr(type);
-        var isMapping;
-        if (!users.length) {
+
+      _.each(roles, function (role) {
+        let aclPerson = instance
+          .access_control_list
+          .filter((item) => item.ac_role_id === role.id &&
+            item.person.id == currentUser.id);
+
+        if (!aclPerson.length) {
           return;
         }
 
-        isMapping = _.filter(users, function (user) {
-          return user.id === currentUser.id;
-        }).length;
-
-        if (isMapping) {
-          type = can.capitalize(type);
-          userType = userType ? userType + ',' + type : type;
-        }
+        userType = userType ? userType + ',' + role.name : role.name;
       });
+
       return userType;
-    }
+    },
   };
 
   /**
