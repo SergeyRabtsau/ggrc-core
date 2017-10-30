@@ -438,13 +438,7 @@
       audits: TypeFilter('related_objects', 'Audit'),
       related_controls: TypeFilter('related_objects', 'Control'),
       related_regulations: TypeFilter('related_objects', 'Regulation'),
-      related_creators:
-        AttrFilter('related_objects', 'AssigneeType', 'Creator', 'Person'),
-      related_assessors:
-        AttrFilter('related_objects', 'AssigneeType', 'Assessor', 'Person'),
-      related_verifiers:
-        AttrFilter('related_objects', 'AssigneeType', 'Verifier', 'Person'),
-      people: AttrFilter('related_objects', 'AssigneeType', null, 'Person')
+      people: AttrFilter('related_objects', null, 'Person')
     },
     AssessmentTemplate: {
       _mixins: ['related_object']
