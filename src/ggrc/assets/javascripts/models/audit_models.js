@@ -355,13 +355,13 @@
       test_plan_procedure: false,
       template_object_type: 'Control',
       default_people: {
-        assessors: 'Principal Assignees',
+        assignees: 'Principal Assignees',
         verifiers: 'Auditors'
       },
       status: 'Draft',
-      // the custom lists of assessor / verifier IDs if "other" is selected for
+      // the custom lists of assignee / verifier IDs if "other" is selected for
       // the corresponding default_people setting
-      assessorsList: {},
+      assigneesList: {},
       verifiersList: {},
       people_values: [
         {value: 'Admin', title: 'Object Admins'},
@@ -382,18 +382,18 @@
 
     /**
      * Initialize the newly created object instance. Validate that its title is
-     * non-blank and its default assessors / verifiers lists are set if
+     * non-blank and its default assignees / verifiers lists are set if
      * applicable.
      */
     init: function () {
       this._super.apply(this, arguments);
       this.validateNonBlank('title');
-      this.validateNonBlank('default_people.assessors');
+      this.validateNonBlank('default_people.assignees');
 
       this.validateListNonBlank(
-        'assessorsList',
+        'assigneesList',
         function () {
-          return this.attr('default_people.assessors') === 'other';
+          return this.attr('default_people.assignees') === 'other';
         }
       );
       this.validateListNonBlank(
@@ -422,7 +422,7 @@
       }
       this._unpackPeopleData();
 
-      this._updateDropdownEnabled('assessors');
+      this._updateDropdownEnabled('assignees');
       this._updateDropdownEnabled('verifiers');
     },
 
@@ -445,29 +445,29 @@
     },
 
     /**
-     * Event handler when an assessor is picked in an autocomplete form field.
-     * It adds the picked assessor's ID to the assessors list.
+     * Event handler when an assignee is picked in an autocomplete form field.
+     * It adds the picked assignee's ID to the assignees list.
      *
      * @param {can.Map} context - the Mustache context of the `$el`
      * @param {jQuery.Element} $el - the source of the event `ev`
      * @param {jQuery.Event} ev - the event that was triggered
      */
-    assessorAdded: function (context, $el, ev) {
+    assigneeAdded: function (context, $el, ev) {
       var user = ev.selectedItem;
-      this.assessorsList.attr(user.id, true);
+      this.assigneesList.attr(user.id, true);
     },
 
     /**
-     * Event handler when a user clicks to remove an assessor from the
-     * assessors list. It removes the corresponding assessor ID from the list.
+     * Event handler when a user clicks to remove an assignee from the
+     * assignees list. It removes the corresponding assignee ID from the list.
      *
      * @param {can.Map} context - the Mustache context of the `$el`
      * @param {jQuery.Element} $el - the source of the event `ev`
      * @param {jQuery.Event} ev - the event that was triggered
      */
-    assessorRemoved: function (context, $el, ev) {
+    assigneeRemoved: function (context, $el, ev) {
       var user = ev.person;
-      this.assessorsList.removeAttr(String(user.id));
+      this.assigneesList.removeAttr(String(user.id));
     },
 
     /**
@@ -497,20 +497,20 @@
     },
 
     /**
-     * Event handler when a user changes the default assessors option.
+     * Event handler when a user changes the default assignees option.
      *
      * @param {can.Map} context - the Mustache context of the `$el`
      * @param {jQuery.Element} $el - the source of the event `ev`
      * @param {jQuery.Event} ev - the event that was triggered
      */
-    defaultAssesorsChanged: function (context, $el, ev) {
+    defaultAssigneesChanged: function (context, $el, ev) {
       var changedList = [
         'Auditors', 'Principal Assignees', 'Secondary Assignees',
         'Primary Contacts', 'Secondary Contacts'
       ];
       this.attr('showCaptainAlert',
-        changedList.indexOf(this.default_people.assessors) >= 0);
-      this._updateDropdownEnabled('assessors');
+        changedList.indexOf(this.default_people.assignees) >= 0);
+      this._updateDropdownEnabled('assignees');
     },
 
     /**
@@ -528,7 +528,7 @@
      * Update the autocomplete field's disabled flag based on the current value
      * of the corresponding dropdown.
      *
-     * @param {String} name - the value to inspect, must be either "assessors"
+     * @param {String} name - the value to inspect, must be either "assignees"
      *   or "verifiers"
      */
     _updateDropdownEnabled: function (name) {
@@ -557,11 +557,11 @@
         });
       }
 
-      data.assessors = this.attr('default_people.assessors');
+      data.assignees = this.attr('default_people.assignees');
       data.verifiers = this.attr('default_people.verifiers');
 
-      if (data.assessors === 'other') {
-        data.assessors = makeList(this.attr('assessorsList'));
+      if (data.assignees === 'other') {
+        data.assignees = makeList(this.attr('assigneesList'));
       }
 
       if (data.verifiers === 'other') {
@@ -580,7 +580,7 @@
       var instance = this;  // the AssessmentTemplate model instance
       var peopleData = instance.default_people;
 
-      ['assessors', 'verifiers'].forEach(function (name) {
+      ['assignees', 'verifiers'].forEach(function (name) {
         var idsMap;
         var peopleIds = peopleData[name];
 

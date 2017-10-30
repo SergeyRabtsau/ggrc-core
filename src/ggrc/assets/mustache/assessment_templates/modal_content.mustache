@@ -117,31 +117,31 @@
 
       <div class="span6">
         <div class="row-fluid choose-from-select">
-          <div class="span6 bottom-spacing{{#validation_error instance.computed_errors 'default_people.assessors'}} field-failure{{/validation_error}}">
+          <div class="span6 bottom-spacing{{#validation_error instance.computed_errors 'default_people.assignees'}} field-failure{{/validation_error}}">
             <label>
               Default Assignees
             </label>
             <dropdown
               class-name="input-block-level js-toggle-field"
               options-list="instance.people_values"
-              name="instance.default_people.assessors"
-              on-change="instance.defaultAssesorsChanged"
+              name="instance.default_people.assignees"
+              on-change="instance.defaultAssigneesChanged"
             ></dropdown>
 
-            {{#validation_error instance.computed_errors 'default_people.assessors'}}
+            {{#validation_error instance.computed_errors 'default_people.assignees'}}
               <label class="help-inline warning">{{errors.0}}</label>
             {{/validation_error}}
           </div>
 
 
-          <div class="span6{{#instance.computed_errors.assessorsList}} field-failure{{/instance.computed_errors.assessorsList}}">
+          <div class="span6{{#instance.computed_errors.assigneesList}} field-failure{{/instance.computed_errors.assigneesList}}">
             <label>&nbsp;</label>
-            {{#if_equals instance.default_people.assessors 'other'}}
+            {{#if_equals instance.default_people.assignees 'other'}}
               {{^if_config_exist 'external_services.Person'}}
               <autocomplete
                 search-items-type="Person"
-                can-item-selected="instance.assessorAdded"
-                disable="instance.assessorsListDisable"
+                can-item-selected="instance.assigneeAdded"
+                disable="instance.assigneesListDisable"
                 placeholder="Enter text to search for Assignees"
               ></autocomplete>
               {{else}}
@@ -153,15 +153,15 @@
               </external-data-autocomplete>
               {{/if_config_exist}}
 
-              {{#instance.computed_errors.assessorsList}}
+              {{#instance.computed_errors.assigneesList}}
                 <label class="help-inline warning">{{this}}</label>
-              {{/instance.computed_errors.assessorsList}}
+              {{/instance.computed_errors.assigneesList}}
 
-              {{#each instance.assessorsList}}
+              {{#each instance.assigneesList}}
                 <person-info
                   editable="true"
                   person-id="{{@key}}"
-                  can-person-remove="instance.assessorRemoved"></person-info>
+                  can-person-remove="instance.assigneeRemoved"></person-info>
               {{/each}}
             {{/if}}
           </div>

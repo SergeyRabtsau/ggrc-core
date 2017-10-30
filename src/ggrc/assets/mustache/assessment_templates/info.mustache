@@ -57,13 +57,13 @@
           <div class="row-fluid wrap-row">
             <div class="span4">
               <h6>Default Assignees</h6>
-              {{#if default_people.assessors}}
-                {{#if_string default_people.assessors}}
-                  {{get_item DEFAULT_PEOPLE_LABELS default_people.assessors}}
+              {{#if default_people.assignees}}
+                {{#if_string default_people.assignees}}
+                  {{get_item DEFAULT_PEOPLE_LABELS default_people.assignees}}
                 {{else}}
-                  {{#if default_people.assessors.length}}
+                  {{#if default_people.assignees.length}}
                     <ul>
-                      {{#each default_people.assessors}}
+                      {{#each default_people.assignees}}
                         <li>
                           <person-info editable="true" person-id="{{.}}"></person-info>
                         </li>

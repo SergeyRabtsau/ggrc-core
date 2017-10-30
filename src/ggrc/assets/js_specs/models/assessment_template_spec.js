@@ -22,36 +22,36 @@ describe('can.Model.AssessmentTemplate', function () {
       var result;
 
       instance.attr('default_people', {
-        assessors: 'Rabbits',
+        assignees: 'Rabbits',
         verifiers: 'Turtles'
       });
 
       result = instance._packPeopleData();
 
       expect(result).toEqual({
-        assessors: 'Rabbits',
+        assignees: 'Rabbits',
         verifiers: 'Turtles'
       });
     });
 
-    it('uses the list of chosen assessor IDs if default assessors are set ' +
+    it('uses the list of chosen assignee IDs if default assignees are set ' +
       'to "other"',
       function () {
         var assessorIds;
         var result;
 
         instance.attr('default_people', {
-          assessors: 'other',
+          assignees: 'other',
           verifiers: 'Whatever'
         });
 
         assessorIds = new can.Map({'17': true, '2': true, '9': true});
-        instance.attr('assessorsList', assessorIds);
+        instance.attr('assigneesList', assessorIds);
 
         result = instance._packPeopleData();
 
         expect(result).toEqual({
-          assessors: [2, 9, 17],
+          assignees: [2, 9, 17],
           verifiers: 'Whatever'
         });
       }
@@ -64,7 +64,7 @@ describe('can.Model.AssessmentTemplate', function () {
         var result;
 
         instance.attr('default_people', {
-          assessors: 'Whatever',
+          assignees: 'Whatever',
           verifiers: 'other'
         });
 
@@ -74,7 +74,7 @@ describe('can.Model.AssessmentTemplate', function () {
         result = instance._packPeopleData();
 
         expect(result).toEqual({
-          assessors: 'Whatever',
+          assignees: 'Whatever',
           verifiers: [6, 11, 12]
         });
       }
@@ -82,40 +82,40 @@ describe('can.Model.AssessmentTemplate', function () {
   });
 
   describe('_unpackPeopleData() method', function () {
-    it('builds an IDs dict from the default assessors list', function () {
+    it('builds an IDs dict from the default assignees list', function () {
       instance.attr('default_people', {
-        assessors: new can.List([5, 7, 12])
+        assignees: new can.List([5, 7, 12])
       });
-      instance.attr('assessorsList', {});
+      instance.attr('assigneesList', {});
 
       instance._unpackPeopleData();
 
       expect(
-        instance.assessorsList.attr()
+        instance.assigneesList.attr()
       ).toEqual({'5': true, '7': true, '12': true});
     });
 
-    it('sets the default assessors option to "other" if needed', function () {
-      // this is needed when the default assessors setting is actually
+    it('sets the default assignees option to "other" if needed', function () {
+      // this is needed when the default assignees setting is actually
       // a list of User IDs...
       instance.attr('default_people', {
-        assessors: new can.List([5, 7, 12])
+        assignees: new can.List([5, 7, 12])
       });
 
       instance._unpackPeopleData();
 
-      expect(instance.default_people.assessors).toEqual('other');
+      expect(instance.default_people.assignees).toEqual('other');
     });
 
-    it('clears the assessors IDs dict if needed', function () {
-      instance.attr('assessorsList', {'42': true});
+    it('clears the assignees IDs dict if needed', function () {
+      instance.attr('assigneesList', {'42': true});
       instance.attr('default_people', {
-        assessors: 'Some User Group'  // not a list of IDs
+        assignees: 'Some User Group'  // not a list of IDs
       });
 
       instance._unpackPeopleData();
 
-      expect(instance.assessorsList.attr()).toEqual({});
+      expect(instance.assigneesList.attr()).toEqual({});
     });
 
     it('builds an IDs dict from the default verifiers list', function () {
@@ -155,7 +155,7 @@ describe('can.Model.AssessmentTemplate', function () {
     });
   });
 
-  describe('assessorAdded() method', function () {
+  describe('assigneeAdded() method', function () {
     var context;
     var $element;
     var eventObj;
@@ -166,29 +166,29 @@ describe('can.Model.AssessmentTemplate', function () {
       eventObj = $.Event();
     });
 
-    it('adds the new assessor\'s ID to the assessors list', function () {
-      instance.attr('assessorsList', {'7': true});
+    it('adds the new assignee\'s ID to the assignees list', function () {
+      instance.attr('assigneesList', {'7': true});
       eventObj.selectedItem = {id: 42};
 
-      instance.assessorAdded(context, $element, eventObj);
+      instance.assigneeAdded(context, $element, eventObj);
 
       expect(
-        instance.attr('assessorsList').attr()
+        instance.attr('assigneesList').attr()
       ).toEqual({'7': true, '42': true});
     });
 
     it('silently ignores duplicate entries', function () {
-      instance.attr('assessorsList', {'7': true});
+      instance.attr('assigneesList', {'7': true});
       eventObj.selectedItem = {id: 7};
 
-      instance.assessorAdded(context, $element, eventObj);
+      instance.assigneeAdded(context, $element, eventObj);
       // there should have been no error
 
-      expect(instance.attr('assessorsList').attr()).toEqual({'7': true});
+      expect(instance.attr('assigneesList').attr()).toEqual({'7': true});
     });
   });
 
-  describe('assessorRemoved() method', function () {
+  describe('assigneeRemoved() method', function () {
     var context;
     var $element;
     var eventObj;
@@ -199,25 +199,25 @@ describe('can.Model.AssessmentTemplate', function () {
       eventObj = $.Event();
     });
 
-    it('removes the new assessor\'s ID from the assessors list', function () {
-      instance.attr('assessorsList', {'7': true, '42': true, '3': true});
+    it('removes the new assignee\'s ID from the assignees list', function () {
+      instance.attr('assigneesList', {'7': true, '42': true, '3': true});
       eventObj.person = {id: 42};
 
-      instance.assessorRemoved(context, $element, eventObj);
+      instance.assigneeRemoved(context, $element, eventObj);
 
       expect(
-        instance.attr('assessorsList').attr()
+        instance.attr('assigneesList').attr()
       ).toEqual({'7': true, '3': true});
     });
 
     it('silently ignores removing non-existing entries', function () {
-      instance.attr('assessorsList', {'7': true});
+      instance.attr('assigneesList', {'7': true});
       eventObj.person = {id: 50};
 
-      instance.assessorRemoved(context, $element, eventObj);
+      instance.assigneeRemoved(context, $element, eventObj);
       // there should have been no error
 
-      expect(instance.attr('assessorsList').attr()).toEqual({'7': true});
+      expect(instance.attr('assigneesList').attr()).toEqual({'7': true});
     });
   });
 
@@ -232,7 +232,7 @@ describe('can.Model.AssessmentTemplate', function () {
       eventObj = $.Event();
     });
 
-    it('adds the new verifier\'s ID to the assessors list', function () {
+    it('adds the new verifier\'s ID to the assignees list', function () {
       instance.attr('verifiersList', {'7': true});
       eventObj.selectedItem = {id: 42};
 
@@ -287,7 +287,7 @@ describe('can.Model.AssessmentTemplate', function () {
     });
   });
 
-  describe('defaultAssesorsChanged() method', function () {
+  describe('defaultAssigneesChanged() method', function () {
     var context;
     var $element;
     var eventObj;
@@ -308,48 +308,48 @@ describe('can.Model.AssessmentTemplate', function () {
       ];
     });
 
-    it('sets the assessorsListDisable flag if the corresponding ' +
+    it('sets the assigneesListDisable flag if the corresponding ' +
       'selected option is different from "other"',
       function () {
-        instance.attr('assessorsListDisable', false);
-        instance.attr('default_people.assessors', 'Object Admins');
+        instance.attr('assigneesListDisable', false);
+        instance.attr('default_people.assignees', 'Object Admins');
 
-        instance.defaultAssesorsChanged(context, $element, eventObj);
+        instance.defaultAssigneesChanged(context, $element, eventObj);
 
-        expect(instance.attr('assessorsListDisable')).toBe(true);
+        expect(instance.attr('assigneesListDisable')).toBe(true);
       }
     );
 
-    it('clears the assessorsListDisable flag if the corresponding ' +
+    it('clears the assigneesListDisable flag if the corresponding ' +
       'selected option is "other"',
       function () {
-        instance.attr('assessorsListDisable', true);
-        instance.attr('default_people.assessors', 'other');
+        instance.attr('assigneesListDisable', true);
+        instance.attr('default_people.assignees', 'other');
 
-        instance.defaultAssesorsChanged(context, $element, eventObj);
+        instance.defaultAssigneesChanged(context, $element, eventObj);
 
-        expect(instance.attr('assessorsListDisable')).toBe(false);
+        expect(instance.attr('assigneesListDisable')).toBe(false);
       }
     );
 
-    it('showCaptainAlert value is "true" if default assessor ' +
+    it('showCaptainAlert value is "true" if default assignee ' +
       'is one of changedList',
       function () {
         greenList.map(function (item) {
-          instance.attr('default_people.assessors', item);
-          instance.defaultAssesorsChanged(context, $element, eventObj);
+          instance.attr('default_people.assignees', item);
+          instance.defaultAssigneesChanged(context, $element, eventObj);
 
           expect(instance.attr('showCaptainAlert')).toBe(true);
         });
       }
     );
 
-    it('showCaptainAlert value is "false" if default assessor ' +
+    it('showCaptainAlert value is "false" if default assignee ' +
       'is NOT one of changedList',
       function () {
         redList.map(function (item) {
-          instance.attr('default_people.assessors', item);
-          instance.defaultAssesorsChanged(context, $element, eventObj);
+          instance.attr('default_people.assignees', item);
+          instance.defaultAssigneesChanged(context, $element, eventObj);
 
           expect(instance.attr('showCaptainAlert')).toBe(false);
         });
