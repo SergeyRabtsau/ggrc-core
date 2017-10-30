@@ -187,3 +187,37 @@
     }
   }
 }
+
+.lhn-people {
+  display: flex;
+  flex-wrap: wrap;
+  margin: 0 0 20px 10px;
+
+  .lhn-people-groups {
+    .lhn-people-group {
+      display: block;
+
+      .lhn-people-group__title {
+        font-weight: bold;
+        margin-bottom: 0;
+        text-transform: uppercase;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        max-width: 260px;
+      }
+
+      .lhn-people-group__spinner {
+        margin-left: 4px;
+      }
+
+      .person-name {
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        max-width: 240px;
+        margin-right: 5px;
+      }
+    }
+  }
+}

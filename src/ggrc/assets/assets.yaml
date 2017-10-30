@@ -102,7 +102,7 @@ dashboard-js-template-files:
   - base_templates/test.mustache
   - base_templates/urls.mustache
   - base_templates/mapping_tree_view.mustache
-  - base_templates/assignable_extended_info.mustache
+  - assessments/assignable_extended_info.mustache
   - mixins/assignable.mustache
   - clauses/modal_content.mustache
   - contracts/modal_content.mustache

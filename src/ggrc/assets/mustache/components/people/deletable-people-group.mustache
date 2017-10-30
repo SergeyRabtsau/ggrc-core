@@ -9,7 +9,7 @@
   <div class="people-list">
     <object-list ({items})="people" {empty-message}="emptyListMessage" {is-disabled}="isLoading">
       <div class="action-toolbar {{#unless canUnmap}}people-group__readonly-person{{/unless}}">
-        <person-list-item person="{.}" {with-details}="withDetails">
+        <person-list-item {is-disabled}="isDisabled" person="{.}" {with-details}="withDetails">
           {{#unless isDisabled}}
             {{#unmapablePerson}}
               <div class="action-toolbar__controls">

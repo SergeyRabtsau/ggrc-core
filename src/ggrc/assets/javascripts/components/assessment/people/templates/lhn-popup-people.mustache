@@ -1,0 +1,63 @@
+{{!
+  Copyright (C) 2017 Google Inc.
+  Licensed under http://www.apache.org/licenses/LICENSE-2.0 <see LICENSE file>
+}}
+
+<div class="lhn-people">
+  <div class="flex-box width-100">
+    {{#if hasConflicts}}
+      <div class="width-100">
+        <div class="alert alert-verifier">
+          <p>
+              Please be informed that Assignee and Verifier are the same person.
+          </p>
+        </div>
+      </div>
+    {{/if}}
+  </div>
+
+  <related-people-access-control
+    class="width-100"
+    (save-custom-role)="saveRoles()"
+    {^has-conflicts}="hasConflicts"
+    {conflict-roles}="conflictRoles"
+    {order-of-roles}="includeRoles"
+    {include-roles}="includeRoles"
+    {instance}="instance">
+      <div class="lhn-people-groups">
+        {{#groups}}
+          <related-people-access-control-group
+            class="lhn-people-group"
+            auto-update="true"
+            (update-roles)="updateRoles(%event)"
+            {is-new-instance}="isNewInstance"
+            {required}="required"
+            {group-id}="groupId"
+            {title}="title"
+            {people}="people"
+            {instance}="instance"
+            {updatable-group-id}="updatableGroupId">
+              <div>
+                <deletable-people-group
+                  show-empty-message="true"
+                  {required}="required"
+                  (unmap)="removePerson(%event)"
+                  {can-unmap}="canEdit"
+                  {is-loading}="denyUnmap"
+                  {group-id}="groupId"
+                  {instance}="instance"
+                  {people}="people">
+                    <label class="lhn-people-group__title form-label required-label">
+                      {{title}}
+                      {{#if required}}
+                        <i class="fa fa-asterisk"></i>
+                      {{/if}}
+                      <spinner class="lhn-people-group__spinner" toggle="denyUnmap"></spinner>
+                    </label>
+                </deletable-people-group>
+              </div>
+          </related-people-access-control-group>
+        {{/groups}}
+      </div>
+  </related-people-access-control>
+</div>

@@ -17,6 +17,7 @@ export default GGRC.Components('relatedPeopleAccessControl', {
     excludeRoles: [],
     conflictRoles: [],
     orderOfRoles: [],
+    hasConflicts: false,
 
     updateRoles: function (args) {
       this.updateAccessContolList(args.people, args.roleId);
@@ -63,6 +64,7 @@ export default GGRC.Components('relatedPeopleAccessControl', {
         this.isCurrentGroupHasConflict(groupTitle, groups, conflictRoles) :
         this.isGroupsHasConflict(groups, conflictRoles);
 
+      this.attr('hasConflicts', hasConflict);
       this.attr('instance').dispatch({
         type: 'roleConflicts',
         roleConflicts: hasConflict,
