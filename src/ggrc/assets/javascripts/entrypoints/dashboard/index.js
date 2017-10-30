@@ -105,7 +105,6 @@ import '../../components/person/person';
 import '../../components/unarchive_link';
 import '../../components/link_to_clipboard';
 import '../../components/relevant_filters';
-import '../../components/people_list';
 import '../../components/mapped_tree_view';
 import '../../components/reusable_objects';
 import '../../components/assessment_generator';
