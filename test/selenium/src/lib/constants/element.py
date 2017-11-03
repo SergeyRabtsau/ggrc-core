@@ -226,12 +226,9 @@ class CommonAssessment(Common):
   ASMT = objects.get_normal_form(objects.get_singular(objects.ASSESSMENTS))
   STATE = Base.STATE
   CREATORS = "Creators"
-  CREATORS_ = "Creator(s)"
   COMMENTS = "Comments"
   ASSIGNEES = "Assignees"
-  ASSIGNEES_ = "Assignee(s)"
   VERIFIERS = "Verifiers"
-  VERIFIERS_ = "Verifier(s)"
   MAPPED_OBJECTS = TransformationSetVisibleFields.MAPPED_OBJECTS
   VERIFIED = TransformationSetVisibleFields.VERIFIED
 

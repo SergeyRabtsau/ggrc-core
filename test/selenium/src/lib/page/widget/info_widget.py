@@ -403,13 +403,13 @@ class Assessments(InfoWidget):
         is_gcas_not_lcas=False)
     self.creators_lbl_txt, self.creators_txt = (
         self.get_header_and_value_txt_from_people_scopes(
-            self._elements.CREATORS_.upper()))
+            self._elements.CREATORS.upper()))
     self.assignees_lbl_txt, self.assignees_txt = (
         self.get_header_and_value_txt_from_people_scopes(
-            self._elements.ASSIGNEES_.upper()))
+            self._elements.ASSIGNEES.upper()))
     self.verifiers_lbl_txt, self.verifiers_txt = (
         self.get_header_and_value_txt_from_people_scopes(
-            self._elements.VERIFIERS_.upper()))
+            self._elements.VERIFIERS.upper()))
     self.comments_panel = base.CommentsPanel(
         self.info_widget_elem, self._locators.COMMENTS_CSS)
     self.comments_lbl_txt = self.comments_panel.header_lbl.text
