@@ -9,14 +9,12 @@
   "recipients": null,
   "owners": [],
   "audit": null,
-  "validate_creator": true,
-  "validate_assessor": true,
   "test_plan": "",
   "notes": "",
-  "secondary_contact": null,
   "description": "",
   "reference_url": "",
   "custom_attributes": {},
   "custom_attribute_definitions": [],
-  "context": null
+  "context": null,
+  "access_control_list": []
 }
