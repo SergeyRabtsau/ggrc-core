@@ -11,8 +11,9 @@ READER = "Reader"
 EDITOR = "Editor"
 ADMINISTRATOR = "Administrator"
 # assessment roles
-ASSESSOR = "Assessor"
-VERIFIER = "Verifier"
+ASMT_CREATOR = CREATOR + "s"
+ASSIGNEE = "Assignees"
+VERIFIER = "Verifiers"
 # program roles
 PROGRAM_EDITOR = "Program Editor"
 PROGRAM_MANAGER = "Program Manager"
@@ -48,3 +49,6 @@ CONTROL_ADMIN_ID = 49
 CONTROL_PRIMARY_CONTACT_ID = 9
 ISSUE_ADMIN_ID = 53
 ISSUE_PRIMARY_CONTACT_ID = 17
+ASMT_CREATOR_ID = 76
+ASMT_ASSIGNEE_ID = 72
+ASMT_VERIFIER_ID = 73

@@ -208,16 +208,11 @@ class AssessmentsService(BaseRestService):
 
   def create_objs(self, count, factory_params=None, **attrs_for_template):
     """Create new Assessments and make default relationships of Persons:
-    'Creator', 'Assessor' to them via REST API and return list of created
+    'Creator', 'Assignee' to them via REST API and return list of created
     objects with filtered attributes.
     """
     objs = BaseRestService(self.endpoint).create_objs(
         count, factory_params, **attrs_for_template)
-    assignees = [assignee for obj in objs for assignee in obj.assignees]
-    if assignees:
-      RelationshipsService().map_objs(
-          src_obj=ObjectPersonsFactory().default(), dest_objs=objs,
-          attrs={"AssigneeType": ",".join(assignees)})
     return objs
 
 

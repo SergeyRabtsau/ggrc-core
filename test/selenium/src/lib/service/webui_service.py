@@ -76,7 +76,7 @@ class BaseWebUiService(object):
                      if k == "created_at" else v)
                  for k, v in comment.iteritems()} for comment in val]
           # convert multiple values to list of strings and split if need it
-          if (key in ["owners", "assessor", "creator", "verifier"] and
+          if (key in ["owners", "assignee", "creator", "verifier"] and
              not isinstance(val, list)):
             # split Tree View values if need 'Ex1, Ex2 F' to ['Ex1', 'Ex2 F']
             # Info Widget values will be represent by internal methods
@@ -463,7 +463,7 @@ class AssessmentTemplatesService(BaseWebUiService):
     Tree View, fill data according to object attributes and create new object.
     """
     (self._open_create_modal_and_fill_data(src_obj, obj).
-     select_assignee(obj.assessors).save_and_close())
+     select_assignee(obj.assignees).save_and_close())
 
 
 class AssessmentsService(BaseWebUiService):

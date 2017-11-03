@@ -90,7 +90,11 @@ class ObjectPersonsFactory(EntitiesFactory):
 
   @classmethod
   def get_acl_member(cls, role_id, person):
-    return {"ac_role_id": role_id, "person": person}
+    """Return ACL member as dict."""
+    value = person
+    if isinstance(person, PersonEntity):
+      value = {"id": person.id}
+    return {"ac_role_id": role_id, "person": value}
 
   @classmethod
   def _create_random_person(cls):
@@ -542,7 +546,7 @@ class AssessmentTemplatesFactory(EntitiesFactory):
     """Create Assessment Template object.
     Random values will be used for title and slug.
     Predictable values will be used for type, template_object_type and
-    default_people {"verifiers": *, "assessors": *}.
+    default_people {"verifiers": *, "assignees": *}.
     """
     # pylint: disable=too-many-locals
     asmt_tmpl_entity = cls._create_random_asmt_tmpl()
@@ -565,12 +569,12 @@ class AssessmentTemplatesFactory(EntitiesFactory):
     random_asmt_tmpl = AssessmentTemplateEntity()
     random_asmt_tmpl.type = cls.obj_asmt_tmpl
     random_asmt_tmpl.title = cls.generate_string(cls.obj_asmt_tmpl)
-    random_asmt_tmpl.assessors = unicode(roles.AUDIT_LEAD)
+    random_asmt_tmpl.assignees = unicode(roles.AUDIT_LEAD)
     random_asmt_tmpl.slug = cls.generate_slug()
     random_asmt_tmpl.template_object_type = cls.obj_control.title()
     random_asmt_tmpl.status = unicode(element.ObjectStates.DRAFT)
     random_asmt_tmpl.default_people = {"verifiers": unicode(roles.AUDITORS),
-                                       "assessors": unicode(roles.AUDIT_LEAD)}
+                                       "assignees": unicode(roles.AUDIT_LEAD)}
     return random_asmt_tmpl
 
 
@@ -614,7 +618,7 @@ class AssessmentsFactory(EntitiesFactory):
   def create(cls, type=None, id=None, title=None, href=None, url=None,
              slug=None, status=None, owners=None, audit=None, recipients=None,
              assignees=None, verified=None, verifier=None, creator=None,
-             assessor=None, updated_at=None, objects_under_assessment=None,
+             assignee=None, updated_at=None, objects_under_assessment=None,
              custom_attribute_definitions=None, custom_attribute_values=None,
              custom_attributes=None, created_at=None, modified_by=None):
     """Create Assessment object.
@@ -629,7 +633,7 @@ class AssessmentsFactory(EntitiesFactory):
         title=title, href=href, url=url, slug=slug, status=status,
         owners=owners, audit=audit, recipients=recipients, assignees=assignees,
         verified=verified, verifier=verifier, creator=creator,
-        assessor=assessor, updated_at=updated_at,
+        assignee=assignee, updated_at=updated_at,
         objects_under_assessment=objects_under_assessment,
         custom_attribute_definitions=custom_attribute_definitions,
         custom_attribute_values=custom_attribute_values,
@@ -646,13 +650,19 @@ class AssessmentsFactory(EntitiesFactory):
     random_asmt.slug = cls.generate_slug()
     random_asmt.status = unicode(element.AssessmentStates.NOT_STARTED)
     random_asmt.recipients = ",".join(
-        (unicode(roles.ASSESSOR), unicode(roles.CREATOR),
+        (unicode(roles.ASSIGNEE), unicode(roles.ASMT_CREATOR),
          unicode(roles.VERIFIER)))
+    random_asmt.access_control_list = (
+        [ObjectPersonsFactory.get_acl_member(roles.ASMT_CREATOR_ID,
+                                             cls.default_person),
+         ObjectPersonsFactory.get_acl_member(roles.ASMT_ASSIGNEE_ID,
+                                             cls.default_person)]
+    )
     random_asmt.verified = False
-    random_asmt.assessor = [unicode(cls.default_person.name)]
+    random_asmt.assignee = [unicode(cls.default_person.name)]
     random_asmt.creator = [unicode(cls.default_person.name)]
     random_asmt.assignees = {
-        "Assessor": [cls.default_person.__dict__],
+        "Assignee": [cls.default_person.__dict__],
         "Creator": [cls.default_person.__dict__]}
     return random_asmt
 

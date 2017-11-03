@@ -384,7 +384,7 @@ class ModalCreateNewControl(BaseModalCreateNew):
     """Locators for Create new Control modals visible when creating from LHN.
     """
     @staticmethod
-    def get_assessor_row(first_id, second_id):
+    def get_assignee_row(first_id, second_id):
       return (
           By.CSS_SELECTOR,
           '.modal-body div>form>div>div:nth-child({})>div:nth-child({}) '
@@ -476,7 +476,7 @@ class ModalCreateNewAsmt(BaseModalCreateNew, CommonAssessment):
 class ModalCreateNewAsmtTmpl(BaseModalCreateNew):
   """Locators for Create new Assessment Template modals."""
   ASSIGNEE_DROPDOWN = (
-      By.CSS_SELECTOR, 'select[can-value="instance.default_people.assessors"]')
+      By.CSS_SELECTOR, 'select[can-value="instance.default_people.assignees"]')
 
 
 class ModalEditObject(BaseModalCreateNew):
