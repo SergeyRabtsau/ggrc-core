@@ -8,3 +8,7 @@ cron:
   url: /nightly_cron_endpoint
   schedule: every day 01:00
   timezone: US/Pacific
+- description: GGRC - half hour jobs
+  url: /half_hour_cron_endpoint
+  schedule: every 30 mins
+  timezone: US/Pacific
