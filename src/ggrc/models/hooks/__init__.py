@@ -13,6 +13,8 @@ from ggrc.models.hooks import issue_tracker
 from ggrc.models.hooks import relationship
 from ggrc.models.hooks.acl import audit_roles
 from ggrc.models.hooks.acl import relationship_deletion
+from ggrc.models.hooks import proposal
+
 
 ALL_HOOKS = [
     assessment,
@@ -28,6 +30,7 @@ ALL_HOOKS = [
     # Keep IssueTracker at the end of list to make sure that all other hooks
     # are already executed and all data is final.
     issue_tracker,
+    proposal,
 ]
 
 
