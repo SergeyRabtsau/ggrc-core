@@ -30,6 +30,7 @@ class GrcEncoder(json.JSONEncoder):
   """
 
   def default(self, obj):
+    from ggrc.models import mixins
     if isinstance(obj, datetime.datetime):
       if not obj.time():
         return obj.date().isoformat()
@@ -40,6 +41,8 @@ class GrcEncoder(json.JSONEncoder):
       return (datetime.datetime.min + obj).time().isoformat()
     elif isinstance(obj, set):
       return list(obj)
+    elif isinstance(obj, mixins.Base):
+      return {"id": obj.id, "type": obj.type}
     else:
       return super(GrcEncoder, self).default(obj)
 
