@@ -80,6 +80,7 @@ class Categorizable(object):
             ation, 'category',
             creator=lambda category: Categorization(
                 category_id=category.id,
+                category=category,
                 category_type=category.__class__.__name__,
                 categorizable_type=cls.__name__
             )
