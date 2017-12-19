@@ -666,6 +666,51 @@ class Folderable(object):
   _aliases = {"folder": "Folder"}
 
 
+def person_relation_factory(relation_name, fulltext_attr=None, api_attr=None):
+
+  def field_declaration(cls):  # pylint: disable=no-self-argument
+    return deferred(db.Column(db.Integer,
+                              db.ForeignKey('people.id'),
+                              nullable=True),
+                    "Person")
+
+  @classmethod
+  def indexed_query(cls):
+    return super(cls, cls).indexed_query().options(
+        orm.Load(cls).joinedload(
+            "relation_name"
+        ).load_only(
+            "name", "email", "id"
+        ),
+    )
+
+  def attr_declaration(cls):
+    return db.relationship(
+        'Person',
+        primaryjoin='{0}.{1}_id == Person.id'.format(cls.__name__,
+                                                     relation_name),
+        foreign_keys='{0}.{1}_id'.format(cls.__name__,
+                                         relation_name),
+        remote_side='Person.id',
+        uselist=False,
+    )
+
+  fulltext_attr = fulltext_attr or attributes.FullTextAttr(relation_name,
+                                                           relation_name,
+                                                           ["email", "name"])
+  api_attr = api_attr or reflection.Attribute(relation_name)
+
+  return type(
+      "{}_mixin".format(relation_name),
+      (),
+      {
+          "{}_id".format(relation_name): declared_attr(field_declaration),
+          relation_name: declared_attr(attr_declaration),
+          "_api_attrs": reflection.ApiAttributes(api_attr),
+          "fulltext_attrs": [fulltext_attr]
+      })
+
+
 __all__ = [
     "Base",
     "BusinessObject",
