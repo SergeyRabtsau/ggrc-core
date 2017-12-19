@@ -25,6 +25,7 @@ from ggrc.models.utils import validate_option
 from ggrc.fulltext.mixin import Indexed
 from ggrc.fulltext import attributes
 from ggrc.models import reflection
+from ggrc.models import proposal
 
 
 class ControlCategory(CategoryBase):
@@ -77,14 +78,15 @@ class ControlCategorized(Categorizable):
 
   def log_json(self):
     out_json = super(ControlCategorized, self).log_json()
-    # pylint: disable=not-an-iterable
-    out_json["categories"] = [c.log_json() for c in self.categorizations]
+    # pylint: disable=not-an-iterale
+    out_json["categories"] = [c.category.log_json()
+                              for c in self.categorizations]
     return out_json
 
   @classmethod
   def indexed_query(cls):
     return super(ControlCategorized, cls).indexed_query().options(
-        orm.Load(cls).joinedload('categorizations',),
+        orm.subqueryload('categorizations').joinedload('category'),
     )
 
 
@@ -124,14 +126,14 @@ class AssertionCategorized(Categorizable):
   def log_json(self):
     out_json = super(AssertionCategorized, self).log_json()
     # pylint: disable=not-an-iterable
-    out_json["assertions"] = [a.log_json()
+    out_json["assertions"] = [a.category.log_json()
                               for a in self.categorized_assertions]
     return out_json
 
   @classmethod
   def indexed_query(cls):
     return super(AssertionCategorized, cls).indexed_query().options(
-        orm.Load(cls).joinedload('categorized_assertions',),
+        orm.subqueryload('categorized_assertions').joinedload('category'),
     )
 
 
@@ -153,6 +155,7 @@ class Control(WithLastAssessmentDate,
               mixins.BusinessObject,
               Indexed,
               mixins.Folderable,
+              proposal.Proposalable,
               db.Model):
   __tablename__ = 'controls'
 
