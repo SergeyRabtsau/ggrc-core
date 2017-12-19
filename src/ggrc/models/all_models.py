@@ -56,6 +56,7 @@ from ggrc.models.person import Person
 from ggrc.models.product import Product
 from ggrc.models.program import Program
 from ggrc.models.project import Project
+from ggrc.models.proposal import Proposal
 from ggrc.models.relationship import Relationship
 from ggrc.models.revision import Revision
 from ggrc.models.section import Section
@@ -117,6 +118,7 @@ all_models = [  # pylint: disable=invalid-name
     Product,
     Program,
     Project,
+    Proposal,
     Relationship,
     Section,
     Clause,
