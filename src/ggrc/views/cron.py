@@ -30,14 +30,30 @@ def run_job(job):
     )
 
 
-def nightly_cron_endpoint():
-  cron_jobs = extensions.get_module_contributions("CONTRIBUTED_CRON_JOBS")
+def job_runner(name):
+  cron_jobs = extensions.get_module_contributions(name)
   for job in cron_jobs:
     run_job(job)
   return 'Ok'
 
 
+def nightly_cron_endpoint():
+  return job_runner("CONTRIBUTED_CRON_JOBS")
+
+
+def half_hour_cron_endpoint():
+  return job_runner("HALF_HOUR_CRON_JOBS")
+
+
 def init_cron_views(app):
   app.add_url_rule(
-      "/nightly_cron_endpoint", "nightly_cron_endpoint",
-      view_func=nightly_cron_endpoint)
+      "/nightly_cron_endpoint",
+      "nightly_cron_endpoint",
+      view_func=nightly_cron_endpoint
+  )
+
+  app.add_url_rule(
+      "/half_hour_cron_endpoint",
+      "half_hour_cron_endpoint",
+      view_func=half_hour_cron_endpoint
+  )
