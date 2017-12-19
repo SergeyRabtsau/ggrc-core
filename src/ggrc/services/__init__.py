@@ -68,6 +68,7 @@ def contributed_services():
       service('snapshots', models.Snapshot),
       service('access_control_roles', AccessControlRole),
       service('labels', models.Label),
+      service('proposals', models.Proposal),
   ]
 
 
