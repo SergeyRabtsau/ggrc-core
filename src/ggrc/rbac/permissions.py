@@ -43,6 +43,9 @@ def is_allowed_create_for(instance):
   """Whether or not the user is allowed to create this particular resource
   instance.
   """
+  if hasattr(instance, "CustomPermissionModel"):
+    return instance.CustomPermissionModel.has_custom_create_permissions(
+        instance)
   return permissions_for(get_user()).is_allowed_create_for(instance)
 
 
@@ -78,6 +81,8 @@ def is_allowed_read_for(instance):
   """
   if has_system_wide_read():
     return True
+  if hasattr(instance, "CustomPermissionModel"):
+    return instance.CustomPermissionModel.has_custom_read_permissions(instance)
   return permissions_for(get_user()).is_allowed_read_for(instance)
 
 
@@ -93,6 +98,9 @@ def is_allowed_update_for(instance):
   """Whether or not the user is allowed to update this particular resource
   instance.
   """
+  if hasattr(instance, "CustomPermissionModel"):
+    return instance.CustomPermissionModel.has_custom_update_permissions(
+        instance)
   return permissions_for(get_user()).is_allowed_update_for(instance)
 
 
