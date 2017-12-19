@@ -14,6 +14,7 @@ use the object generator in the ggrc.generator module.
 
 import random
 import string
+import itertools
 from contextlib import contextmanager
 
 import factory
@@ -47,6 +48,16 @@ def single_commit():
   except:
     raise
   else:
+    instances = set()
+    for instance in itertools.chain(db.session.new,
+                                    db.session.deleted,
+                                    db.session.dirty):
+      if isinstance(instance, models.CustomAttributeValue):
+        instances.add(instance.attributable)
+      elif hasattr(instance, "log_json"):
+        instances.add(instance)
+    for instance in instances:
+      WithACLandCAFactory._log_event(instance)
     db.session.commit()
   finally:
     db.session.single_commit = True
@@ -88,11 +99,11 @@ class WithACLandCAFactory(ModelFactory):
             custom_attribute_id=cav.get("custom_attribute_id"),
         ))
 
-    if isinstance(instance, models.CustomAttributeValue):
-      cls._log_event(instance.attributable)
-    if hasattr(instance, "log_json"):
-      cls._log_event(instance)
     if getattr(db.session, "single_commit", True):
+      if isinstance(instance, models.CustomAttributeValue):
+        cls._log_event(instance.attributable)
+      if hasattr(instance, "log_json"):
+        cls._log_event(instance)
       db.session.commit()
     return instance
 
@@ -471,6 +482,16 @@ class ObjectLabelFactory(ModelFactory):
     model = models.ObjectLabel
 
 
+class ProposalFactory(ModelFactory):
+
+  class Meta:
+    model = models.Proposal
+
+  instance_type = None
+  instance_id = None
+  content = None
+
+
 def get_model_factory(model_name):
   """Get object factory for provided model name"""
   from integration.ggrc_workflows.models import factories as wf_factories
@@ -511,5 +532,6 @@ def get_model_factory(model_name):
       "Risk": RiskFactory,
       "Threat": ThreatFactory,
       "Workflow": wf_factories.WorkflowFactory,
+      "Proposal": ProposalFactory,
   }
   return model_factories[model_name]
