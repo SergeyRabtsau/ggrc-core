@@ -208,14 +208,24 @@ def prepare(instance, content):
                if (f in current_data and
                    f in content and
                    current_data[f] != content[f])}
-  acl = generate_acl_diff(diff_data.pop("access_control_list", []),
-                          current_data.get("access_control_list", []))
-  cav = generate_cav_diff(
-      instance,
-      diff_data.pop("custom_attribute_values", []),
-      current_data.get("custom_attribute_values", []),
-      diff_data.pop("custom_attributes", None),
-  )
+
+  if "access_control_list" in diff_data:
+    acl = generate_acl_diff(diff_data.pop("access_control_list"),
+                            current_data.get("access_control_list", []))
+  else:
+    acl = {}
+  if (
+          "custom_attribute_values" in diff_data or
+          "custom_attributes" in diff_data):
+    cav = generate_cav_diff(
+        instance,
+        diff_data.pop("custom_attribute_values", []),
+        current_data.get("custom_attribute_values", []),
+        diff_data.pop("custom_attributes", None),
+    )
+  else:
+    cav = {}
+
   generated_mapptings = generate_mapping_dicts(instance,
                                                diff_data,
                                                current_data)
