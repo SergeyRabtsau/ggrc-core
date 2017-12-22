@@ -678,8 +678,7 @@ class TestProposalApi(TestCase):
   def test_change_empty_mapping_list(self):
     with factories.single_commit():
       category = factories.ControlCategoryFactory()
-      control = factories.ControlFactory()
-      control.categories.append(category)
+      control = factories.ControlFactory(categories=[category])
     data = control.log_json()
     category_id = category.id
     control_id = control.id
@@ -736,7 +735,7 @@ class TestProposalApi(TestCase):
         all_models.Revision.resource_type == control.type,
         all_models.Revision.resource_id == control.id
     ).all()
-    self.assertEqual(2, len(revisions))
+    self.assertEqual(1, len(revisions))
     resp = self.api.put(
         proposal,
         {
@@ -755,7 +754,7 @@ class TestProposalApi(TestCase):
         all_models.Revision.resource_type == control.type,
         all_models.Revision.resource_id == control.id
     ).all()
-    self.assertEqual(3, len(revisions))
+    self.assertEqual(2, len(revisions))
     self.assertEqual(1, len(control.comments))
     self.assertEqual("approved",
                      control.comments[0].description)
@@ -785,7 +784,7 @@ class TestProposalApi(TestCase):
         all_models.Revision.resource_type == control.type,
         all_models.Revision.resource_id == control.id
     ).all()
-    self.assertEqual(2, len(revisions))
+    self.assertEqual(1, len(revisions))
     resp = self.api.put(
         proposal,
         {
@@ -805,7 +804,7 @@ class TestProposalApi(TestCase):
         all_models.Revision.resource_type == control.type,
         all_models.Revision.resource_id == control.id
     ).all()
-    self.assertEqual(3, len(revisions))
+    self.assertEqual(2, len(revisions))
     self.assertEqual(1, len(control.comments))
     self.assertEqual("approved",
                      control.comments[0].description)
