@@ -31,7 +31,7 @@ class TestTotalReindex(TestCase):
       'Audit': 7,
       'Comment': 4,
       'Contract': 9,
-      'Control': 19,
+      'Control': 21,
       'Cycle': 5,
       'CycleTaskEntry': 3,
       'CycleTaskGroup': 4,
