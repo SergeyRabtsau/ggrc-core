@@ -268,6 +268,7 @@ class Revision(Base, db.Model):
             "id": categorization["category_id"],
             "type": categorization["category_type"],
             "name": categorization["display_name"],
+            "display_name": categorization["display_name"],
         })
       else:
         result.append(categorization)
