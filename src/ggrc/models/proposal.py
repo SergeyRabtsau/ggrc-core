@@ -15,6 +15,7 @@ from ggrc.utils import referenced_objects
 from ggrc.rbac import permissions
 from ggrc.utils.revisions_diff import builder
 from ggrc import settings
+from ggrc.models import comment
 
 
 class JsonPolymorphicRelationship(utils.PolymorphicRelationship):
@@ -42,6 +43,7 @@ class FullInstanceContentFased(utils.FasadeProperty):
 class Proposal(mixins.person_relation_factory("applied_by"),
                mixins.person_relation_factory("declined_by"),
                mixins.person_relation_factory("proposed_by"),
+               comment.CommentReasonable,
                mixins.Stateful,
                mixins.Base,
                ft_mixin.Indexed,

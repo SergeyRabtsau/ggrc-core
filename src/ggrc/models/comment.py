@@ -7,6 +7,7 @@ import itertools
 
 from collections import defaultdict
 
+import sqlalchemy as sa
 from sqlalchemy import case
 from sqlalchemy import orm
 from sqlalchemy.ext.declarative import declared_attr
@@ -26,6 +27,7 @@ from ggrc.fulltext.mixin import Indexed, ReindexRule
 from ggrc.fulltext.attributes import MultipleSubpropertyFullTextAttr
 from ggrc.models import inflector
 from ggrc.models import reflection
+from ggrc.models import utils
 
 
 class Commentable(object):
@@ -170,6 +172,15 @@ class Comment(Roleable, Relatable, Described, Notifiable,
       uselist=False,
   )
 
+  reason_instance_id = db.Column(db.Integer, nullable=True)
+  reason_instance_type = db.Column(db.String, nullable=True)
+  REASON_INSTANCE_TMPL = "{}_comment_reasonable_by"
+
+  reason_instance = utils.PolymorphicRelationship("reason_instance_id",
+                                                  "reason_instance_type",
+                                                  REASON_INSTANCE_TMPL)
+
+
   # REST properties
   _api_attrs = reflection.ApiAttributes(
       "assignee_type",
@@ -178,6 +189,9 @@ class Comment(Roleable, Relatable, Described, Notifiable,
                            update=False),
       reflection.Attribute("custom_attribute_revision_upd",
                            read=False),
+      reflection.Attribute("header_url_link",
+                           create=False,
+                           update=False),
   )
 
   _sanitize_html = [
@@ -216,6 +230,12 @@ class Comment(Roleable, Relatable, Described, Notifiable,
       ReindexRule("Comment", lambda x: x.get_objects_to_reindex()),
       ReindexRule("Relationship", reindex_by_relationship),
   ]
+
+  @builder.simple_property
+  def header_url_link(self):
+    if self.reason_instance_type == "Proposal":
+      return "proposal_link"
+    return ""
 
   @classmethod
   def eager_query(cls):
@@ -278,3 +298,21 @@ class Comment(Roleable, Relatable, Described, Notifiable,
       raise ValueError("CA value id expected under 'id': {}"
                        .format(ca_val_dict))
     return ca_val_dict
+
+
+class CommentReasonable(object):
+
+  @sa.ext.declarative.declared_attr
+  def reasonable_comments(cls):  # pylint: disable=no-self-argument
+
+    def join_function():
+      return sa.and_(
+          sa.orm.foreign(Comment.reason_instance_type) == cls.__name__,
+          sa.orm.foreign(Comment.reason_instance_id) == cls.id,
+      )
+
+    return sa.orm.relationship(
+        Comment,
+        primaryjoin=join_function,
+        backref=Comment.REASON_INSTANCE_TMPL.format(cls.__name__),
+    )
