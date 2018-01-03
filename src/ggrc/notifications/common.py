@@ -14,6 +14,7 @@ from datetime import datetime
 from logging import getLogger
 from operator import itemgetter
 
+import sqlalchemy as sa
 from sqlalchemy.orm import joinedload
 from sqlalchemy.sql.expression import true
 from werkzeug.exceptions import Forbidden
@@ -213,9 +214,18 @@ def get_daily_notifications():
     list of Notifications, data: a tuple of notifications that were handled
       and corresponding data for those notifications.
   """
+  today = datetime.today()
   notifications = db.session.query(Notification).filter(
-      (Notification.send_on <= datetime.today()) &
-      ((Notification.sent_at.is_(None)) | (Notification.repeating == true()))
+      (
+          Notification.send_on <= today
+      ) & (
+          (
+              Notification.sent_at.is_(None)
+          ) | (
+              (sa.cast(Notification.sent_at, sa.Date) < today) &
+              (Notification.repeating == true())
+          )
+      )
   ).all()
 
   return notifications, get_notification_data(notifications)

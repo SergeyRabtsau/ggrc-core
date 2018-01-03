@@ -10,11 +10,11 @@ from ggrc.utils import proposal
 
 
 CONTRIBUTED_CRON_JOBS = [
-    common.send_daily_digest_notifications,
 ]
 
 HALF_HOUR_CRON_JOBS = [
     proposal.send_notification,
+    common.send_daily_digest_notifications,
 ]
 
 NOTIFICATION_LISTENERS = [
