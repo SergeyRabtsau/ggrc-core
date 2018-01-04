@@ -180,7 +180,6 @@ class Comment(Roleable, Relatable, Described, Notifiable,
                                                   "reason_instance_type",
                                                   REASON_INSTANCE_TMPL)
 
-
   # REST properties
   _api_attrs = reflection.ApiAttributes(
       "assignee_type",
@@ -233,7 +232,11 @@ class Comment(Roleable, Relatable, Described, Notifiable,
 
   @builder.simple_property
   def header_url_link(self):
-    if self.reason_instance_type == "Proposal":
+    """Return header url link to comment if that comment related to proposal
+    and that proposal is only proposed."""
+    if self.reason_instance_type != "Proposal":
+      return ""
+    if self.reason_instance.status == self.reason_instance.STATES.PROPOSED:
       return "proposal_link"
     return ""
 
