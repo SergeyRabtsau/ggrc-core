@@ -988,7 +988,11 @@ class Resource(ModelView):
     memcache_client = self.request.cache_manager.cache_object.memcache_client
     for match in matches:
       key = get_cache_key(None, id=match[0], type=match[1])
-      val = memcache_client.get(key) or {}
+      val = memcache_client.get(key)
+      if val:
+        val = json.loads(val)
+      else:
+        val = {}
       if "selfLink" in val:
         resources[match] = val
     return resources
@@ -998,7 +1002,9 @@ class Resource(ModelView):
     # Skip right to memcache
     memcache_client = self.request.cache_manager.cache_object.memcache_client
     for match, obj in match_obj_pairs.items():
-      memcache_client.add(get_cache_key(None, id=match[0], type=match[1]), obj)
+      memcache_client.add(
+          get_cache_key(None, id=match[0], type=match[1]),
+          as_json(obj))
 
   def invalidate_cache_to(self, obj):
     """Invalidate api cache for sent object."""

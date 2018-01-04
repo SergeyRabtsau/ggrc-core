@@ -87,11 +87,20 @@ class Revision(Base, db.Model):
                  "destination_id"]:
       setattr(self, attr, getattr(obj, attr, None))
 
-  @builder.simple_property
+  @builder.callable_property
   def diff_with_current(self):
-    instance = referenced_objects.get(self.resource_type, self.resource_id)
-    if instance:
-      return revisions_diff.prepare(instance, self.content)
+    referenced_objects.mark_to_cache(self.resource_type, self.resource_id)
+    revisions_diff.mark_for_latest_content(self.resource_type,
+                                           self.resource_id)
+
+    def foo():
+      referenced_objects.rewarm_cache()
+      revisions_diff.rewarm_latest_content()
+      instance = referenced_objects.get(self.resource_type, self.resource_id)
+      if instance:
+        return revisions_diff.prepare(instance, self.content)
+
+    return foo
 
   @builder.simple_property
   def description(self):

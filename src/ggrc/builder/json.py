@@ -292,6 +292,11 @@ class UpdateAttrHandler(object):
     """Translate the JSON value for an attr decorated with @simple_property."""
     return json_obj.get(attr_name)
 
+  @classmethod
+  def callable_property(cls, obj, json_obj, attr_name, class_attr):
+    """Translate the JSON value for an attr decorated with @colable_property."""
+    return json_obj.get(attr_name)()
+
 
 """
 Builder strategy:

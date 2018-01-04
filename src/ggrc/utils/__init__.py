@@ -43,6 +43,8 @@ class GrcEncoder(json.JSONEncoder):
       return list(obj)
     elif isinstance(obj, mixins.Base):
       return {"id": obj.id, "type": obj.type}
+    elif callable(obj):
+      return obj()
     else:
       return super(GrcEncoder, self).default(obj)
 

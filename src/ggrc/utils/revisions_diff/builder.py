@@ -31,6 +31,46 @@ def get_latest_revision_content(instance):
   return content
 
 
+def mark_for_latest_content(type_, id_):
+  if not hasattr(g, "latest_revision_content_markers"):
+    g.latest_revision_content_markers = collections.defaultdict(set)
+  g.latest_revision_content_markers[type_].add(id_)
+
+
+def rewarm_latest_content():
+  from ggrc.models import all_models
+  if not hasattr(g, "latest_revision_content_markers"):
+    return
+  if not hasattr(g, "latest_revision_content"):
+    g.latest_revision_content = {}
+  cache = g.latest_revision_content_markers
+  del g.latest_revision_content_markers
+  if not cache:
+    return
+  query = all_models.Revision.query.filter(
+      all_models.Revision.resource_type == cache.keys()[0],
+      all_models.Revision.resource_id.in_(cache[cache.keys()[0]])
+  )
+  for type_, ids in cache.items()[1:]:
+    query = query.union_all(
+        all_models.Revision.query.filter(
+            all_models.Revision.resource_type == type_,
+            all_models.Revision.resource_id.in_(ids)
+        ))
+  query = query.order_by(
+      all_models.Revision.resource_id,
+      all_models.Revision.resource_type,
+      all_models.Revision.created_at.desc(),
+      all_models.Revision.id.desc(),
+  )
+  key = None
+  for revision in query:
+    if key == (revision.resource_type, revision.resource_id):
+      continue
+    key = (revision.resource_type, revision.resource_id)
+    g.latest_revision_content[key] = revision.content
+
+
 def get_person_email(person_id):
   if not hasattr(g, "person_email_cache"):
     from ggrc.models import all_models

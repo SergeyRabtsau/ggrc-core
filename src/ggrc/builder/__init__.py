@@ -10,3 +10,7 @@ update/create GGRC model instances from resource state representations.
 
 class simple_property(property):
   pass
+
+
+class callable_property(property):
+  pass
