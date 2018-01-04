@@ -36,7 +36,6 @@ class TestComprehensiveSheets(TestCase):
             if model_name not in WHITELIST]
 
   # limit found by trial and error, may need tweaking if models change
-  LIMIT = 39
 
   @classmethod
   def setUpClass(cls):
@@ -61,20 +60,31 @@ class TestComprehensiveSheets(TestCase):
   def tearDown(self):
     pass
 
+  LIMIT_DICT = {
+      "LIST": {
+          all_models.Revision: 74,
+          all_models.Event: 73,
+      },
+      "SINGLE": {}
+  }
+  DEFAULT_LIMIT = 39
+
   @ddt.data(*MODELS)
   def test_queries_per_api_call(self, model):
-    """Import comprehensive_sheet1 and count db requests per collection get.
+    """Import comprehensive_sheet1 and count db requests per {0.__name__}
 
+    collection get
     Query count should be <LIMIT for all model types.
     """
+    limit = self.LIMIT_DICT["LIST"].get(model, self.DEFAULT_LIMIT)
     with QueryCounter() as counter:
       counter.queries = []
       self.generator.api.get_query(model, "")
-      if counter.get > self.LIMIT:
+      if counter.get > limit:
         print collections.Counter(counter.queries).most_common(1)
-      self.assertLess(counter.get, self.LIMIT,
+      self.assertLess(counter.get, limit,
                       "Query count for object {} exceeded: {}/{}".format(
-                          model.__name__, counter.get, self.LIMIT)
+                          model.__name__, counter.get, limit)
                       )
 
   @ddt.data(*all_object_views())
@@ -90,26 +100,31 @@ class TestComprehensiveSheets(TestCase):
       instance = model.query.first()
       if instance is None or getattr(instance, "id", None) is None:
         return
+      limit = self.LIMIT_DICT["SINGLE"].get(model, self.DEFAULT_LIMIT)
       counter.queries = []
       res = self.client.get("/{}/{}".format(view.url, instance.id))
       self.assertEqual(res.status_code, 200)
       self.assertLessEqual(
-          counter.get, self.LIMIT,
+          counter.get, limit,
           "Query count for object {} exceeded: {}/{}".format(
-              model.__name__, counter.get, self.LIMIT)
+              model.__name__, counter.get, limit)
       )
 
   def test_queries_for_dashboard(self):
     with QueryCounter() as counter:
       res = self.client.get("/dashboard")
       self.assertEqual(res.status_code, 200)
-      self.assertLess(counter.get, self.LIMIT, "Query count for dashboard")
+      self.assertLess(counter.get,
+                      self.DEFAULT_LIMIT,
+                      "Query count for dashboard")
 
   def test_queries_for_permissions(self):
     with QueryCounter() as counter:
       res = self.client.get("/permissions")
       self.assertEqual(res.status_code, 200)
-      self.assertLess(counter.get, self.LIMIT, "Query count for permissions")
+      self.assertLess(counter.get,
+                      self.DEFAULT_LIMIT,
+                      "Query count for permissions")
 
   @staticmethod
   def create_custom_attributes():
