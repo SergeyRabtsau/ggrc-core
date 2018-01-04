@@ -19,15 +19,16 @@ def is_status_changed_to(required_status, obj):
           obj.status == required_status)
 
 
-def add_comment_to(obj, txt, by):
-  if not isinstance(obj, comment.Commentable):
+def add_comment_about(proposal, reason, txt):
+  if not isinstance(proposal.instance, comment.Commentable):
     return
+  comment_text = proposal.build_comment_text(reason, txt, proposal.proposed_by)
   created_comment = all_models.Comment(
-      description=txt,
+      description=comment_text,
       modified_by_id=login.get_current_user_id(),
-      reason_instance=by)
+      reason_instance=proposal)
   all_models.Relationship(
-      source=obj,
+      source=proposal.instance,
       destination=created_comment)
 
 
@@ -42,7 +43,7 @@ def apply_proposal(
     if hasattr(obj.instance, field):
       setattr(obj.instance, field, value)
   applier.apply(obj.instance, obj.content)
-  add_comment_to(obj.instance, obj.apply_reason or "", obj)
+  add_comment_about(obj, obj.STATES.APPLIED, obj.apply_reason)
 
 
 def decline_proposal(
@@ -52,14 +53,14 @@ def decline_proposal(
     return
   obj.declined_by = login.get_current_user()
   obj.decline_datetime = datetime.datetime.now()
-  add_comment_to(obj.instance, obj.decline_reason or "", obj)
+  add_comment_about(obj, obj.STATES.DECLINED, obj.decline_reason)
 
 
 def make_proposal(
     sender, obj=None, src=None, service=None,
     event=None, initial_state=None):  # noqa
   obj.proposed_by = login.get_current_user()
-  add_comment_to(obj.instance, obj.agenda or "", obj)
+  add_comment_about(obj, obj.STATES.PROPOSED, obj.agenda)
 
 
 def init_hook():

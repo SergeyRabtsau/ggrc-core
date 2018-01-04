@@ -62,6 +62,32 @@ class Proposal(mixins.person_relation_factory("applied_by"),
     APPLIED = "applied"
     DECLINED = "declined"
 
+  class CommentTemplatesTextBuilder(object):
+    PROPOSED_WITH_AGENDA = "Proposal has been created with comment: \n{text}"
+    APPLIED_WITH_COMMENT = ("Proposal created by {user} has been applied "
+                            "with a comment: \n{text}")
+    DECLINED_WITH_COMMENT = ("Proposal created by {user} has been declined "
+                            "with a comment: \n{text}")
+
+    PROPOSED_WITHOUT_AGENDA = "Proposal has been created."
+    APPLIED_WITHOUT_COMMENT = "Proposal created by {user} has been applied."
+    DECLINED_WITHOUT_COMMENT = "Proposal created by {user} has been declined."
+
+
+  def build_comment_text(self, reason, text, proposed_by):
+    if reason == self.STATES.PROPOSED:
+      with_tmpl = self.CommentTemplatesTextBuilder.PROPOSED_WITH_AGENDA
+      without_tmpl = self.CommentTemplatesTextBuilder.PROPOSED_WITHOUT_AGENDA
+    elif reason == self.STATES.APPLIED:
+      with_tmpl = self.CommentTemplatesTextBuilder.APPLIED_WITH_COMMENT
+      without_tmpl = self.CommentTemplatesTextBuilder.APPLIED_WITHOUT_COMMENT
+    elif reason == self.STATES.DECLINED:
+      with_tmpl = self.CommentTemplatesTextBuilder.DECLINED_WITH_COMMENT
+      without_tmpl = self.CommentTemplatesTextBuilder.DECLINED_WITHOUT_COMMENT
+    tmpl = with_tmpl if text else without_tmpl
+    return tmpl.format(user=proposed_by.email, text=text)
+
+
   VALID_STATES = [STATES.PROPOSED, STATES.APPLIED, STATES.DECLINED]
 
   instance_id = db.Column(db.Integer, nullable=False)

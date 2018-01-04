@@ -476,8 +476,7 @@ class ProposalFactory(ModelFactory):
   class Meta:
     model = models.Proposal
 
-  instance_type = None
-  instance_id = None
+  proposed_by = factory.LazyAttribute(lambda _: PersonFactory())
   content = None
 
 
