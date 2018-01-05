@@ -796,6 +796,8 @@ class TestProposalApi(TestCase):
             {"agenda": "tmp",
              "comment": TMPLS.PROPOSED_WITH_AGENDA.format(text="tmp")},
             {"agenda": "bla",
+             "comment": TMPLS.PROPOSED_WITH_AGENDA.format(text="bla")},
+            {"agenda": "<p>bla</p>",
              "comment": TMPLS.PROPOSED_WITH_AGENDA.format(text="bla")})
   @ddt.unpack
   def test_create_proposal_different_agenda(self, agenda, comment):
@@ -823,25 +825,43 @@ class TestProposalApi(TestCase):
     self.assertEqual(comment, control.comments[0].description)
 
   @ddt.data({"agenda": "",
+             "comment_agenda": "",
              "status": all_models.Proposal.STATES.APPLIED,
              "tmpl": TMPLS.APPLIED_WITHOUT_COMMENT},
             {"agenda": "tmp",
+             "comment_agenda": "tmp",
              "status": all_models.Proposal.STATES.APPLIED,
              "tmpl": TMPLS.APPLIED_WITH_COMMENT},
+            {"agenda": "<p>tmp</p>",
+             "comment_agenda": "tmp",
+             "status": all_models.Proposal.STATES.APPLIED,
+             "tmpl": TMPLS.APPLIED_WITH_COMMENT},
+            {"agenda": "<p>     </p>",
+             "comment_agenda": "",
+             "status": all_models.Proposal.STATES.APPLIED,
+             "tmpl": TMPLS.APPLIED_WITHOUT_COMMENT},
             {"agenda": "bla",
+             "comment_agenda": "bla",
              "status": all_models.Proposal.STATES.APPLIED,
              "tmpl": TMPLS.APPLIED_WITH_COMMENT},
             {"agenda": "tmp",
+             "comment_agenda": "tmp",
+             "status": all_models.Proposal.STATES.DECLINED,
+             "tmpl": TMPLS.DECLINED_WITH_COMMENT},
+            {"agenda": " <p>tmp</p>      ",
+             "comment_agenda": "tmp",
              "status": all_models.Proposal.STATES.DECLINED,
              "tmpl": TMPLS.DECLINED_WITH_COMMENT},
             {"agenda": "BLa",
+             "comment_agenda": "BLa",
              "status": all_models.Proposal.STATES.DECLINED,
              "tmpl": TMPLS.DECLINED_WITH_COMMENT},
             {"agenda": "",
+             "comment_agenda": "",
              "status": all_models.Proposal.STATES.DECLINED,
              "tmpl": TMPLS.DECLINED_WITHOUT_COMMENT})
   @ddt.unpack
-  def test_apply_proposal_comment(self, agenda, status, tmpl):
+  def test_apply_proposal_comment(self, agenda, comment_agenda, status, tmpl):
     """Test comment proposal status move to {status} with agenda {agenda}."""
     test_email = "foo@example.com"
     with factories.single_commit():
@@ -863,5 +883,5 @@ class TestProposalApi(TestCase):
     self.assertEqual(200, resp.status_code)
     control = all_models.Control.query.get(control_id)
     self.assertEqual(1, len(control.comments))
-    comment = tmpl.format(user=test_email, text=agenda)
+    comment = tmpl.format(user=test_email, text=comment_agenda)
     self.assertEqual(comment, control.comments[0].description)

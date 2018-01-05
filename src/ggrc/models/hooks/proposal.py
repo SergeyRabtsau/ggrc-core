@@ -22,6 +22,13 @@ def is_status_changed_to(required_status, obj):
 def add_comment_about(proposal, reason, txt):
   if not isinstance(proposal.instance, comment.Commentable):
     return
+  txt = txt or ""
+  txt = txt.strip()
+  if txt.startswith("<p>"):
+    txt = txt[3:]
+    if txt.endswith("</p>"):
+      txt = txt[:-4]
+  txt = txt.strip()
   comment_text = proposal.build_comment_text(reason, txt, proposal.proposed_by)
   created_comment = all_models.Comment(
       description=comment_text,

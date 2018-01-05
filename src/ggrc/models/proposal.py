@@ -63,16 +63,18 @@ class Proposal(mixins.person_relation_factory("applied_by"),
     DECLINED = "declined"
 
   class CommentTemplatesTextBuilder(object):
-    PROPOSED_WITH_AGENDA = "Proposal has been created with comment: \n{text}"
-    APPLIED_WITH_COMMENT = ("Proposal created by {user} has been applied "
-                            "with a comment: \n{text}")
-    DECLINED_WITH_COMMENT = ("Proposal created by {user} has been declined "
-                            "with a comment: \n{text}")
+    PROPOSED_WITH_AGENDA = ("<p>Proposal has been created with comment: "
+                            "{text}</p>")
+    APPLIED_WITH_COMMENT = ("<p>Proposal created by {user} has been applied "
+                            "with a comment: {text}</p>")
+    DECLINED_WITH_COMMENT = ("<p>Proposal created by {user} has been declined "
+                             "with a comment: {text}</p>")
 
-    PROPOSED_WITHOUT_AGENDA = "Proposal has been created."
-    APPLIED_WITHOUT_COMMENT = "Proposal created by {user} has been applied."
-    DECLINED_WITHOUT_COMMENT = "Proposal created by {user} has been declined."
-
+    PROPOSED_WITHOUT_AGENDA = "<p>Proposal has been created.</p>"
+    APPLIED_WITHOUT_COMMENT = ("<p>Proposal created by {user} "
+                               "has been applied.</p>")
+    DECLINED_WITHOUT_COMMENT = ("<p>Proposal created by {user} "
+                                "has been declined.</p>")
 
   def build_comment_text(self, reason, text, proposed_by):
     if reason == self.STATES.PROPOSED:
@@ -86,7 +88,6 @@ class Proposal(mixins.person_relation_factory("applied_by"),
       without_tmpl = self.CommentTemplatesTextBuilder.DECLINED_WITHOUT_COMMENT
     tmpl = with_tmpl if text else without_tmpl
     return tmpl.format(user=proposed_by.email, text=text)
-
 
   VALID_STATES = [STATES.PROPOSED, STATES.APPLIED, STATES.DECLINED]
 
