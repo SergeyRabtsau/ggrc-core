@@ -19,6 +19,7 @@ RELATIONSHIPS = "relationships"
 OBJECT_OWNERS = "object_owners"
 CONTACTS = "contacts"
 QUERY = "query"
+ACCESS_CTRL_ROLES = "access_control_roles"
 
 # url path for user
 DEFAULT_EMAIL_DOMAIN = "example.com"

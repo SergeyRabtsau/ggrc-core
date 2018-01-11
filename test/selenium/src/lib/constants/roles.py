@@ -2,6 +2,8 @@
 # Licensed under http://www.apache.org/licenses/LICENSE-2.0 <see LICENSE file>
 """Constants for roles."""
 
+from lib.service.rest_service import AccessControlRolesService
+
 # global roles
 NO_ROLE = "No role"
 NO_ROLE_UI = "(Inactive user)"
@@ -43,13 +45,13 @@ WORKFLOW = "Workflow"
 SUPERUSER = "Superuser"
 NO_ACCESS = "No Access"
 
-# todo: implement service to get actual ACL's info via api/access_control_roles
 # Access control role ID
-CONTROL_ADMIN_ID = 49
-CONTROL_PRIMARY_CONTACT_ID = 9
-ISSUE_ADMIN_ID = 53
-ISSUE_PRIMARY_CONTACT_ID = 17
-ASMT_CREATOR_ID = 76
-ASMT_ASSIGNEE_ID = 72
-ASMT_VERIFIER_ID = 73
-AUDIT_CAPTAIN_ID = 80
+roles_dict = AccessControlRolesService().get_roles()
+CONTROL_ADMIN_ID = roles_dict["Control"][ADMIN]
+CONTROL_PRIMARY_CONTACT_ID = roles_dict["Control"][PRIMARY_CONTACTS]
+ISSUE_ADMIN_ID = roles_dict["Issue"][ADMIN]
+ISSUE_PRIMARY_CONTACT_ID = roles_dict["Issue"][PRIMARY_CONTACTS]
+ASMT_CREATOR_ID = roles_dict["Assessment"][ASMT_CREATOR]
+ASMT_ASSIGNEE_ID = roles_dict["Assessment"][ASSIGNEE]
+ASMT_VERIFIER_ID = roles_dict["Assessment"][VERIFIER]
+AUDIT_CAPTAIN_ID = roles_dict["Audit"]["Audit Captains"]
