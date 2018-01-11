@@ -64,6 +64,7 @@ permissions = {
         "SystemSystem",
         "Person",
         "Program",
+        "Proposal",
         "Revision",
         "Role",
         "UserRole",
@@ -105,6 +106,7 @@ permissions = {
         "PopulationSample",
         "Product",
         "Project",
+        "Proposal",
         {
             "type": "Relationship",
             "terms": {
