@@ -300,3 +300,31 @@ class ObjectsInfoService(HelpRestService):
                 comment_desc=comment_description),
             order_by=[{"name": "created_at", "desc": True}])).get("values")[0])
     return Entity.convert_dict_to_obj_repr(comment_obj_dict)
+
+
+class AccessControlRolesService(HelpRestService):
+  """Service for getting information about roles ids."""
+  def __init__(self):
+    super(AccessControlRolesService, self).__init__(url.ACCESS_CTRL_ROLES)
+
+  def get_roles(self):
+    """Return dict of dictionaries of object type, role name as keys and id
+    as value.
+    dict[object_type][name] = id
+    """
+    raw_roles_dict = BaseRestService.get_items_from_resp(
+        self.client.get_object(self.endpoint))
+
+    key_name = 'access_control_roles'
+    acr_list_dict = raw_roles_dict[key_name + '_collection'][key_name]
+
+    res_dict = {}
+    for d in acr_list_dict:
+      obj_type = d["object_type"]
+      name = d["name"]
+      role_id = d["id"]
+      if res_dict.has_key(obj_type):
+        res_dict[obj_type].update({name: role_id})
+      else:
+        res_dict[obj_type] = {name: role_id}
+    return res_dict

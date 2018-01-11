@@ -16,6 +16,7 @@ from lib.entities.entity import (
     ObjectiveEntity, AuditEntity, AssessmentTemplateEntity, AssessmentEntity,
     IssueEntity, CommentEntity)
 from lib.utils.string_utils import StringMethods
+from lib.service.rest_service import AccessControlRolesService as acl
 
 
 class EntitiesFactory(object):
@@ -33,6 +34,8 @@ class EntitiesFactory(object):
   obj_ca = unicode(objects.get_singular(objects.CUSTOM_ATTRIBUTES))
   obj_comment = unicode(objects.get_singular(objects.COMMENTS, title=True))
   obj_snapshot = unicode(objects.get_singular(objects.SNAPSHOTS, title=True))
+
+  acl_dict = acl.get_roles()
 
   @classmethod
   def generate_string(cls, first_part):
@@ -78,12 +81,12 @@ class ObjectPersonsFactory(EntitiesFactory):
     return person_entity
 
   @classmethod
-  def get_acl_member(cls, role_id, person):
+  def get_acl_member(cls, obj_name, role_name, person):
     """Return ACL member as dict."""
     value = person
     if isinstance(person, PersonEntity):
       value = {"id": person.id}
-    return {"ac_role_id": role_id, "person": value}
+    return {"ac_role_id": cls.acl_dict[obj_name][role_name], "person": value}
 
   @classmethod
   def _create_random_person(cls):
@@ -352,9 +355,10 @@ class ControlsFactory(EntitiesFactory):
     random_control.owners = [cls.default_person.__dict__]
     random_control.access_control_list = [
         ObjectPersonsFactory().get_acl_member(
-            roles.CONTROL_ADMIN_ID, random_control.owners[0]),
+            cls.obj_control, roles.ADMIN, random_control.owners[0]),
         ObjectPersonsFactory().get_acl_member(
-            roles.CONTROL_PRIMARY_CONTACT_ID, random_control.contact)]
+            cls.obj_control, roles.PRIMARY_CONTACTS,
+            random_control.contact)]
     random_control.os_state = unicode(element.ReviewStates.UNREVIEWED)
     return random_control
 
@@ -448,7 +452,7 @@ class AuditsFactory(EntitiesFactory):
     random_audit.contact = cls.default_person.__dict__
     random_audit.access_control_list = [
         ObjectPersonsFactory.get_acl_member(
-            roles.AUDIT_CAPTAIN_ID, cls.default_person)]
+            cls.obj_audit, roles.AUDIT_CAPTAINS, cls.default_person)]
     return random_audit
 
 
@@ -556,7 +560,7 @@ class AssessmentsFactory(EntitiesFactory):
         obj_or_objs=asmt_entity, is_allow_none_values=False, **attrs)
     if attrs.get("verifier"):
       asmt_entity.access_control_list.append(
-          ObjectPersonsFactory.get_acl_member(roles.ASMT_VERIFIER_ID,
+          ObjectPersonsFactory.get_acl_member(cls.obj_asmt, roles.VERIFIER,
                                               cls.default_person))
     return asmt_entity
 
@@ -573,9 +577,9 @@ class AssessmentsFactory(EntitiesFactory):
          unicode(roles.VERIFIER)))
     random_asmt.access_control_list = [
         ObjectPersonsFactory.get_acl_member(
-            roles.ASMT_CREATOR_ID, cls.default_person),
+            cls.obj_asmt, roles.ASMT_CREATOR, cls.default_person),
         ObjectPersonsFactory.get_acl_member(
-            roles.ASMT_ASSIGNEE_ID, cls.default_person)]
+            cls.obj_asmt, roles.ASSIGNEE, cls.default_person)]
     random_asmt.verified = False
     random_asmt.assignee = [unicode(cls.default_person.name)]
     random_asmt.creator = [unicode(cls.default_person.name)]
@@ -624,8 +628,9 @@ class IssuesFactory(EntitiesFactory):
     random_issue.contact = ObjectPersonsFactory().default().__dict__
     random_issue.access_control_list = [
         ObjectPersonsFactory().get_acl_member(
-            roles.ISSUE_ADMIN_ID, random_issue.owners[0]),
+            cls.obj_issue, roles.ADMIN, random_issue.owners[0]),
         ObjectPersonsFactory().get_acl_member(
-            roles.ISSUE_PRIMARY_CONTACT_ID, random_issue.contact)]
+            cls.obj_issue, roles.PRIMARY_CONTACTS,
+          random_issue.contact)]
     random_issue.os_state = unicode(element.ReviewStates.UNREVIEWED)
     return random_issue

@@ -18,7 +18,6 @@ import pytest  # pylint: disable=import-error
 import requests
 
 from lib import file_ops, environment, decorator  # noqa
-from lib.service.rest_service import client
 
 
 # add src to path so that we can do imports from our src
@@ -34,8 +33,7 @@ def wait_for_server():
   sys.stdout.write("Wating on server: ")
   for _ in xrange(environment.SERVER_WAIT_TIME):
     try:
-      if (requests.head(environment.APP_URL).status_code ==
-              client.RestClient.STATUS_CODES["OK"]):
+      if requests.head(environment.APP_URL).status_code == 200:
         print "[Done]"
         return True
     except IOError:
