@@ -11,7 +11,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.remote import webelement
 from selenium.common import exceptions
 
-from lib import constants, exception, mixin
+from lib import constants, exception
 from lib.constants import messages, objects, url
 from lib.constants.element import MappingStatusAttrs
 from lib.constants.locator import CommonDropdownMenu
@@ -47,7 +47,6 @@ class CustomDriver(webdriver.Chrome):
 
 class Test(InstanceRepresentation):
   """Base test class."""
-  __metaclass__ = mixin.MetaTestDecorator
 
   @staticmethod
   def general_equal_assert(expected_objs, actual_objs, *exclude_attrs):
