@@ -4,6 +4,8 @@
 # pylint: disable=too-few-public-methods
 
 import json
+import urlparse
+
 import requests
 
 from lib import environment, factory
@@ -313,13 +315,11 @@ class AccessControlRolesService(HelpRestService):
     dict[object_type][name] = id
     """
     raw_roles_dict = BaseRestService.get_items_from_resp(
-        self.client.get_object(self.endpoint))
-
-    key_name = 'access_control_roles'
-    acr_list_dict = raw_roles_dict[key_name + '_collection'][key_name]
+        self.client.get_object(
+            urlparse.urljoin(url.API, self.endpoint)))
 
     res_dict = {}
-    for d in acr_list_dict:
+    for d in raw_roles_dict["access_control_roles"]:
       obj_type = d["object_type"]
       name = d["name"]
       role_id = d["id"]

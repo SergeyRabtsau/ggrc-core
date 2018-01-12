@@ -15,8 +15,8 @@ from lib.entities.entity import (
     Entity, PersonEntity, CustomAttributeEntity, ProgramEntity, ControlEntity,
     ObjectiveEntity, AuditEntity, AssessmentTemplateEntity, AssessmentEntity,
     IssueEntity, CommentEntity)
-from lib.utils.string_utils import StringMethods
 from lib.service.rest_service import AccessControlRolesService as acl
+from lib.utils.string_utils import StringMethods
 
 
 class EntitiesFactory(object):
