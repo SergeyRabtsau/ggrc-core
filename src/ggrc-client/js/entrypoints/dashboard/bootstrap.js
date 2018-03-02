@@ -15,6 +15,7 @@ import {
 } from '../../plugins/utils/current-page-utils';
 import {RouterConfig} from '../../router';
 import routes from './routes';
+import '../../plugins/utils/it-enable/issue-tracker-enable';
 
 const $area = $('.area').first();
 const instance = GGRC.page_instance();

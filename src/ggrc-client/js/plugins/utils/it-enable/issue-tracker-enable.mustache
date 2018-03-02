@@ -1,0 +1,89 @@
+{{!
+  Copyright (C) 2018 Google Inc.
+  Licensed under http://www.apache.org/licenses/LICENSE-2.0 <see LICENSE file>
+}}
+
+<style>
+  .it-update {
+    padding: 20px;
+    max-height: 70%;
+    overflow-y: auto;
+  }
+  .it-update span {
+    border: 1px solid #a5a5a5;
+    margin-right: 10px;
+    margin-bottom: 10px;
+    padding: 5px;
+    min-width: 20px;
+    max-width: 150px;
+  }
+
+  .it-update span.loaded {
+    background: green;
+  }
+  .it-update span.error {
+    background: red;
+    color: black;
+    font-weight: 400;
+  }
+  .it-update span.skipped {
+    border-color: green;
+    border-width: 2px;
+  }
+  .it-controls {
+    padding: 20px;
+  }
+
+  .it-controls button {
+    width: 200px;
+  }
+</style>
+
+<button ($click)="open()">Bulk enable of Issue Tracker</button>
+
+<simple-modal {state}="state" replace-content="true" extra-css-class="related-assessments">
+  <div class="simple-modal__header">
+    <div class="simple-modal__header-text">Enable Issue Tracker</div>
+    <button class="btn btn-small btn-icon" {{^done}}disabled{{/done}} ($click)="hide">
+      <i class="fa fa-times black"></i>
+    </button>
+  </div>
+  <div class="flex-box flex-col it-controls" style="">
+    <div class="flex-box" style="margin-bottom: 10px">
+      <button ($click)="enableITForAll()" >
+        Enable IT for All
+      </button>
+
+      <button ($click)="stop()" style="margin-left: auto; margin-right: 10px">
+        Stop
+      </button>
+      <button ($click)="showLog()">
+        Show Log
+      </button>
+    </div>
+
+    <textarea {($value)}="slugsString" style="width: 100%"></textarea>
+    <button ($click)="enableForSlugs()">Enable By Slugs</button>
+  </div>
+  <div class="flex-box flex-box-multi it-update">
+    <div style="height: 30px; width: 100%; display: flex; flex-flow: wrap;">
+      <span class="skipped"></span> <labe> - Skipped (Issue Tracker already enabled)</labe>
+      <span class="loaded" style="margin-left: 15px"></span> <lable> - Updated</lable>
+      <span class="error" style="margin-left: 15px"></span> <lable> - Error</lable>
+      <label style="margin-left: auto">Progress (checked/total): {{checked}}/{{statesList.length}} </label>
+    </div>
+
+    <hr/>
+
+    <div style="width: 100%; border-top: 1px solid #a5a5a5;">Log:</div>
+    {{#logs}}
+      <span class="{{status}}">{{id}}</span>
+    {{/logs}}
+    <hr/>
+
+    <div style="width: 100%; border-top: 1px solid #a5a5a5;">Progress:</div>
+    {{#statesList}}
+      <span class="{{state}}">{{id}}</span>
+    {{/statesList}}
+  </div>
+</simple-modal>
