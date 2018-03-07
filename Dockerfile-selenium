@@ -1,8 +1,8 @@
 # Copyright (C) 2018 Google Inc.
 # Licensed under http://www.apache.org/licenses/LICENSE-2.0 <see LICENSE file>
 
-
-FROM selenium/standalone-chrome:3.10.0
+ARG CHROME_CT_VERSION="3.6.0"
+FROM selenium/standalone-chrome:${CHROME_CT_VERSION}
 
 USER root
 COPY ./provision/docker/selenium.bashrc.j2 /root/.bashrc
@@ -19,7 +19,7 @@ USER seluser
 
 # Specify version of Chrome webdriver using 'CHROME_DRIVER_VERSION' argument
 # Latest released version will be used by default
-ARG CHROME_DRIVER_VERSION="latest"
+ARG CHROME_DRIVER_VERSION="2.35"
 RUN CD_VER=$(if [ ${CHROME_DRIVER_VERSION:-latest} = "latest" ]; then echo\
   $(wget -qO- https://chromedriver.storage.googleapis.com/LATEST_RELEASE); \
   else echo $CHROME_DRIVER_VERSION; fi) \
