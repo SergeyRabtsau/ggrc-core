@@ -43,7 +43,7 @@ def pytest_runtest_setup(item):
     environment.app_url = os.environ["DEV_URL"]
     filename = os.environ["DEV_LOG"]
   environment.app_url = urlparse.urljoin(environment.app_url, "/")
-  item.dev_log_retriever = conftest_utils.DevLogRetriever(filename)
+  #item.dev_log_retriever = conftest_utils.DevLogRetriever(filename)
 
 
 @pytest.mark.hookwrapper

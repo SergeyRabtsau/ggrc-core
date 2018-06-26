@@ -158,3 +158,26 @@ ALL_OBJS = [obj for obj in [getattr(sys.modules[__name__], _obj) for _obj in
 def get_obj_type(obj_name):
   """Get object's type based on object's name."""
   return get_singular(obj_name, title=obj_name != CUSTOM_ATTRIBUTES)
+
+
+def transform_to(form_type, str_name, title=True):
+  """Transform to singular or plural."""
+  err_msg_format = "Illegal argument passed '{}'"
+
+  if form_type == "s":
+    needed_list = ALL_SINGULAR
+    opposite_list = ALL_PLURAL
+    fn_name = get_singular
+  elif form_type == "p":
+    needed_list = ALL_PLURAL
+    opposite_list = ALL_SINGULAR
+    fn_name = get_plural
+  else:
+    raise ValueError(err_msg_format.format(form_type))
+
+  if str_name.upper() in needed_list:
+    return str_name.title() if title else str_name
+  elif str_name.upper() in opposite_list:
+    return fn_name(str_name, title)
+  else:
+    raise ValueError(err_msg_format.format(str_name))

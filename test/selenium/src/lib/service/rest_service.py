@@ -3,6 +3,7 @@
 """Create and manipulate objects via REST API."""
 # pylint: disable=too-few-public-methods
 
+import itertools
 import json
 import time
 
@@ -36,28 +37,40 @@ class BaseRestService(object):
     according to 'attrs_for_factory' (dictionary of attributes).
     """
     list_factory_objs = []
-    list_attrs = []
     for num in xrange(count):
-      if num > 0:
-        # FIXME: GGRC-4849
-        # A record is created in
-        # "fulltext_record_properties" table after object creation.
-        # This table is used for indexing.
-        # If two objects are created without delay, the record for second
-        # object in "fulltext_record_properties" is not created.
-        # We filed an issue GGRC-4849 to fix back-end.
-        # Absence of this "sleep" causes a failure in test
-        # "test_mapping_controls_to_program_via_unified_mapper".
-        time.sleep(0.5)
       factory_obj = entity_factory().create(
           is_add_rest_attrs=True,
           **(attrs_to_factory if attrs_to_factory else {}))
       list_factory_objs.append(factory_obj)
-      list_attrs.append(self.get_items_from_resp(self.client.create_object(
-          **dict(factory_obj.__dict__.items() + attrs_for_template.items()))))
+    type_name = list_factory_objs[0].type
+    list_req_attrs = []
+    chunk_size = attrs_for_template.pop("chunk_size", None)
+    for factory_obj in list_factory_objs:
+      attrs = factory_obj.__dict__.copy()
+      attrs.update(attrs_for_template)
+      del attrs["type"]
+      list_req_attrs.append(attrs)
+    list_resp_attrs = []
+    for chunk in self.split_into_chunks(list_req_attrs, chunk_size):
+      response = self.client.create_objects(type_name, chunk).json()
+      list_resp_attrs.extend(self.get_items_from_response(response))
     return [
         self.set_obj_attrs(obj=obj, attrs=attrs, **attrs_for_template)
-        for attrs, obj in zip(list_attrs, list_factory_objs)]
+        for attrs, obj in zip(list_resp_attrs, list_factory_objs)]
+
+  def split_into_chunks(self, list_to_split, chunk_size):
+    for i in xrange(0, len(list_to_split), chunk_size):
+      yield list_to_split[i:i+chunk_size]
+
+  def get_items_from_response(self, response):
+    list_resp_attrs = []
+    for resp_part in response:
+      assert len(resp_part) == 2
+      assert resp_part[0] == 201
+      obj_attrs = resp_part[1].values()[0]
+      self.add_extra_items(obj_attrs)
+      list_resp_attrs.append(obj_attrs)
+    return list_resp_attrs
 
   def update_list_objs(self, entity_factory, list_objs_to_update,
                        attrs_to_factory=None, **attrs_for_template):
@@ -87,19 +100,18 @@ class BaseRestService(object):
     return self.set_obj_attrs(obj=obj, attrs=self.get_items_from_resp(
         self.client.update_object(href=obj.href, **attrs)), **obj.__dict__)
 
-  @staticmethod  # noqa: ignore=C901
-  def get_items_from_resp(resp):
+  @classmethod
+  def add_extra_items(cls, resp_dict):
+    """Add extra `href` and `url` items to response dictionary"""
+    if resp_dict["selfLink"]:
+      resp_dict["href"] = resp_dict["selfLink"]
+    if resp_dict["viewLink"]:
+      resp_dict["url"] = environment.app_url + resp_dict["viewLink"][1:]
+
+  @classmethod  # noqa: ignore=C901
+  def get_items_from_resp(cls, resp):
     """Check response (waiting object of requests library) from server and get
     items {key: value} from it."""
-    def get_extra_items(resp_dict):
-      """Get extra items {key: value} that used in entities."""
-      extra = {}
-      if resp_dict.get("selfLink"):
-        extra.update({"href": resp_dict.get("selfLink")})
-      if resp_dict.get("viewLink"):
-        extra.update(
-            {"url": environment.app_url + resp_dict.get("viewLink")[1:]})
-      return extra
     if isinstance(resp, requests.models.Response):
       try:
         resp_text = json.loads(resp.text, encoding="utf-8")
@@ -128,9 +140,9 @@ class BaseRestService(object):
       if isinstance(resp_text, dict) and len(resp_text) == 1:
         # {key: {value}} to {value}
         resp_text = resp_text.itervalues().next()
-        return (dict(resp_text.items() +
-                     ({}.items() if is_query_resp else
-                      get_extra_items(resp_text).items())))
+        if not is_query_resp:
+          cls.add_extra_items(resp_dict=resp_text)
+        return resp_text
       else:
         resp_code, resp_message = resp_text[0]
         raise requests.exceptions.ContentDecodingError(

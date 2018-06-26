@@ -85,6 +85,10 @@ class ACLRolesIDsMetaClass(type):
     return cls.id_of_role(object_type="Control", name="Admin")
 
   @property
+  def CONTROL_PRIMARY_CONTACTS(cls):
+    return cls.id_of_role(object_type="Control", name="Primary Contacts")
+
+  @property
   def ISSUE_ADMINS(cls):
     return cls.id_of_role(object_type="Issue", name="Admin")
 
@@ -115,6 +119,14 @@ class ACLRolesIDsMetaClass(type):
   @property
   def PROGRAM_MANAGERS(cls):
     return cls.id_of_role(object_type="Program", name="Program Managers")
+
+  @property
+  def PROGRAM_EDITORS(cls):
+    return cls.id_of_role(object_type="Program", name="Program Editors")
+
+  @property
+  def PROGRAM_READERS(cls):
+    return cls.id_of_role(object_type="Program", name="Program Readers")
 
 
 class ACLRolesIDs(object):

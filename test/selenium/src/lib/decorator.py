@@ -94,7 +94,7 @@ def track_time(fun):
     start_time = time.time()
     result = fun(*args, **kwargs)
     elapsed_time = time.time() - start_time
-    print "Execution of '{0:s}' function took {1:.3f} s".format(
-        fun.func_name, elapsed_time)
+    print "Execution of '{0:s}({1})' function took {2:.3f} s".format(
+        fun.func_name, args[1], elapsed_time)
     return result
   return wrapper

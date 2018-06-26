@@ -15,9 +15,22 @@ from lib.service import rest_service
 from lib.utils.string_utils import StringMethods
 
 
+def create_objs(obj_name, count, **attrs):
+  factory_params, attrs_remainder = _split_attrs(
+      attrs, ["program", "chunk_size"])
+  objs = factory.get_cls_rest_service(object_name=obj_name)().create_objs(
+      count=count, factory_params=factory_params, **attrs_remainder)
+  return objs
+
+
 def create_program(**attrs):
   """Create a program"""
   return rest_service.ProgramsService().create_obj(factory_params=attrs)
+
+
+def delete_program(program=None):
+  """Delete a created program"""
+  rest_service.ProgramsService().delete_objs(program)
 
 
 def create_objective(program=None, **attrs):
