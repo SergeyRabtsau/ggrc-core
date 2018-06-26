@@ -13,18 +13,16 @@ from nerodia import browser
 from nerodia.wait.wait import TimeoutError
 
 from lib import environment, url, users
-from lib.constants import objects, element
+from lib.constants import objects
 from lib.decorator import memoize
-from lib.entities import entities_factory, entity
-from lib.page import export_page
-from lib.service import rest_facade, rest_service
-from lib.utils import string_utils, selenium_utils, file_utils, test_utils
+from lib.service import rest_facade
+from lib.utils import string_utils, selenium_utils, file_utils
 
 gmail_email = os.environ["LOGIN_EMAIL"]
 gmail_password = os.environ["LOGIN_PASSWORD"]
 download_username = os.environ["DOWNLOAD_USERNAME"]
 
-br = browser.Browser(headless=True)
+br = browser.Browser()
 
 
 def gmail_login():
@@ -88,13 +86,14 @@ class ImportPage(object):
     return self
 
   def import_file(self):
+    time.sleep(0.5)
     br.button(text="Choose file to import").wait_until_not_present()
     confirm_text = "I confirm, that data being imported is " \
                    "complete and accurate."
     br.label(text=confirm_text).click()
     br.button(text="Proceed").click()
     # App sends AJAX checks frequently only during the few first dozen seconds
-    for i in xrange(0, 30):
+    for i in xrange(0, 20):
       try:
         br.button(text="Choose file to import").wait_until_present(timeout=12)
       except TimeoutError:

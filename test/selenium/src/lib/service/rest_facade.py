@@ -33,6 +33,11 @@ def delete_program(program=None):
   rest_service.ProgramsService().delete_objs(program)
 
 
+def delete_program(program=None):
+  """Delete a created program"""
+  rest_service.ProgramsService().delete_objs(program)
+
+
 def create_objective(program=None, **attrs):
   """Create an objective (optionally map to a `program`)."""
   return _create_obj_in_program_scope("Objectives", program, **attrs)
