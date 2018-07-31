@@ -17,8 +17,8 @@ from lib.constants import objects, element
 from lib.decorator import memoize
 from lib.entities import entities_factory, entity
 from lib.page import export_page
-from lib.service import rest_facade
-from lib.utils import string_utils, selenium_utils, file_utils
+from lib.service import rest_facade, rest_service
+from lib.utils import string_utils, selenium_utils, file_utils, test_utils
 
 gmail_email = os.environ["LOGIN_EMAIL"]
 gmail_password = os.environ["LOGIN_PASSWORD"]
@@ -489,20 +489,21 @@ def _split_into_chunks(list_to_split, chunk_size):
 
 
 def test_generate_asmts():
-  audit_id = 1
-  audit = entities_factory.AuditsFactory().create(id=audit_id)
-  asmt_template = _create_asmt_template(audit)
-  export()
-  snapshots = [entity.Representation.convert_repr_to_snapshot(
-      objs=objs, parent_obj=audit)]
-  assessments_service = rest_service.AssessmentsFromTemplateService()
-  assessments = assessments_service.create_assessments(
-    audit=audit,
-    template=asmt_template,
-    snapshots=control_snapshots
-  )
+  program_name = "Program ~-c^ST63B0IPs 0"
 
-  a = 1
+  audit_ids = _ids_from_codes(export("Audits", program=program_name))
+  control_ids = _ids_from_codes(export("Controls", program=program_name))
+  for audit_id in audit_ids:
+    audit = entities_factory.AuditsFactory().create(id=audit_id)
+    asmt_template = _create_asmt_template(audit)
+    controls = [entities_factory.ControlsFactory().create(id=control_id)
+                for control_id in control_ids]
+    for controls_chunk in _split_into_chunks(controls, 100):
+      snapshots = entity.Representation.convert_repr_to_snapshot(
+          objs=controls_chunk, parent_obj=audit)
+      assessments = rest_service.AssessmentsFromTemplateService(
+          ).create_assessments(audit, asmt_template, snapshots)
+      a = 1
 
 
 def _create_asmt_template(audit):
@@ -515,5 +516,14 @@ def _create_asmt_template(audit):
           ca_type in ca_types]
   cads = cad_factory.generate_ca_defenitions_for_asmt_tmpls(cads)
   return rest_facade.create_asmt_template(
-    audit=audit, template_object_type="Regulation",
-    custom_attribute_definitions=cads)
+      audit=audit, template_object_type="Control",
+      custom_attribute_definitions=cads)
+
+
+def _ids_from_codes(codes):
+  return [int(re.search('\d+', code).group()) for code in codes]
+
+
+def _split_into_chunks(list_to_split, chunk_size):
+  for i in xrange(0, len(list_to_split), chunk_size):
+    yield list_to_split[i:i+chunk_size]
