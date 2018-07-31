@@ -371,7 +371,7 @@ def new_assessments_from_template_rest(request, new_audit_rest):
   assessments = assessments_service.create_assessments(
       audit=new_audit_rest,
       template=template,
-      control_snapshots=control_snapshots
+      snapshots=control_snapshots
   )
   return assessments
 

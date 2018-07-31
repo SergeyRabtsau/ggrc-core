@@ -94,7 +94,7 @@ def create_asmt_from_template_rest(
   assessments = assessments_service.create_assessments(
       audit=audit,
       template=asmt_template,
-      control_snapshots=control_snapshots
+      snapshots=control_snapshots
   )
   return assessments[0]
 

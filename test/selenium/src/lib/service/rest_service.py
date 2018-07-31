@@ -44,7 +44,7 @@ class BaseRestService(object):
       list_factory_objs.append(factory_obj)
     type_name = list_factory_objs[0].type
     list_req_attrs = []
-    chunk_size = attrs_for_template.pop("chunk_size", None)
+    chunk_size = attrs_for_template.pop("chunk_size", 1)
     for factory_obj in list_factory_objs:
       attrs = factory_obj.__dict__.copy()
       attrs.update(attrs_for_template)
@@ -296,13 +296,12 @@ class AssessmentsFromTemplateService(HelpRestService):
   def __init__(self):
     super(AssessmentsFromTemplateService, self).__init__(url.ASSESSMENTS)
 
-  def create_assessments(self, audit, template, control_snapshots):
+  def create_assessments(self, audit, template, snapshots):
     """Create assessments from template."""
     assessments = []
-    for control_snapshot in control_snapshots:
+    for snapshot in snapshots:
       assessment = entities_factory.AssessmentsFactory().create()
-      assessment.update_attrs(audit=audit, template=template,
-                              object=control_snapshot)
+      assessment.update_attrs(audit=audit, template=template, object=snapshot)
       response = self.client.create_object(**assessment.__dict__)
       attrs = BaseRestService.get_items_from_resp(response)
       assessment = AssessmentsFactory().create()

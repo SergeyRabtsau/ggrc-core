@@ -13,8 +13,10 @@ from nerodia import browser
 from nerodia.wait.wait import TimeoutError
 
 from lib import environment, url, users
-from lib.constants import objects
+from lib.constants import objects, element
 from lib.decorator import memoize
+from lib.entities import entities_factory, entity
+from lib.page import export_page
 from lib.service import rest_facade
 from lib.utils import string_utils, selenium_utils, file_utils
 
@@ -22,7 +24,7 @@ gmail_email = os.environ["LOGIN_EMAIL"]
 gmail_password = os.environ["LOGIN_PASSWORD"]
 download_username = os.environ["DOWNLOAD_USERNAME"]
 
-br = browser.Browser()
+br = browser.Browser(headless=True)
 
 
 def gmail_login():
@@ -86,13 +88,13 @@ class ImportPage(object):
     return self
 
   def import_file(self):
-    time.sleep(0.5)
+    br.button(text="Choose file to import").wait_until_not_present()
     confirm_text = "I confirm, that data being imported is " \
                    "complete and accurate."
     br.label(text=confirm_text).click()
     br.button(text="Proceed").click()
     # App sends AJAX checks frequently only during the few first dozen seconds
-    for i in xrange(0, 20):
+    for i in xrange(0, 30):
       try:
         br.button(text="Choose file to import").wait_until_present(timeout=12)
       except TimeoutError:
@@ -276,7 +278,7 @@ def export(obj_type, filer_query=None, **mapping_query):
   none_txt = "None"
   code_txt = "Code"
   btn_txt = "Download CSV"
-  file_path_format = "/Users/{}/Downloads/{}"
+  folder_path_format = "/Users/{}/Downloads"
 
   # open page
   br.goto("{}export".format(environment.app_url))
@@ -322,16 +324,13 @@ def export(obj_type, filer_query=None, **mapping_query):
       index += 1
 
   # save csv
-  br.element(id="export-csv-button").click()
-  selenium_utils.wait_for_js_to_load(br.driver)
-  export_item = br.element(class_name="current-exports__item")
-  export_item.wait_until_present()
-  file_name = export_item.text.split("\n")[0]
-  export_item.element(text=btn_txt).click()
+  folder_path = folder_path_format.format(download_username)
+  selenium_utils.set_chrome_download_location(br.driver, folder_path)
+  path_to_csv = export_page.ExportPage(br.driver).export_objs_to_csv(
+      folder_path)
 
   # parse CSV file
-  data = file_utils.get_list_objs_scopes_from_csv(
-    path_to_csv=file_path_format.format(download_username, file_name))
+  data = file_utils.get_list_objs_scopes_from_csv(path_to_csv=path_to_csv)
 
   # convert list of dicts to list of str
   list_of_codes = [item[code_txt + "*"] for item in data[
@@ -399,6 +398,7 @@ def test_create_program_and_first_class_objs():
   stnd_count = 20
   requirement_count = 500
   clause_count = 50
+  regulation_count = 2000
 
   program_code = import_and_export(objects.PROGRAMS, 1)[0]
 
@@ -416,6 +416,13 @@ def test_create_program_and_first_class_objs():
     ("map:requirement",
      split_with_repeat_iter(requirement_codes, clause_count))]
   clause_codes = import_and_export(objects.CLAUSES, clause_count, mappings)
+
+  mappings = [
+    map_to_program[0],
+    ("map:clause",
+     split_with_repeat_iter(clause_codes, regulation_count))]
+  regulation_codes = import_and_export(
+      objects.REGULATIONS, regulation_count, mappings)
 
   # stnd_codes = [
   #   "STANDARD - 11"
@@ -440,3 +447,34 @@ def test_create_program_and_first_class_objs():
 
   mappings = [("Program", program_code)]
   audit_code = import_and_export(objects.AUDITS, 1, mappings)[0]
+
+
+def test_generate_asmts():
+  audit_id = 1
+  audit = entities_factory.AuditsFactory().create(id=audit_id)
+  asmt_template = _create_asmt_template(audit)
+  export()
+  snapshots = [entity.Representation.convert_repr_to_snapshot(
+      objs=objs, parent_obj=audit)]
+  assessments_service = rest_service.AssessmentsFromTemplateService()
+  assessments = assessments_service.create_assessments(
+    audit=audit,
+    template=asmt_template,
+    snapshots=control_snapshots
+  )
+
+  a = 1
+
+
+def _create_asmt_template(audit):
+  ca_types = element.AdminWidgetCustomAttributes.ALL_CA_TYPES
+  ca_types = [x for x in ca_types
+              if x != element.AdminWidgetCustomAttributes.PERSON]
+  ca_types *= 2
+  cad_factory = entities_factory.CustomAttributeDefinitionsFactory()
+  cads = [cad_factory.create(attribute_type=ca_type, definition_type="") for
+          ca_type in ca_types]
+  cads = cad_factory.generate_ca_defenitions_for_asmt_tmpls(cads)
+  return rest_facade.create_asmt_template(
+    audit=audit, template_object_type="Regulation",
+    custom_attribute_definitions=cads)

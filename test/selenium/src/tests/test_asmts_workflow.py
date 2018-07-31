@@ -487,7 +487,7 @@ class TestAssessmentsWorkflow(base.Test):
         audit=audit, assessment_type="Control", custom_attributes=[cad])
     exp_asmt = rest_facade.create_assessment_from_template(
         audit=audit, template=assessment_template,
-        control_snapshots=[control_mapped_to_program])
+        snapshots=[control_mapped_to_program])
     asmts_ui_service = webui_service.AssessmentsService(selenium)
     asmts_ui_service.open_info_page_of_obj_fill_lca(exp_asmt)
 
