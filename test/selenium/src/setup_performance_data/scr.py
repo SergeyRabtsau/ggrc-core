@@ -13,8 +13,10 @@ from nerodia import browser
 from nerodia.wait.wait import TimeoutError
 
 from lib import environment, url, users
-from lib.constants import objects
+from lib.constants import objects, element
 from lib.decorator import memoize
+from lib.entities import entities_factory, entity
+from lib.page import export_page
 from lib.service import rest_facade
 from lib.utils import string_utils, selenium_utils, file_utils
 
@@ -22,7 +24,7 @@ gmail_email = os.environ["LOGIN_EMAIL"]
 gmail_password = os.environ["LOGIN_PASSWORD"]
 download_username = os.environ["DOWNLOAD_USERNAME"]
 
-br = browser.Browser()
+br = browser.Browser(headless=True)
 
 
 def gmail_login():
@@ -484,3 +486,34 @@ def _ids_from_codes(codes):
 def _split_into_chunks(list_to_split, chunk_size):
   for i in xrange(0, len(list_to_split), chunk_size):
     yield list_to_split[i:i+chunk_size]
+
+
+def test_generate_asmts():
+  audit_id = 1
+  audit = entities_factory.AuditsFactory().create(id=audit_id)
+  asmt_template = _create_asmt_template(audit)
+  export()
+  snapshots = [entity.Representation.convert_repr_to_snapshot(
+      objs=objs, parent_obj=audit)]
+  assessments_service = rest_service.AssessmentsFromTemplateService()
+  assessments = assessments_service.create_assessments(
+    audit=audit,
+    template=asmt_template,
+    snapshots=control_snapshots
+  )
+
+  a = 1
+
+
+def _create_asmt_template(audit):
+  ca_types = element.AdminWidgetCustomAttributes.ALL_CA_TYPES
+  ca_types = [x for x in ca_types
+              if x != element.AdminWidgetCustomAttributes.PERSON]
+  ca_types *= 2
+  cad_factory = entities_factory.CustomAttributeDefinitionsFactory()
+  cads = [cad_factory.create(attribute_type=ca_type, definition_type="") for
+          ca_type in ca_types]
+  cads = cad_factory.generate_ca_defenitions_for_asmt_tmpls(cads)
+  return rest_facade.create_asmt_template(
+    audit=audit, template_object_type="Regulation",
+    custom_attribute_definitions=cads)
