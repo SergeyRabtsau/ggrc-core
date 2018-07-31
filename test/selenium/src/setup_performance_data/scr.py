@@ -17,8 +17,8 @@ from lib.constants import objects, element
 from lib.decorator import memoize
 from lib.entities import entities_factory, entity
 from lib.page import export_page
-from lib.service import rest_facade
-from lib.utils import string_utils, selenium_utils, file_utils
+from lib.service import rest_facade, rest_service
+from lib.utils import string_utils, selenium_utils, file_utils, test_utils
 
 gmail_email = os.environ["LOGIN_EMAIL"]
 gmail_password = os.environ["LOGIN_PASSWORD"]
@@ -321,6 +321,7 @@ def export(obj_type, filer_query=None, **mapping_query):
           index)).select(objects.transform_to("s", key))
       br.element(name="filter_list.{}.filter".format(index)).send_keys(
         value.strip())
+      br.element(class_name="ui-menu-item").link().click()
       index += 1
 
   # save csv
@@ -399,6 +400,9 @@ def test_create_program_and_first_class_objs():
   requirement_count = 500
   clause_count = 50
   regulation_count = 2000
+  control_count = 2000
+  objective_count = 2000
+  audit_count = 8
 
   program_code = import_and_export(objects.PROGRAMS, 1)[0]
 
@@ -424,46 +428,40 @@ def test_create_program_and_first_class_objs():
   regulation_codes = import_and_export(
       objects.REGULATIONS, regulation_count, mappings)
 
-  # stnd_codes = [
-  #   "STANDARD - 11"
-  #   , "STANDARD - 12"
-  #   , "STANDARD - 13"
-  #   , "STANDARD - 14"
-  #   , "STANDARD - 15"
-  #   , "STANDARD - 16"
-  #   , "STANDARD - 17"
-  #   , "STANDARD - 18"
-  #   , "STANDARD - 19"
-  #   , "STANDARD - 20"
-  # ]
-  # control
-  # map_to_prg_stnd = [
-  #   ("map:program", program_code),
-  #   ("map:standard", next_objs(stnd_codes, ctrl_count / stnd_count))]
-  # ctrl_name = import_obj(objects.CONTROLS, ctrl_count, map_to_prg_stnd)
-  # ctrl_codes = export(objects.CONTROLS, ctrl_name)
+  mappings = [
+    map_to_program[0],
+    ("map:regulation",
+     split_with_repeat_iter(regulation_codes, objective_count))]
+  objective_codes = import_and_export(
+      objects.OBJECTIVES, objective_count, mappings)
 
-  # assert len(ctrl_codes) == 10
+  mappings = [
+    map_to_program[0],
+    ("map:objective",
+     split_with_repeat_iter(objective_codes, control_count))]
+  control_codes = import_and_export(
+      objects.CONTROLS, control_count, mappings)
 
   mappings = [("Program", program_code)]
-  audit_code = import_and_export(objects.AUDITS, 1, mappings)[0]
+  audit_codes = import_and_export(objects.AUDITS, audit_count, mappings)
 
 
 def test_generate_asmts():
-  audit_id = 1
-  audit = entities_factory.AuditsFactory().create(id=audit_id)
-  asmt_template = _create_asmt_template(audit)
-  export()
-  snapshots = [entity.Representation.convert_repr_to_snapshot(
-      objs=objs, parent_obj=audit)]
-  assessments_service = rest_service.AssessmentsFromTemplateService()
-  assessments = assessments_service.create_assessments(
-    audit=audit,
-    template=asmt_template,
-    snapshots=control_snapshots
-  )
+  program_name = "Program ~-c^ST63B0IPs 0"
 
-  a = 1
+  audit_ids = _ids_from_codes(export("Audits", program=program_name))
+  control_ids = _ids_from_codes(export("Controls", program=program_name))
+  for audit_id in audit_ids:
+    audit = entities_factory.AuditsFactory().create(id=audit_id)
+    asmt_template = _create_asmt_template(audit)
+    controls = [entities_factory.ControlsFactory().create(id=control_id)
+                for control_id in control_ids]
+    for controls_chunk in _split_into_chunks(controls, 100):
+      snapshots = entity.Representation.convert_repr_to_snapshot(
+          objs=controls_chunk, parent_obj=audit)
+      assessments = rest_service.AssessmentsFromTemplateService(
+          ).create_assessments(audit, asmt_template, snapshots)
+      a = 1
 
 
 def _create_asmt_template(audit):
@@ -476,5 +474,14 @@ def _create_asmt_template(audit):
           ca_type in ca_types]
   cads = cad_factory.generate_ca_defenitions_for_asmt_tmpls(cads)
   return rest_facade.create_asmt_template(
-    audit=audit, template_object_type="Regulation",
-    custom_attribute_definitions=cads)
+      audit=audit, template_object_type="Control",
+      custom_attribute_definitions=cads)
+
+
+def _ids_from_codes(codes):
+  return [int(re.search('\d+', code).group()) for code in codes]
+
+
+def _split_into_chunks(list_to_split, chunk_size):
+  for i in xrange(0, len(list_to_split), chunk_size):
+    yield list_to_split[i:i+chunk_size]

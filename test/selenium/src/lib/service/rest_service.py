@@ -62,13 +62,14 @@ class BaseRestService(object):
     for i in xrange(0, len(list_to_split), chunk_size):
       yield list_to_split[i:i+chunk_size]
 
-  def get_items_from_response(self, response):
+  @classmethod
+  def get_items_from_response(cls, response):
     list_resp_attrs = []
     for resp_part in response:
       assert len(resp_part) == 2
       assert resp_part[0] == 201
       obj_attrs = resp_part[1].values()[0]
-      self.add_extra_items(obj_attrs)
+      cls.add_extra_items(obj_attrs)
       list_resp_attrs.append(obj_attrs)
     return list_resp_attrs
 
@@ -298,18 +299,18 @@ class AssessmentsFromTemplateService(HelpRestService):
 
   def create_assessments(self, audit, template, snapshots):
     """Create assessments from template."""
-    assessments = []
-    for snapshot in snapshots:
-      assessment = entities_factory.AssessmentsFactory().create()
-      assessment.update_attrs(audit=audit, template=template, object=snapshot)
-      response = self.client.create_object(**assessment.__dict__)
-      attrs = BaseRestService.get_items_from_resp(response)
-      assessment = AssessmentsFactory().create()
-      assessment.__dict__.update({k: v for k, v in attrs.iteritems()
-                                  if v and k not in ["type", ]})
-      assessment.verifiers = assessment.creators
-      assessments.append(assessment)
-    return assessments
+    assessments = [entities_factory.AssessmentsFactory().create(
+        audit=audit, template=template, object=snapshot).__dict__
+        for snapshot in snapshots]
+    response = self.client.create_objects("Assessment", assessments)
+    assert response.status_code == 200
+      # attrs = BaseRestService.get_items_from_response(response)
+      # assessment = AssessmentsFactory().create()
+      # assessment.__dict__.update({k: v for k, v in attrs.iteritems()
+      #                             if v and k not in ["type", ]})
+      # assessment.verifiers = assessment.creators
+      #assessments.append(assessment)
+    #return assessments
 
 
 class ObjectsOwnersService(HelpRestService):

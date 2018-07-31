@@ -5,6 +5,7 @@
 import os
 
 from nerodia.wait.wait import TimeoutError
+from waiting import TimeoutExpired
 
 from lib import base
 from lib.utils import selenium_utils, test_utils
@@ -34,6 +35,9 @@ class ExportPage(base.AbstractPage):
 
   def get_export_items(self):
     """Get the list of all Export Items which are present on Export Page."""
+    # workaround for https://github.com/watir/watir/issues/759
+    if not self.export_page.present:
+      return []
     return [ExportItem(self._driver, export_item_elem) for export_item_elem in
             self.export_page.elements(class_name="current-exports__item")]
 
@@ -54,10 +58,10 @@ class ExportPage(base.AbstractPage):
         self._driver, path_to_export_dir)
     for i in xrange(0, 5):
       try:
-        export_item = test_utils.wait_for(exported_item)
+        export_item = test_utils.wait_for(exported_item, timeout_seconds=12)
         downloads_before = os.listdir(path_to_export_dir)
         export_item.download_csv()
-      except TimeoutError:
+      except (TimeoutError, TimeoutExpired):
         self._browser.refresh()
         continue
       break
