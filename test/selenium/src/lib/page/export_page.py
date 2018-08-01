@@ -56,7 +56,7 @@ class ExportPage(base.AbstractPage):
       return None
     selenium_utils.set_chrome_download_location(
         self._driver, path_to_export_dir)
-    for i in xrange(0, 5):
+    for i in xrange(0, 20):
       try:
         export_item = test_utils.wait_for(exported_item, timeout_seconds=12)
         downloads_before = os.listdir(path_to_export_dir)
