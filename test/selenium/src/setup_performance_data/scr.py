@@ -21,6 +21,7 @@ from lib.entities import entities_factory, entity
 from lib.page import export_page
 from lib.service import rest_facade, rest_service
 from lib.utils import string_utils, selenium_utils, file_utils, test_utils
+from setup_performance_data import perf_counts
 
 gmail_email = os.environ["LOGIN_EMAIL"]
 gmail_password = os.environ["LOGIN_PASSWORD"]
@@ -260,11 +261,12 @@ def next_objs(iterable, n):
   return itertools.islice(code_generator, n)
 
 
-def import_obj(obj_type, number, add_cols=None):
+def import_obj(obj_type, number, add_cols=None, **kwargs):
   """Method create import object and return part of name."""
   with tempfile.NamedTemporaryFile(mode="r+", suffix=".csv") as tmp_file:
+    size_name = kwargs.pop("size_name", "")
     # export by name doesn't work for some special characters (e.g. ~)
-    part_of_name = string_utils.StringMethods.random_string(
+    part_of_name = size_name + string_utils.StringMethods.random_string(
         chars=string.letters)
     if objects.PROGRAMS == objects.transform_to("p", obj_type, False):
       ggrc_objs = prepare_programs(number, part_of_name)
@@ -397,72 +399,70 @@ def split_with_repeat_iter(elements, n_parts_to_split):
     cur_pos += coeff
 
 
-def import_and_export(obj_name, obj_count, add_cols=None):
-  part_of_obj_name = import_obj(obj_name, obj_count, add_cols)
+def import_and_export(obj_name, obj_count, add_cols=None, **kwargs):
+  part_of_obj_name = import_obj(obj_name, obj_count, add_cols, **kwargs)
   return export(obj_name, part_of_obj_name)
 
 
-counts = {
-  "standard": 20,
-  "requirement": 500,
-  "clause": 50,
-  "regulation": 2000,
-  "objective": 2000,
-  "control": 2000,
-  "product": 1000,
-  "process": 500,
-  "system": 1000,
-  "audit": 8
-}
+@pytest.mark.parametrize('size_name,prg_counts', perf_counts.prg_sizes.items())
+def test_create_all_programs(size_name, prg_counts):
+  import_obj(objects.PROGRAMS, prg_counts, size_name=size_name)
 
+@pytest.fixture()
+def prg_codes():
+  return {size_name: export(objects.PROGRAMS,size_name)
+          for size_name in
+          perf_counts.prg_sizes.keys()}
 
-def test_create_program_and_program_scope():
-  program_code = import_and_export(objects.PROGRAMS, 1)[0]
+@pytest.mark.parametrize('size_name', ["large"]*1)
+def test_create_program_and_first_class_objs(prg_codes, size_name):
+  counts = perf_counts.Counts(size_name)
+  program_code = prg_codes[size_name][0]
 
   map_to_program = [("map:program", program_code)]
-  stnd_codes = import_and_export(
-      objects.STANDARDS, counts["standard"], map_to_program)
+  stnd_codes = import_and_export(objects.STANDARDS, counts.stnd,
+                                 map_to_program)
 
   mappings = [
     map_to_program[0],
-    ("map:standard", split_with_repeat_iter(stnd_codes, counts["requirement"]))]
+    ("map:standard", split_with_repeat_iter(stnd_codes, counts.req))]
   requirement_codes = import_and_export(
-      objects.REQUIREMENTS, counts["requirement"], mappings)
+      objects.REQUIREMENTS, counts.req, mappings)
 
   mappings = [
     map_to_program[0],
     ("map:requirement",
-     split_with_repeat_iter(requirement_codes, counts["clause"]))]
-  clause_codes = import_and_export(objects.CLAUSES, counts["clause"], mappings)
+     split_with_repeat_iter(requirement_codes, counts.clause))]
+  clause_codes = import_and_export(objects.CLAUSES, counts.clause, mappings)
 
   mappings = [
     map_to_program[0],
     ("map:clause",
-     split_with_repeat_iter(clause_codes, counts["regulation"]))]
+     split_with_repeat_iter(clause_codes, counts.reg))]
   regulation_codes = import_and_export(
-      objects.REGULATIONS, counts["regulation"], mappings)
+      objects.REGULATIONS, counts.reg, mappings)
 
   mappings = [
     map_to_program[0],
     ("map:regulation",
-     split_with_repeat_iter(regulation_codes, counts["objective"]))]
+     split_with_repeat_iter(regulation_codes, counts.objv))]
   objective_codes = import_and_export(
-      objects.OBJECTIVES, counts["objective"], mappings)
+      objects.OBJECTIVES, counts.objv, mappings)
 
   mappings = [
     map_to_program[0],
     ("map:objective",
-     split_with_repeat_iter(objective_codes, counts["control"]))]
-  import_and_export(objects.CONTROLS, counts["control"], mappings)
+     split_with_repeat_iter(objective_codes, counts.ctrl))]
+  import_and_export(objects.CONTROLS, counts.ctrl, mappings)
 
-  import_and_export(objects.PRODUCTS, counts["product"], map_to_program)
+  import_and_export(objects.PRODUCTS, counts.product, map_to_program)
 
-  import_and_export(objects.PROCESSES, counts["process"], map_to_program)
+  import_and_export(objects.PROCESSES, counts.proc, map_to_program)
 
-  import_and_export(objects.SYSTEMS, counts["system"], map_to_program)
+  import_and_export(objects.SYSTEMS, counts.sys, map_to_program)
 
   mappings = [("Program", program_code)]
-  import_and_export(objects.AUDITS, counts["audit"], mappings)
+  audit_codes = import_and_export(objects.AUDITS, counts.audit, mappings)
 
 
 def test_generate_asmts():
