@@ -9,6 +9,7 @@ import re
 import tempfile
 import time
 
+import pytest
 from nerodia import browser
 from nerodia.wait.wait import TimeoutError
 
@@ -396,55 +397,67 @@ def import_and_export(obj_name, obj_count, add_cols=None):
   return export(obj_name, part_of_obj_name)
 
 
-def test_create_program_and_first_class_objs():
-  stnd_count = 20
-  requirement_count = 500
-  clause_count = 50
-  regulation_count = 2000
-  control_count = 2000
-  objective_count = 2000
-  audit_count = 8
+counts = {
+  "standard": 20,
+  "requirement": 500,
+  "clause": 50,
+  "regulation": 2000,
+  "objective": 2000,
+  "control": 2000,
+  "product": 1000,
+  "process": 500,
+  "system": 1000,
+  "audit": 8
+}
 
+
+def test_create_program_and_program_scope():
   program_code = import_and_export(objects.PROGRAMS, 1)[0]
 
   map_to_program = [("map:program", program_code)]
-  stnd_codes = import_and_export(objects.STANDARDS, stnd_count, map_to_program)
+  stnd_codes = import_and_export(
+      objects.STANDARDS, counts["standard"], map_to_program)
 
   mappings = [
     map_to_program[0],
-    ("map:standard", split_with_repeat_iter(stnd_codes, requirement_count))]
+    ("map:standard", split_with_repeat_iter(stnd_codes, counts["requirement"]))]
   requirement_codes = import_and_export(
-      objects.REQUIREMENTS, requirement_count, mappings)
+      objects.REQUIREMENTS, counts["requirement"], mappings)
 
   mappings = [
     map_to_program[0],
     ("map:requirement",
-     split_with_repeat_iter(requirement_codes, clause_count))]
-  clause_codes = import_and_export(objects.CLAUSES, clause_count, mappings)
+     split_with_repeat_iter(requirement_codes, counts["clause"]))]
+  clause_codes = import_and_export(objects.CLAUSES, counts["clause"], mappings)
 
   mappings = [
     map_to_program[0],
     ("map:clause",
-     split_with_repeat_iter(clause_codes, regulation_count))]
+     split_with_repeat_iter(clause_codes, counts["regulation"]))]
   regulation_codes = import_and_export(
-      objects.REGULATIONS, regulation_count, mappings)
+      objects.REGULATIONS, counts["regulation"], mappings)
 
   mappings = [
     map_to_program[0],
     ("map:regulation",
-     split_with_repeat_iter(regulation_codes, objective_count))]
+     split_with_repeat_iter(regulation_codes, counts["objective"]))]
   objective_codes = import_and_export(
-      objects.OBJECTIVES, objective_count, mappings)
+      objects.OBJECTIVES, counts["objective"], mappings)
 
   mappings = [
     map_to_program[0],
     ("map:objective",
-     split_with_repeat_iter(objective_codes, control_count))]
-  control_codes = import_and_export(
-      objects.CONTROLS, control_count, mappings)
+     split_with_repeat_iter(objective_codes, counts["control"]))]
+  import_and_export(objects.CONTROLS, counts["control"], mappings)
+
+  import_and_export(objects.PRODUCTS, counts["product"], map_to_program)
+
+  import_and_export(objects.PROCESSES, counts["process"], map_to_program)
+
+  import_and_export(objects.SYSTEMS, counts["system"], map_to_program)
 
   mappings = [("Program", program_code)]
-  audit_codes = import_and_export(objects.AUDITS, audit_count, mappings)
+  import_and_export(objects.AUDITS, counts["audit"], mappings)
 
 
 def test_generate_asmts():
@@ -460,9 +473,8 @@ def test_generate_asmts():
     for controls_chunk in _split_into_chunks(controls, 100):
       snapshots = entity.Representation.convert_repr_to_snapshot(
           objs=controls_chunk, parent_obj=audit)
-      assessments = rest_service.AssessmentsFromTemplateService(
-          ).create_assessments(audit, asmt_template, snapshots)
-      a = 1
+      rest_service.AssessmentsFromTemplateService().create_assessments(
+          audit, asmt_template, snapshots)
 
 
 def _create_asmt_template(audit):
