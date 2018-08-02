@@ -11,6 +11,7 @@ AUDIT = 8
 SYS = 1000
 PROC = 500
 PROD = 1000
+ASMT = 1500
 ASMT_TMPL = 1
 ASMT_LCA = 10
 ASMT_GCA = 5
@@ -72,7 +73,7 @@ def prg_size_list():
 
 class CoreObjectCounts(object):
   def __init__(self, size_name):
-    """Create counts based on size, if size doens't exist in program pool
+    """Create counts based on size, if size doesn't exist in program pool
     then only one of type of each object will be specified.
     """
     self._size_name = size_name
@@ -84,6 +85,7 @@ class CoreObjectCounts(object):
     self.ctrl = self._get_rated_count(CTRL)
     self.objv = self._get_rated_count(OBJV)
     self.audit = self._get_rated_count(AUDIT)
+    self.asmt = self._get_rated_count(ASMT)
     self.sys = self._get_rated_count(SYS)
     self.proc = self._get_rated_count(PROC)
     self.product = self._get_rated_count(PROD)
@@ -102,9 +104,10 @@ class CoreObjectCounts(object):
 
   @property
   def users_per_prg(self):
+    """Return amount of unique users per one program."""
     return (self.prg_mgr + self.prg_editor + self.prg_reader + self.auditor
-           + self.audit_cap + self.admin + self.prim_con + self.sec_con
-           + self.asmt_creator + self.asmt_assignee + self.asmt_verifier)
+            + self.audit_cap + self.admin + self.prim_con + self.sec_con
+            + self.asmt_creator + self.asmt_assignee + self.asmt_verifier)
 
 
   def _get_rated_count(self, original_count):
@@ -118,4 +121,3 @@ def get_total_user_counts():
     for k, v in prg_sizes.items()
     for _ in range(v)
   ])
-

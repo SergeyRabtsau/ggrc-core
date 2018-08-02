@@ -21,7 +21,7 @@ from lib.entities import entities_factory, entity
 from lib.page import export_page
 from lib.service import rest_facade, rest_service
 from lib.utils import file_utils, selenium_utils, string_utils
-from setup_performance_data import perf_counts, perf_const
+from setup_performance_data import perf_const, perf_counts
 
 gmail_email = os.environ["LOGIN_EMAIL"]
 gmail_password = os.environ["LOGIN_PASSWORD"]
@@ -403,14 +403,16 @@ def test_generate_asmts(prg_codes, size_name, index):
   counts = perf_counts.CoreObjectCounts(size_name)
   prg_code = prg_codes[size_name][index]
 
+  _create_global_cads_for_asmts()
   audit_ids = _ids_from_codes(export(objects.AUDITS, program=prg_code))
   control_ids = _ids_from_codes(export(objects.CONTROLS, program=prg_code))
+  control_ids = control_ids[:counts.asmt]
   for audit_id in audit_ids:
     audit = entities_factory.AuditsFactory().create(id=audit_id)
     asmt_template = _create_asmt_template(audit)
     controls = [entities_factory.ControlsFactory().create(id=control_id)
                 for control_id in control_ids]
-    for controls_chunk in _split_into_chunks(controls, perf_const.CHUNK_SIZE):
+    for controls_chunk in _split_into_chunks(controls, perf_const.L_CHUNK_SIZE):
       snapshots = entity.Representation.convert_repr_to_snapshot(
           objs=controls_chunk, parent_obj=audit)
       rest_service.AssessmentsFromTemplateService().create_assessments(
