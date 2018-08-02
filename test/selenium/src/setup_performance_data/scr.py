@@ -1,6 +1,5 @@
 import collections
 import csv
-import datetime
 import fractions
 import itertools
 import math
@@ -8,20 +7,21 @@ import os
 import re
 import string
 import tempfile
-import time
 
+import datetime
 import pytest
+import time
 from nerodia import browser
 from nerodia.wait.wait import TimeoutError
 
 from lib import environment, url, users
-from lib.constants import objects, element
+from lib.constants import element, objects
 from lib.decorator import memoize
 from lib.entities import entities_factory, entity
 from lib.page import export_page
 from lib.service import rest_facade, rest_service
-from lib.utils import string_utils, selenium_utils, file_utils, test_utils
-from setup_performance_data import perf_counts
+from lib.utils import file_utils, selenium_utils, string_utils
+from setup_performance_data import perf_counts, perf_const
 
 gmail_email = os.environ["LOGIN_EMAIL"]
 gmail_password = os.environ["LOGIN_PASSWORD"]
@@ -33,7 +33,8 @@ br = browser.Browser(headless=True)
 def gmail_login():
   br.text_field(aria_label="Email or phone").set(gmail_email)
   br.element(id="identifierNext").click()
-  time.sleep(1.5)  # wait for password elements to have correct position
+  time.sleep(perf_const.DEFAULT_SLEEP)  # wait for password elements to have correct
+  # position
   br.text_field(aria_label="Enter your password").set(gmail_password)
   br.element(id="passwordNext").click()
   # needed only once
@@ -46,7 +47,7 @@ current_user = users._current_user = users.FakeSuperUser()
 br.goto(url.Urls().gae_login(current_user))
 users.set_current_logged_in_user(users.UI_USER, users.current_user())
 br.goto("{}import".format(environment.app_url))
-time.sleep(1)
+time.sleep(perf_const.DEFAULT_SLEEP)
 if br.element(class_name="release-notes").present:
   br.element(class_name="release-notes").button(text="Close").click()
 
@@ -56,7 +57,7 @@ class ImportPage(object):
     br.goto("{}import".format(environment.app_url))
     br.element(class_name="import-buttons").wait_for_present()
     selenium_utils.wait_for_js_to_load(br.driver)
-    time.sleep(4)
+    time.sleep(perf_const.LONG_SLEEP)
 
     def click_choose_file_to_import():
       br.element(class_name="spinner-icon").wait_until_not_present()
@@ -75,12 +76,12 @@ class ImportPage(object):
     from lib.utils import test_utils
     test_utils.wait_for(click_choose_file_to_import)
     br.link(text=txt_auth).click()
-    time.sleep(2)
+    time.sleep(perf_const.DEFAULT_SLEEP)
     if len(br.windows()) > 1:
       br.window(title=txt_sign).use()
       gmail_login()
       br.windows()[0].use()
-      time.sleep(4)
+      time.sleep(perf_const.LONG_SLEEP)
       iframe = br.iframe(class_name=diag_frame)
       iframe.file_field(type="file").set(csv_file.name)
       br.link(text=txt_auth).click()
@@ -93,14 +94,13 @@ class ImportPage(object):
     return self
 
   def import_file(self):
-    time.sleep(0.5)
     br.button(text="Choose file to import").wait_until_not_present()
     confirm_text = "I confirm, that data being imported is " \
                    "complete and accurate."
     br.label(text=confirm_text).click()
     br.button(text="Proceed").click()
     # App sends AJAX checks frequently only during the few first dozen seconds
-    for i in xrange(0, 20):
+    for i in xrange(0, perf_const.RETRY_COUNT):
       try:
         br.button(text="Choose file to import").wait_until_present(timeout=12)
       except TimeoutError:
@@ -111,7 +111,7 @@ class ImportPage(object):
           # it becomes finished. So we refresh page until it becomes available.
           continue
         selenium_utils.wait_for_js_to_load(br.driver)
-        time.sleep(4)
+        time.sleep(perf_const.LONG_SLEEP)
         br.element(class_name="spinner-icon").wait_until_not_present()
         continue
       break
@@ -160,61 +160,6 @@ def prepare_firstclass_objs(obj_type, number, part_of_name, add_cols=None):
 
   return prepare_csv_rows(
     objects.transform_to("s", obj_type), number, part_of_name, columns)
-
-
-def prepare_objectives(number, part_of_name, additional_columns):
-  # columns = [
-  #   ("Admin", next_users(30)),
-  #   ("Primary Contacts", next_users(10)),
-  #   ("Secondary Contacts", next_users(10))] + additional_columns
-  columns = [
-    ("Admin", "user@example.com")
-  ] + additional_columns
-  return prepare_csv_rows("Objective", number, part_of_name, columns)
-
-
-def prepare_controls(number, part_of_name, additional_columns):
-  # columns = [
-  #   ("Admin", next_users(30)),
-  #   ("Primary Contacts", next_users(10)),
-  #   ("Secondary Contacts", next_users(10))] + additional_columns
-  columns = [
-    ("Admin", "user@example.com")
-  ] + additional_columns
-  return prepare_csv_rows("Control", number, part_of_name, columns)
-
-
-def prepare_standards(number, part_of_name, additional_columns):
-  # columns = [
-  #   ("Admin", next_users(30)),
-  #   ("Primary Contacts", next_users(10)),
-  #   ("Secondary Contacts", next_users(10))] + additional_columns
-  columns = [
-    ("Admin", "user@example.com")
-  ] + additional_columns
-  return prepare_csv_rows("Standard", number, part_of_name, columns)
-
-
-def prepare_regulations(number, part_of_name, additional_columns):
-  # columns = [
-  #   ("Admin", next_users(30)),
-  #   ("Primary Contacts", next_users(10)),
-  #   ("Secondary Contacts", next_users(10))] + additional_columns
-  columns = [
-    ("Admin", "user@example.com")
-  ] + additional_columns
-  return prepare_csv_rows("Regulation", number, part_of_name, columns)
-
-
-def prepare_clauses(number, part_of_name, additional_columns):
-  # columns = [
-  #   ("Admin", next_users(30)),
-  #   ("Primary Contacts", next_users(10)),
-  #   ("Secondary Contacts", next_users(10))] + additional_columns
-  columns = [
-    ("Admin", "user@example.com")
-  ] + additional_columns
-  return prepare_csv_rows("Clause", number, part_of_name, columns)
 
 
 def write_file(csv_file, obj_dicts):
@@ -286,7 +231,6 @@ def export(obj_type, filer_query=None, **mapping_query):
   # variables
   none_txt = "None"
   code_txt = "Code"
-  btn_txt = "Download CSV"
   folder_path_format = "/Users/{}/Downloads"
 
   # open page
@@ -348,39 +292,10 @@ def export(obj_type, filer_query=None, **mapping_query):
   return list_of_codes
 
 
-def test_export_file():
-  list1 = export("Controls", "ctrl", **{"Program":"PROGRAM-1213"})
-  list2 = export("Control", "ctrl", **{"Programs": "PROGRAM-1213"})
-  print list1 == list2
-
-
-def write_file_and_import(tmp_file, objs):
-  write_file(tmp_file, objs)
-  import_page = ImportPage()
-  import_page.choose_file(tmp_file)
-  import_page.import_file()
-
-
-def test_create_programs():
-  with tempfile.NamedTemporaryFile(mode="r+", suffix=".csv") as tmp_file:
-    part_of_name = string_utils.StringMethods.random_string()
-    programs = prepare_programs(1, part_of_name=part_of_name)
-    write_file_and_import(tmp_file, programs)
-  program_code = export("Programs", part_of_name)[0]
-  with tempfile.NamedTemporaryFile(mode="r+", suffix=".csv") as tmp_file:
-    part_of_name = string_utils.StringMethods.random_string()
-    additional_columns = [("map:program", program_code)]
-    objectives = prepare_objectives(100, part_of_name, additional_columns)
-    write_file_and_import(tmp_file, objectives)
-  with tempfile.NamedTemporaryFile(mode="r+", suffix=".csv") as tmp_file:
-    part_of_name = string_utils.StringMethods.random_string()
-    additional_columns = [("map:program", program_code)]
-    controls = prepare_controls(100, part_of_name, additional_columns)
-    write_file_and_import(tmp_file, controls)
-
-
 def test_create_users():
-  people = rest_facade.create_objs("people", 1000, chunk_size=100)
+  people = rest_facade.create_objs("people",
+                                   perf_counts.get_total_user_counts(),
+                                   chunk_size=perf_const.CHUNK_SIZE)
   for person in people:
     print person.email
 
@@ -404,85 +319,98 @@ def import_and_export(obj_name, obj_count, add_cols=None, **kwargs):
   return export(obj_name, part_of_obj_name)
 
 
+def import_and_export_w_iter(
+  obj_name, obj_count, map_obj_name, map_obj_codes, **kwargs):
+  mappings = [
+    ("map:program", kwargs.pop("prg_code")),
+    ("map:" + objects.transform_to("s", map_obj_name, False),
+    split_with_repeat_iter(map_obj_codes, obj_count))]
+  return import_and_export(
+    obj_name, obj_count, mappings, size_name=kwargs.pop("size_name", ""))
+
+
+def _skip_zero(int_value, skip_msg):
+  if int_value == 0:
+    pytest.skip(skip_msg)
+
+
+def _skip_not_valid(dict_w_list, key_name, list_index):
+  _skip_zero(len(dict_w_list), "Dict is empty")
+  list_len = len(dict_w_list.get(key_name, []))
+  if list_len == 0 or list_len <= list_index :
+    pytest.skip(
+      "No values for {} at {} index.".format(key_name, list_index))
+
+
 @pytest.mark.parametrize('size_name,prg_counts', perf_counts.prg_sizes.items())
 def test_create_all_programs(size_name, prg_counts):
-  if prg_counts == 0:
-    pytest.skip("Skip creation {} of program.".format(size_name))
+  _skip_zero(prg_codes, "Skip programs creation with type %s." % size_name)
   import_obj(objects.PROGRAMS, prg_counts, size_name=size_name)
 
 @pytest.fixture()
 def prg_codes():
-  return {size_name: export(objects.PROGRAMS,size_name)
-          for size_name in
-          perf_counts.prg_sizes.keys()}
+  prg_code_dict = collections.OrderedDict()
+  for size_name in perf_counts.prg_sizes.keys():
+    prg_code_dict[size_name] = export(objects.PROGRAMS,size_name)
+  return prg_code_dict
 
-@pytest.mark.parametrize('size_name', ["large"]*1)
-def test_create_program_and_first_class_objs(prg_codes, size_name):
-  counts = perf_counts.Counts(size_name)
-  program_code = prg_codes[size_name][0]
-  kw = {"size_name": size_name}
+
+@pytest.mark.parametrize(
+  'size_name, index',
+  zip(perf_counts.prg_size_list(), perf_counts.prg_index_list())
+)
+def test_first_class_objs(prg_codes, size_name, index):
+  _skip_not_valid(prg_codes,size_name,index)
+
+  counts = perf_counts.CoreObjectCounts(size_name)
+  program_code = prg_codes[size_name][index]
+  kw = {"size_name": size_name, "prg_code": program_code}
 
   map_to_program = [("map:program", program_code)]
-  stnd_codes = import_and_export(objects.STANDARDS, counts.stnd,
-                                 map_to_program, **kw)
+  stnd_codes = import_and_export(
+    objects.STANDARDS, counts.stnd, map_to_program, **kw)
 
-  mappings = [
-    map_to_program[0],
-    ("map:standard", split_with_repeat_iter(stnd_codes, counts.req))]
-  requirement_codes = import_and_export(
-      objects.REQUIREMENTS, counts.req, mappings, **kw)
+  req_codes = import_and_export_w_iter(
+    objects.REQUIREMENTS, counts.req, objects.STANDARDS, stnd_codes, **kw)
 
-  mappings = [
-    map_to_program[0],
-    ("map:requirement",
-     split_with_repeat_iter(requirement_codes, counts.clause))]
-  clause_codes = import_and_export(objects.CLAUSES, counts.clause,
-                                   mappings, **kw)
+  clause_codes = import_and_export_w_iter(
+    objects.CLAUSES, counts.clause, objects.REQUIREMENTS, req_codes, **kw)
 
-  mappings = [
-    map_to_program[0],
-    ("map:clause",
-     split_with_repeat_iter(clause_codes, counts.reg))]
-  regulation_codes = import_and_export(
-      objects.REGULATIONS, counts.reg, mappings, **kw)
+  reg_codes = import_and_export_w_iter(
+    objects.REGULATIONS, counts.reg, objects.CLAUSES, clause_codes, **kw)
 
-  mappings = [
-    map_to_program[0],
-    ("map:regulation",
-     split_with_repeat_iter(regulation_codes, counts.objv))]
-  objective_codes = import_and_export(
-      objects.OBJECTIVES, counts.objv, mappings, **kw)
+  objv_codes = import_and_export_w_iter(
+    objects.OBJECTIVES, counts.objv, objects.REGULATIONS, reg_codes, **kw)
 
-  mappings = [
-    map_to_program[0],
-    ("map:objective",
-     split_with_repeat_iter(objective_codes, counts.ctrl))]
-  import_and_export(objects.CONTROLS, counts.ctrl, mappings, **kw)
+  import_and_export_w_iter(
+    objects.CONTROLS, counts.ctrl, objects.OBJECTIVES, objv_codes, **kw)
 
   import_and_export(objects.PRODUCTS, counts.product, map_to_program, **kw)
-
   import_and_export(objects.PROCESSES, counts.proc, map_to_program, **kw)
-
   import_and_export(objects.SYSTEMS, counts.sys, map_to_program, **kw)
 
   mappings = [("Program", program_code)]
-  audit_codes = import_and_export(objects.AUDITS, counts.audit, mappings, **kw)
+  import_and_export(objects.AUDITS, counts.audit, mappings, **kw)
 
 
-def test_generate_asmts():
-  asmt_count = 1500
-  program_name = "PROGRAM-4"
+@pytest.mark.parametrize(
+  'size_name, index',
+  zip(perf_counts.prg_size_list(), perf_counts.prg_index_list())
+)
+def test_generate_asmts(prg_codes, size_name, index):
+  _skip_not_valid(prg_codes, size_name, index)
 
-  _create_global_cads_for_asmts()
-  audit_ids = _ids_from_codes(export("Audits", program=program_name))
-  control_ids = _ids_from_codes(export("Controls", program=program_name))
-  control_ids = control_ids[:asmt_count]
+  counts = perf_counts.CoreObjectCounts(size_name)
+  prg_code = prg_codes[size_name][index]
+
+  audit_ids = _ids_from_codes(export(objects.AUDITS, program=prg_code))
+  control_ids = _ids_from_codes(export(objects.CONTROLS, program=prg_code))
   for audit_id in audit_ids:
     audit = entities_factory.AuditsFactory().create(id=audit_id)
     asmt_template = _create_asmt_template(audit)
     controls = [entities_factory.ControlsFactory().create(id=control_id)
                 for control_id in control_ids]
-    for controls_chunk in _split_into_chunks(controls, 250):
+    for controls_chunk in _split_into_chunks(controls, perf_const.CHUNK_SIZE):
       snapshots = entity.Representation.convert_repr_to_snapshot(
           objs=controls_chunk, parent_obj=audit)
       rest_service.AssessmentsFromTemplateService().create_assessments(
