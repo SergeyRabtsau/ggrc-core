@@ -470,20 +470,31 @@ def test_create_program_and_first_class_objs(prg_codes, size_name):
 
 
 def test_generate_asmts():
-  program_name = "Program ~-c^ST63B0IPs 0"
+  asmt_count = 1500
+  program_name = "PROGRAM-4"
 
+  _create_global_cads_for_asmts()
   audit_ids = _ids_from_codes(export("Audits", program=program_name))
   control_ids = _ids_from_codes(export("Controls", program=program_name))
+  control_ids = control_ids[:asmt_count]
   for audit_id in audit_ids:
     audit = entities_factory.AuditsFactory().create(id=audit_id)
     asmt_template = _create_asmt_template(audit)
     controls = [entities_factory.ControlsFactory().create(id=control_id)
                 for control_id in control_ids]
-    for controls_chunk in _split_into_chunks(controls, 100):
+    for controls_chunk in _split_into_chunks(controls, 250):
       snapshots = entity.Representation.convert_repr_to_snapshot(
           objs=controls_chunk, parent_obj=audit)
       rest_service.AssessmentsFromTemplateService().create_assessments(
           audit, asmt_template, snapshots)
+
+
+def _create_global_cads_for_asmts():
+  ca_types = element.AdminWidgetCustomAttributes.ALL_CA_TYPES
+  for ca_type in ca_types:
+    if ca_type != element.AdminWidgetCustomAttributes.PERSON:
+      rest_facade.create_global_cad(
+          attribute_type=ca_type, definition_type="assessment")
 
 
 def _create_asmt_template(audit):
@@ -492,8 +503,8 @@ def _create_asmt_template(audit):
               if x != element.AdminWidgetCustomAttributes.PERSON]
   ca_types *= 2
   cad_factory = entities_factory.CustomAttributeDefinitionsFactory()
-  cads = [cad_factory.create(attribute_type=ca_type, definition_type="") for
-          ca_type in ca_types]
+  cads = [cad_factory.create(attribute_type=ca_type, definition_type="")
+          for ca_type in ca_types]
   cads = cad_factory.generate_ca_defenitions_for_asmt_tmpls(cads)
   return rest_facade.create_asmt_template(
       audit=audit, template_object_type="Control",

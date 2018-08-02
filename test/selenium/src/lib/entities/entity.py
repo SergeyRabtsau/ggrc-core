@@ -5,6 +5,7 @@
 # pylint: disable=too-few-public-methods
 
 import copy
+import itertools
 from datetime import datetime
 
 from dateutil import parser, tz
@@ -272,19 +273,14 @@ class Representation(object):
     Retrieved values will be used for: 'id'.
     Set values will be used for: 'title, 'type', 'slug', 'href'.
     """
-    def convert_repr_to_snapshot(origin_obj, parent_obj):
-      """Convert object's attributes to Snapshot representation."""
-      from lib.service import rest_service
-      origin_obj = copy.deepcopy(origin_obj)
-      snapshoted_obj = (
-          rest_service.ObjectsInfoService().get_snapshoted_obj(
-              origin_obj=origin_obj, paren_obj=parent_obj))
-      origin_obj.__dict__.update(
+    from lib.service import rest_service
+    objs = copy.deepcopy(objs)
+    snapshoted_objs = rest_service.ObjectsInfoService().get_snapshoted_objs(
+        origin_objs=objs, parent_obj=parent_obj)
+    for obj, snapshoted_obj in itertools.izip(objs, snapshoted_objs):
+      obj.__dict__.update(
           {k: v for k, v in snapshoted_obj.__dict__.iteritems()})
-      return origin_obj
-    return help_utils.execute_method_according_to_plurality(
-        objs=objs, types=Entity.all_entities_classes(),
-        method_name=convert_repr_to_snapshot, parent_obj=parent_obj)
+    return objs
 
   def update_attrs(self, is_replace_attrs=True, is_allow_none=True,
                    is_replace_dicts_values=False, **attrs):

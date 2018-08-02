@@ -106,7 +106,7 @@ class BaseRestService(object):
     """Add extra `href` and `url` items to response dictionary"""
     if resp_dict["selfLink"]:
       resp_dict["href"] = resp_dict["selfLink"]
-    if resp_dict["viewLink"]:
+    if "viewLink" in resp_dict:
       resp_dict["url"] = environment.app_url + resp_dict["viewLink"][1:]
 
   @classmethod  # noqa: ignore=C901
@@ -324,19 +324,21 @@ class ObjectsInfoService(HelpRestService):
   def __init__(self):
     super(ObjectsInfoService, self).__init__(url.QUERY)
 
-  def get_snapshoted_obj(self, origin_obj, paren_obj):
+  def get_snapshoted_objs(self, origin_objs, parent_obj):
     """Get and return snapshoted object according to 'origin_obj' and
     'paren_obj'.
     """
-    snapshoted_obj_dict = (
+    snapshoted_obj_dicts = (
         BaseRestService.get_items_from_resp(self.client.create_object(
             type=self.endpoint,
             object_name=objects.get_obj_type(objects.SNAPSHOTS),
-            filters=query.Query.expression_get_snapshoted_obj(
-                obj_type=origin_obj.type, obj_id=origin_obj.id,
-                parent_type=paren_obj.type,
-                parent_id=paren_obj.id))).get("values")[0])
-    return Representation.repr_dict_to_obj(snapshoted_obj_dict)
+            filters=query.Query.expression_get_snapshoted_objs(
+                obj_type=origin_objs[0].type,
+                obj_ids=[obj.id for obj in origin_objs],
+                parent_type=parent_obj.type,
+                parent_id=parent_obj.id))).get("values"))
+    return [Representation.repr_dict_to_obj(obj_dict)
+            for obj_dict in snapshoted_obj_dicts]
 
   def get_obj(self, obj):
     """Get and return object according to 'obj.type' and 'obj.id'."""

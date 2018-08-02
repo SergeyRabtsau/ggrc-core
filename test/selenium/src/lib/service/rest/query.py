@@ -9,7 +9,8 @@ class Query(object):
   # pylint: disable=too-few-public-methods
 
   @staticmethod
-  def expression_get_snapshoted_obj(obj_type, obj_id, parent_type, parent_id):
+  def expression_get_snapshoted_objs(
+      obj_type, obj_ids, parent_type, parent_id):
     """Expression to get snapshoted object according to original and parent
     objects' attributes.
     """
@@ -18,17 +19,17 @@ class Query(object):
             "left": {
                 "left": {
                     "left": "child_type",
-                    "op": {"name": alias.EQUAL_OP},
+                    "op": {"name": "="},
                     "right": obj_type
                 },
-                "op": {"name": alias.AND_OP},
+                "op": {"name": "AND"},
                 "right": {
                     "left": "child_id",
-                    "op": {"name": alias.EQUAL_OP},
-                    "right": str(obj_id)
+                    "op": {"name": "IN"},
+                    "right": [str(obj_id) for obj_id in obj_ids]
                 }
             },
-            "op": {"name": alias.AND_OP},
+            "op": {"name": "AND"},
             "right": {
                 "object_name": parent_type,
                 "op": {"name": "relevant"},

@@ -148,6 +148,12 @@ def create_user_with_role(role_name):
   return user
 
 
+def create_global_cad(**attrs):
+  """Create a global CAD based on `attrs`"""
+  return rest_service.CustomAttributeDefinitionsService().create_obj(
+      factory_params=attrs)
+
+
 def map_objs(src_obj, dest_obj):
   """Map two objects to each other"""
   rest_service.RelationshipsService().map_objs(
@@ -161,8 +167,8 @@ def get_obj(obj):
 
 def get_snapshot(obj, parent_obj):
   """Get (or create) a snapshot of `obj` in `parent_obj`"""
-  return rest_service.ObjectsInfoService().get_snapshoted_obj(
-      origin_obj=obj, paren_obj=parent_obj)
+  return rest_service.ObjectsInfoService().get_snapshoted_objs(
+      origin_objs=[obj], parent_obj=parent_obj)
 
 
 def map_to_snapshot(src_obj, obj, parent_obj):

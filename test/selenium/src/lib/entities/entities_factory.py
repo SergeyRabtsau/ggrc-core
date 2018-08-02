@@ -259,59 +259,28 @@ class CustomAttributeDefinitionsFactory(EntitiesFactory):
     'is_add_rest_attrs' then add attributes for REST, if 'attrs' then update
     attributes accordingly.
     """
-    ca_obj = self._create_random_obj(is_add_rest_attrs=is_add_rest_attrs)
-    return self._update_ca_attrs_values(obj=ca_obj, **attrs)
-
-  def _create_random_obj(self, is_add_rest_attrs):
-    """Create Custom Attribute entity with randomly and predictably filled
-    fields, if 'is_add_rest_attrs' then add attributes for REST."""
-    ca_obj_attr_type = unicode(random.choice(
-        AdminWidgetCustomAttributes.ALL_CA_TYPES))
-    ca_obj = self.obj_inst().update_attrs(
-        title=self.generate_ca_title(ca_obj_attr_type),
-        attribute_type=ca_obj_attr_type,
-        multi_choice_options=(
-            StringMethods.random_list_strings()
-            if ca_obj_attr_type == AdminWidgetCustomAttributes.DROPDOWN
-            else None),
-        definition_type=unicode(objects.get_singular(
-            random.choice(objects.ALL_CA_OBJS))), mandatory=False)
-    if is_add_rest_attrs:
-      ca_obj.update_attrs(
-          modal_title="Add Attribute to type {}".format(
-              ca_obj.definition_type.title()))
-    return ca_obj
-
-  def _update_ca_attrs_values(self, obj, **attrs):
-    """Update CA's (obj) attributes values according to dictionary of
-    arguments (key = value). Restrictions: 'multi_choice_options' is a
-    mandatory attribute for Dropdown CA and 'placeholder' is a attribute that
-    exists only for Text and Rich Text CA.
-    Generated data - 'obj', entered data - '**arguments'.
-    """
-    # fix generated data
-    if attrs.get("attribute_type"):
-      obj.title = self.generate_ca_title(attrs["attribute_type"])
-    if (obj.multi_choice_options and
-            obj.attribute_type == AdminWidgetCustomAttributes.DROPDOWN and
-            attrs.get("attribute_type") !=
-            AdminWidgetCustomAttributes.DROPDOWN):
+    obj = self.obj_inst()
+    independent_default_values = {
+      "attribute_type": random.choice(
+          AdminWidgetCustomAttributes.ALL_CA_TYPES),
+      "definition_type": objects.get_singular(
+          random.choice(objects.ALL_CA_OBJS)),
+      "mandatory": False,
+      "placeholder": None
+    }
+    for name, default_value in independent_default_values.iteritems():
+      value = attrs.get(name, default_value)
+      setattr(obj, name, value)
+    obj.title = attrs.get("title", self.generate_ca_title(obj.attribute_type))
+    if obj.attribute_type == AdminWidgetCustomAttributes.DROPDOWN:
+      obj.multi_choice_options = attrs.get(
+          "multi_choice_options", StringMethods.random_list_strings())
+    else:
       obj.multi_choice_options = None
-    # fix entered data
-    if (attrs.get("multi_choice_options") and
-            attrs.get("attribute_type") !=
-            AdminWidgetCustomAttributes.DROPDOWN):
-      attrs["multi_choice_options"] = None
-    if (attrs.get("placeholder") and attrs.get("attribute_type") not in
-        (AdminWidgetCustomAttributes.TEXT,
-         AdminWidgetCustomAttributes.RICH_TEXT)):
-      attrs["placeholder"] = None
-    # extend entered data
-    if (attrs.get("attribute_type") ==
-            AdminWidgetCustomAttributes.DROPDOWN and not
-            obj.multi_choice_options):
-      obj.multi_choice_options = StringMethods.random_list_strings()
-    return obj.update_attrs(**attrs)
+    if is_add_rest_attrs:
+      obj.modal_title = "Add Attribute to type {}".format(
+          obj.definition_type.title())
+    return obj
 
   def generate_ca_title(self, first_part):
     """Generate title of custom attribute
