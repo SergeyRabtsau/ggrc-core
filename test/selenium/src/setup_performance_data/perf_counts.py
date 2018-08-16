@@ -33,10 +33,10 @@ ASMT_ASSIGNEE = 20
 # program pool
 prg_sizes = collections.OrderedDict([
   ("large", 0),
-  ("medium", 0),
+  ("medium", 20),
   ("small", 0),
-  ("xs", 1),
-  ("xxs", 1)
+  ("xs", 0),
+  ("xxs", 0)
 ])
 
 rates = {

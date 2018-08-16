@@ -12,6 +12,7 @@ import datetime
 import pytest
 import time
 from nerodia import browser
+from nerodia.exception import UnknownObjectException
 from nerodia.wait.wait import TimeoutError
 
 from lib import environment, url, users
@@ -27,16 +28,28 @@ gmail_email = os.environ["LOGIN_EMAIL"]
 gmail_password = os.environ["LOGIN_PASSWORD"]
 download_username = os.environ["DOWNLOAD_USERNAME"]
 
-br = browser.Browser(headless=True)
+br = browser.Browser()
 
 
 def gmail_login():
   br.text_field(aria_label="Email or phone").set(gmail_email)
   br.element(id="identifierNext").click()
-  time.sleep(perf_const.DEFAULT_SLEEP)  # wait for password elements to have correct
+  time.sleep(perf_const.DEFAULT_SLEEP)  # wait for password elements to have
+  #  correct
   # position
-  br.text_field(aria_label="Enter your password").set(gmail_password)
-  br.element(id="passwordNext").click()
+  try:
+    pass_field = br.text_field(aria_label="Enter your password")
+    pass_field.wait_for_writable()
+    pass_field.set(gmail_password)
+    br.element(id="passwordNext").click()
+
+  except UnknownObjectException as e:
+    file_path_format = "/Users/{}/Downloads/screen-{}.png"
+    br.screenshot.save(file_path_format.format(download_username,
+                                               datetime.datetime.now()))
+    raise e
+
+  # br.text_field(aria_label="Enter your password").set(gmail_password)
   # needed only once
   # br.link(text="Advanced").click()
   # br.link(text="Go to GGRC Dev (unsafe)").click()
@@ -208,20 +221,41 @@ def next_objs(iterable, n):
 
 def import_obj(obj_type, number, add_cols=None, **kwargs):
   """Method create import object and return part of name."""
-  with tempfile.NamedTemporaryFile(mode="r+", suffix=".csv") as tmp_file:
-    size_name = kwargs.pop("size_name", "")
-    # export by name doesn't work for some special characters (e.g. ~)
-    part_of_name = size_name + string_utils.StringMethods.random_string(
-        chars=string.letters)
+  chunk_size = kwargs.get("chunk_size", 0)
+  size_name = kwargs.get("size_name", "")
+
+  def get_ggrc_obj_rows(obj_type, obj_number, add_cols, part_of_name):
+    """Prepare csv rows."""
     if objects.PROGRAMS == objects.transform_to("p", obj_type, False):
-      ggrc_objs = prepare_programs(number, part_of_name)
+      ggrc_objs = prepare_programs(obj_number, part_of_name)
     elif objects.AUDITS == objects.transform_to("p", obj_type, False):
-      ggrc_objs = prepare_audits(number, part_of_name, add_cols)
+      ggrc_objs = prepare_audits(obj_number, part_of_name, add_cols)
     else:
-      ggrc_objs = prepare_firstclass_objs(obj_type, number, part_of_name,
+      ggrc_objs = prepare_firstclass_objs(obj_type, obj_number, part_of_name,
                                           add_cols)
-    write_file(tmp_file, ggrc_objs)
-    ImportPage().choose_file(tmp_file).import_file()
+    return ggrc_objs
+
+
+  def import_csv(rows, header_row=None):
+    """Import one csv file with specified rows."""
+    with tempfile.NamedTemporaryFile(mode="r+", suffix=".csv") as tmp_file:
+      csv_rows = []
+      if header_row:
+        csv_rows.append(header_row)
+      csv_rows.extend(rows)
+      write_file(tmp_file, csv_rows)
+      ImportPage().choose_file(tmp_file).import_file()
+
+  # export by name doesn't work for some special characters (e.g. ~)
+  part_of_name = size_name + string_utils.StringMethods.random_string(
+    chars=string.letters)
+  csv_rows = get_ggrc_obj_rows(obj_type, number, add_cols, part_of_name)
+
+  if chunk_size == 0:
+    import_csv(csv_rows)
+  else:
+    for rows_chunk in _split_into_chunks(csv_rows, chunk_size):
+      import_csv(rows_chunk)
   return part_of_name
 
 
@@ -316,17 +350,19 @@ def split_with_repeat_iter(elements, n_parts_to_split):
 
 def import_and_export(obj_name, obj_count, add_cols=None, **kwargs):
   part_of_obj_name = import_obj(obj_name, obj_count, add_cols, **kwargs)
-  return export(obj_name, part_of_obj_name)
+  skip_export = kwargs.get("skip_export", False)
+  if not skip_export:
+    return export(obj_name, part_of_obj_name)
 
 
 def import_and_export_w_iter(
   obj_name, obj_count, map_obj_name, map_obj_codes, **kwargs):
   mappings = [
-    ("map:program", kwargs.pop("prg_code")),
+    ("map:program", kwargs.get("prg_code")),
     ("map:" + objects.transform_to("s", map_obj_name, False),
     split_with_repeat_iter(map_obj_codes, obj_count))]
   return import_and_export(
-    obj_name, obj_count, mappings, size_name=kwargs.pop("size_name", ""))
+    obj_name, obj_count, mappings, size_name=kwargs.get("size_name", ""))
 
 
 def _skip_zero(int_value, skip_msg):
@@ -344,7 +380,7 @@ def _skip_not_valid(dict_w_list, key_name, list_index):
 
 @pytest.mark.parametrize('size_name,prg_counts', perf_counts.prg_sizes.items())
 def test_create_all_programs(size_name, prg_counts):
-  _skip_zero(prg_codes, "Skip programs creation with type %s." % size_name)
+  _skip_zero(prg_counts, "Skip programs creation with type %s." % size_name)
   import_obj(objects.PROGRAMS, prg_counts, size_name=size_name)
 
 @pytest.fixture()
@@ -356,14 +392,31 @@ def prg_codes():
 
 
 @pytest.mark.parametrize(
-  'size_name, index',
-  zip(perf_counts.prg_size_list(), perf_counts.prg_index_list())
+  #'size_name, index',
+  #zip(perf_counts.prg_size_list(), perf_counts.prg_index_list())
+  'prg_codes_x', [
+#"PROGRAM-19"]
+#"PROGRAM-20"
+#,"PROGRAM-21"
+#,"PROGRAM-22"
+#"PROGRAM-23"
+#"PROGRAM-24"
+"PROGRAM-25"
+,"PROGRAM-26"
+,"PROGRAM-27"
+,"PROGRAM-28"
+,"PROGRAM-29"
+,"PROGRAM-30"
+,"PROGRAM-31"
+,"PROGRAM-32"]
 )
-def test_first_class_objs(prg_codes, size_name, index):
-  _skip_not_valid(prg_codes,size_name,index)
+def test_first_class_objs(prg_codes_x):#, size_name, index):
+  #_skip_not_valid(prg_codes,size_name,index)
 
+  size_name = "medium"
   counts = perf_counts.CoreObjectCounts(size_name)
-  program_code = prg_codes[size_name][index]
+  #program_code = prg_codes[size_name][index]
+  program_code = prg_codes_x
   kw = {"size_name": size_name, "prg_code": program_code}
 
   map_to_program = [("map:program", program_code)]
@@ -382,6 +435,7 @@ def test_first_class_objs(prg_codes, size_name, index):
   objv_codes = import_and_export_w_iter(
     objects.OBJECTIVES, counts.objv, objects.REGULATIONS, reg_codes, **kw)
 
+  kw["skip_export"] = True
   import_and_export_w_iter(
     objects.CONTROLS, counts.ctrl, objects.OBJECTIVES, objv_codes, **kw)
 
@@ -389,13 +443,15 @@ def test_first_class_objs(prg_codes, size_name, index):
   import_and_export(objects.PROCESSES, counts.proc, map_to_program, **kw)
   import_and_export(objects.SYSTEMS, counts.sys, map_to_program, **kw)
 
-  mappings = [("Program", program_code)]
-  import_and_export(objects.AUDITS, counts.audit, mappings, **kw)
+  # TODO create audits for all medium programs starting from #23
+  #mappings = [("Program", program_code)]
+  #kw["chunk_size"] = 1
+  #import_and_export(objects.AUDITS, counts.audit, mappings, **kw)
 
 
 @pytest.mark.parametrize(
   'size_name, index',
-  zip(perf_counts.prg_size_list(), perf_counts.prg_index_list())
+   zip(perf_counts.prg_size_list(), perf_counts.prg_index_list())
 )
 def test_generate_asmts(prg_codes, size_name, index):
   _skip_not_valid(prg_codes, size_name, index)
@@ -435,47 +491,6 @@ def _create_asmt_template(audit):
   cad_factory = entities_factory.CustomAttributeDefinitionsFactory()
   cads = [cad_factory.create(attribute_type=ca_type, definition_type="")
           for ca_type in ca_types]
-  cads = cad_factory.generate_ca_defenitions_for_asmt_tmpls(cads)
-  return rest_facade.create_asmt_template(
-      audit=audit, template_object_type="Control",
-      custom_attribute_definitions=cads)
-
-
-def _ids_from_codes(codes):
-  return [int(re.search('\d+', code).group()) for code in codes]
-
-
-def _split_into_chunks(list_to_split, chunk_size):
-  for i in xrange(0, len(list_to_split), chunk_size):
-    yield list_to_split[i:i+chunk_size]
-
-
-def test_generate_asmts():
-  program_name = "Program ~-c^ST63B0IPs 0"
-
-  audit_ids = _ids_from_codes(export("Audits", program=program_name))
-  control_ids = _ids_from_codes(export("Controls", program=program_name))
-  for audit_id in audit_ids:
-    audit = entities_factory.AuditsFactory().create(id=audit_id)
-    asmt_template = _create_asmt_template(audit)
-    controls = [entities_factory.ControlsFactory().create(id=control_id)
-                for control_id in control_ids]
-    for controls_chunk in _split_into_chunks(controls, 100):
-      snapshots = entity.Representation.convert_repr_to_snapshot(
-          objs=controls_chunk, parent_obj=audit)
-      assessments = rest_service.AssessmentsFromTemplateService(
-          ).create_assessments(audit, asmt_template, snapshots)
-      a = 1
-
-
-def _create_asmt_template(audit):
-  ca_types = element.AdminWidgetCustomAttributes.ALL_CA_TYPES
-  ca_types = [x for x in ca_types
-              if x != element.AdminWidgetCustomAttributes.PERSON]
-  ca_types *= 2
-  cad_factory = entities_factory.CustomAttributeDefinitionsFactory()
-  cads = [cad_factory.create(attribute_type=ca_type, definition_type="") for
-          ca_type in ca_types]
   cads = cad_factory.generate_ca_defenitions_for_asmt_tmpls(cads)
   return rest_facade.create_asmt_template(
       audit=audit, template_object_type="Control",
