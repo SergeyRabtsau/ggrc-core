@@ -51,6 +51,18 @@ class Query(object):
     }
 
   @staticmethod
+  def expression_get_obj_by_code(obj_code):
+    """Expression to get object according to object's code/slug.
+    """
+    return {
+        "expression": {
+            "left": "Code",
+            "op": {"name": alias.EQUAL_OP},
+            "right": obj_code
+        }
+    }
+
+  @staticmethod
   def expression_get_comment_by_desc(parent_type, parent_id, comment_desc):
     """Expression to get comment object according to parent object's attributes
     and comment's description text w/o framing it (contains operation) to HTML
@@ -80,5 +92,16 @@ class Query(object):
             "left": "email",
             "op": {"name": "="},
             "right": email
+        }
+    }
+
+  @staticmethod
+  def expression_get_relevant_obj_to(relevant_obj_type, relevant_obj_id):
+    """Expression to get object by relevant object id."""
+    return  {
+        "expression": {
+            "object_name": relevant_obj_type,
+            "op": {"name": "relevant"},
+            "ids": [str(relevant_obj_id)]
         }
     }

@@ -376,3 +376,36 @@ class ObjectsInfoService(HelpRestService):
     person.__dict__.update({k: v for k, v in attrs.iteritems()
                             if v and k not in ["type", ]})
     return person
+
+  def get_relevant_objs_by_id(self, relevant_obj_type, relevant_obj_id,
+                             obj_type_to_return):
+    """Get and return ids for object that has relationship w/relevant object."""
+    objs = (
+        BaseRestService.get_items_from_resp(self.client.create_object(
+            type=self.endpoint,
+            object_name=objects.get_obj_type(obj_type_to_return),
+            filters=query.Query.expression_get_relevant_obj_to(
+              objects.get_obj_type(relevant_obj_type), relevant_obj_id),
+            limit=[0, 2000],
+            fields=["id"]
+        )).get("values")
+    )
+    return [obj.get("id") for obj in objs]
+
+  def get_obj_id_by_slug(self, obj_type, slug):
+    """Get object id by slug and object type."""
+    return (
+        BaseRestService.get_items_from_resp(self.client.create_object(
+            type=self.endpoint,
+            object_name=objects.get_obj_type(obj_type),
+            filters=query.Query.expression_get_obj_by_code(slug),
+            fields=["id"]
+        )).get("values")[0].get("id")
+    )
+
+  def get_relevant_objs_by_slug(self, relevant_obj_type, relevant_obj_slug,
+                              obj_type_to_return):
+    relevant_obj_id = self.get_obj_id_by_slug(
+        relevant_obj_type, relevant_obj_slug)
+    return self.get_relevant_objs_by_id(
+        relevant_obj_type, relevant_obj_id, obj_type_to_return)

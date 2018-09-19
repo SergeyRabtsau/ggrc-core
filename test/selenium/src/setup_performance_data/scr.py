@@ -4,7 +4,6 @@ import fractions
 import itertools
 import math
 import os
-import re
 import string
 import tempfile
 
@@ -28,17 +27,19 @@ gmail_email = os.environ["LOGIN_EMAIL"]
 gmail_password = os.environ["LOGIN_PASSWORD"]
 download_username = os.environ["DOWNLOAD_USERNAME"]
 
-br = browser.Browser()
+br = browser.Browser(headless=True)
 
 
 def gmail_login():
-  br.text_field(aria_label="Email or phone").set(gmail_email)
+  #br.text_field(aria_label="Email or phone").set(gmail_email)
+  br.text_field(id="identifierId").set(gmail_email)
   br.element(id="identifierNext").click()
   time.sleep(perf_const.DEFAULT_SLEEP)  # wait for password elements to have
   #  correct
   # position
   try:
-    pass_field = br.text_field(aria_label="Enter your password")
+    # pass_field = br.text_field(aria_label="Enter your password")
+    pass_field = br.text_field(type="password")
     pass_field.wait_for_writable()
     pass_field.set(gmail_password)
     br.element(id="passwordNext").click()
@@ -91,14 +92,16 @@ class ImportPage(object):
     br.link(text=txt_auth).click()
     time.sleep(perf_const.DEFAULT_SLEEP)
     if len(br.windows()) > 1:
-      br.window(title=txt_sign).use()
+      #br.window(title=txt_sign).use()
+      br.window(index=1).use()
       gmail_login()
       br.windows()[0].use()
       time.sleep(perf_const.LONG_SLEEP)
       iframe = br.iframe(class_name=diag_frame)
       iframe.file_field(type="file").set(csv_file.name)
       br.link(text=txt_auth).click()
-      br.window(title=txt_sign).use()
+      #br.window(title=txt_sign).use()
+      br.window(index=1).use()
       br.element(text=gmail_email).click()
       br.windows()[0].use()
     else:
@@ -301,14 +304,16 @@ def export(obj_type, filer_query=None, **mapping_query):
   if mapping_query:
     index = 0
     for key, value in mapping_query.items():
+      obj_type_name = objects.transform_to("s", key)
       br.element(class_name="add-filter-rule").click()
       selenium_utils.wait_for_js_to_load(br.driver)
       br.select(
         class_name="filter-type-selector select-filter{}".format(
-          index)).select(objects.transform_to("s", key))
-      br.element(name="filter_list.{}.filter".format(index)).send_keys(
-        value.strip())
-      br.element(class_name="ui-menu-item").link().click()
+          index)).select(obj_type_name)
+      br.element(
+        name="filter_list.{}.filter".format(index),
+        data_lookup=obj_type_name).send_keys(value.strip())
+      #br.element(class_name="ui-menu-item").link().click()
       index += 1
 
   # save csv
@@ -379,7 +384,7 @@ def _skip_not_valid(dict_w_list, key_name, list_index):
 
 
 @pytest.mark.parametrize('size_name,prg_counts', perf_counts.prg_sizes.items())
-def test_create_all_programs(size_name, prg_counts):
+def test_create_programs(size_name, prg_counts):
   _skip_zero(prg_counts, "Skip programs creation with type %s." % size_name)
   import_obj(objects.PROGRAMS, prg_counts, size_name=size_name)
 
@@ -390,78 +395,74 @@ def prg_codes():
     prg_code_dict[size_name] = export(objects.PROGRAMS,size_name)
   return prg_code_dict
 
+def get_prg_codes(size_name):
+  if size_name == "medium":
+    start_id, stop_id = 13, 33
+  elif size_name == "large":
+    start_id, stop_id = 34, 37
+  elif size_name == "small":
+    start_id, stop_id = 3, 12
+  else:
+    raise AttributeError("Unknown value {}".format(size_name))
+  return ["PROGRAM-{}".format(x) for x in range(start_id, stop_id + 1)]
+
 
 @pytest.mark.parametrize(
   #'size_name, index',
   #zip(perf_counts.prg_size_list(), perf_counts.prg_index_list())
-  'prg_codes_x', [
-#"PROGRAM-19"]
-#"PROGRAM-20"
-#,"PROGRAM-21"
-#,"PROGRAM-22"
-#"PROGRAM-23"
-#"PROGRAM-24"
-"PROGRAM-25"
-,"PROGRAM-26"
-,"PROGRAM-27"
-,"PROGRAM-28"
-,"PROGRAM-29"
-,"PROGRAM-30"
-,"PROGRAM-31"
-,"PROGRAM-32"]
+  'prg_codes_x', get_prg_codes("large")[2:3]
 )
 def test_first_class_objs(prg_codes_x):#, size_name, index):
   #_skip_not_valid(prg_codes,size_name,index)
-
-  size_name = "medium"
+  size_name = "large"
   counts = perf_counts.CoreObjectCounts(size_name)
   #program_code = prg_codes[size_name][index]
   program_code = prg_codes_x
   kw = {"size_name": size_name, "prg_code": program_code}
-
   map_to_program = [("map:program", program_code)]
+
   stnd_codes = import_and_export(
     objects.STANDARDS, counts.stnd, map_to_program, **kw)
-
   req_codes = import_and_export_w_iter(
     objects.REQUIREMENTS, counts.req, objects.STANDARDS, stnd_codes, **kw)
-
   clause_codes = import_and_export_w_iter(
     objects.CLAUSES, counts.clause, objects.REQUIREMENTS, req_codes, **kw)
-
   reg_codes = import_and_export_w_iter(
     objects.REGULATIONS, counts.reg, objects.CLAUSES, clause_codes, **kw)
-
   objv_codes = import_and_export_w_iter(
     objects.OBJECTIVES, counts.objv, objects.REGULATIONS, reg_codes, **kw)
 
   kw["skip_export"] = True
   import_and_export_w_iter(
-    objects.CONTROLS, counts.ctrl, objects.OBJECTIVES, objv_codes, **kw)
-
+   objects.CONTROLS, counts.ctrl, objects.OBJECTIVES, objv_codes, **kw)
   import_and_export(objects.PRODUCTS, counts.product, map_to_program, **kw)
   import_and_export(objects.PROCESSES, counts.proc, map_to_program, **kw)
   import_and_export(objects.SYSTEMS, counts.sys, map_to_program, **kw)
 
-  # TODO create audits for all medium programs starting from #23
-  #mappings = [("Program", program_code)]
-  #kw["chunk_size"] = 1
-  #import_and_export(objects.AUDITS, counts.audit, mappings, **kw)
+  mappings = [("Program", program_code)]
+  kw["chunk_size"] = 1
+  import_and_export(objects.AUDITS, 4, mappings, **kw)
 
 
 @pytest.mark.parametrize(
-  'size_name, index',
-   zip(perf_counts.prg_size_list(), perf_counts.prg_index_list())
+  #'size_name, index',
+  # zip(perf_counts.prg_size_list(), perf_counts.prg_index_list())
+  'prg_codes_x', get_prg_codes("large")[2:3]
 )
-def test_generate_asmts(prg_codes, size_name, index):
-  _skip_not_valid(prg_codes, size_name, index)
-
+def test_generate_asmts(prg_codes_x):#, size_name, index):
+  #_skip_not_valid(prg_codes, size_name, index)
+  size_name = "large"
   counts = perf_counts.CoreObjectCounts(size_name)
-  prg_code = prg_codes[size_name][index]
+  #prg_code = prg_codes[size_name][index]
+  prg_code = prg_codes_x
 
-  _create_global_cads_for_asmts()
-  audit_ids = _ids_from_codes(export(objects.AUDITS, program=prg_code))
-  control_ids = _ids_from_codes(export(objects.CONTROLS, program=prg_code))
+  #_create_global_cads_for_asmts()
+
+  audit_ids = rest_service.ObjectsInfoService().get_relevant_objs_by_slug(
+      objects.PROGRAMS, prg_code, objects.AUDITS)
+  control_ids = rest_service.ObjectsInfoService().get_relevant_objs_by_slug(
+    objects.PROGRAMS, prg_code, objects.CONTROLS)
+
   control_ids = control_ids[:counts.asmt]
   for audit_id in audit_ids:
     audit = entities_factory.AuditsFactory().create(id=audit_id)
@@ -473,6 +474,7 @@ def test_generate_asmts(prg_codes, size_name, index):
           objs=controls_chunk, parent_obj=audit)
       rest_service.AssessmentsFromTemplateService().create_assessments(
           audit, asmt_template, snapshots)
+      time.sleep(6*60)
 
 
 def _create_global_cads_for_asmts():
@@ -497,10 +499,23 @@ def _create_asmt_template(audit):
       custom_attribute_definitions=cads)
 
 
-def _ids_from_codes(codes):
-  return [int(re.search('\d+', code).group()) for code in codes]
-
-
 def _split_into_chunks(list_to_split, chunk_size):
   for i in xrange(0, len(list_to_split), chunk_size):
     yield list_to_split[i:i+chunk_size]
+
+@pytest.mark.parametrize(
+  'prg_codes_x',
+  get_prg_codes("large")[1:3]
+)
+
+@pytest.fixture(params=["large"])
+def size_name_x(request):
+  return request.param
+
+@pytest.fixture
+def prg_codes_xx(size_name_x):
+  return size_name_x, next(get_prg_codes(size_name_x)[1:3])
+
+def test_generate_cases(prg_codes_x):
+  sn, prg_codes = prg_codes_x
+  print(sn, prg_codes)
