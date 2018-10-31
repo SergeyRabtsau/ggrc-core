@@ -6,8 +6,13 @@
 import Mappings from './mappers/mappings';
 import * as businessModels from './business-models';
 import * as serviceModels from './service-models';
+import * as mappingModels from './mapping-models';
 
-const allModels = Object.assign({}, businessModels, serviceModels);
+const allModels = Object.assign({},
+  businessModels,
+  serviceModels,
+  mappingModels
+);
 
 /*  RefreshQueue
  *
