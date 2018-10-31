@@ -9,7 +9,7 @@ import TaskGroupObject from '../../models/join-models/task-group-object';
 import Relationship from '../../models/service-models/relationship';
 
 async function mapObjects(instance, objects, {
-  useSnapshots,
+  useSnapshots = false,
 } = {}) {
   let defer = [];
   let que = new RefreshQueue();
