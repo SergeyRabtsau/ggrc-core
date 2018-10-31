@@ -1,0 +1,49 @@
+/*
+ * Copyright (C) 2018 Google Inc.
+ * Licensed under http://www.apache.org/licenses/LICENSE-2.0 <see LICENSE file>
+*/
+
+.task-group-objects {
+  &__header {
+    font-size: 11px;
+    text-transform: uppercase;
+    font-weight: bold;
+    border-bottom: 1px solid $lightGray;
+  }
+
+  &__list-item {
+    display: flex;
+    align-items: center;
+    height: 30px;
+    margin: 10px 0;
+  }
+
+  &__controls {
+    padding-top: 10px;
+  }
+
+  &__section {
+    display: flex;
+    align-items: center;
+    max-width: 97%;
+
+    &-title {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      margin-left: 3px;
+    }
+
+    .fa {
+      flex-shrink: 0;
+    }
+  }
+
+  &__unmap {
+    margin-left: 10px;
+
+    &.disabled {
+      opacity: 0.25;
+    }
+  }
+}

@@ -6,10 +6,21 @@
 import '../../info-pin-buttons/info-pin-buttons';
 import '../taskgroup_clone';
 import '../task-list/task-list';
-
+import '../task-group-objects/task-group-objects';
 import template from './templates/task-group.mustache';
+import Permission from '../../../permission';
 
 const viewModel = can.Map.extend({
+  define: {
+    canEdit: {
+      get() {
+        return (
+          Permission.is_allowed_for('update', this.attr('instance')) &&
+          this.attr('workflow.status') !== 'Inactive'
+        );
+      },
+    },
+  },
   instance: null,
   workflow: null,
   options: null,

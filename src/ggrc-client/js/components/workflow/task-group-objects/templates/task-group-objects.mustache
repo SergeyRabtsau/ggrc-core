@@ -1,0 +1,47 @@
+{{!
+  Copyright (C) 2018 Google Inc.
+  Licensed under http://www.apache.org/licenses/LICENSE-2.0 <see LICENSE file>
+}}
+
+<div class="task-group-objects__header">
+    Objects (<span>{{items.length}}</span>)
+    <span class="inline-explanation">Choose objects that tasks will apply to</span>
+</div>
+
+<ul class="tree-structure new-tree">
+  {{#each items}}
+    <li class="task-group-objects__list-item">
+      <div class="task-group-objects__section">
+        <i class="fa fa-fw {{iconClass}} color"></i>
+        <span class="task-group-objects__section-title" rel="tooltip" title="{{title}}">
+          {{title}}
+        </span>
+      </div>
+      {{#if canEdit}}
+        <a
+          class="task-group-objects__unmap {{#if disabled}}disabled{{/if}}"
+          href="javascript://"
+          data-item-index="{{@index}}">
+          <i class="fa fa-trash"></i>
+        </a>
+      {{/if}}
+    </li>
+  {{/each}}
+  {{#if canEdit}}
+    <li class="task-group-objects__controls">
+      <a
+        class="btn btn-small btn-white"
+        rel="tooltip"
+        data-placement="right"
+        data-original-title="Add Object"
+        href="javascript://"
+        data-toggle="unified-mapper"
+        data-modal-class="modal-wide"
+        data-modal-reset="reset"
+        data-join-object-type="TaskGroup"
+        data-deferred="true">
+        Add Object
+      </a>
+    </li>
+  {{/if}}
+</ul>

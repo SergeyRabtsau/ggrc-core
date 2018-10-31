@@ -56,16 +56,6 @@
   padding-top: 6px;
 }
 
-.task-list {
-  .objective-selector {
-    a {
-      &.disabled {
-        @include opacity(0.2);
-      }
-    }
-  }
-}
-
 .edit-field {
   .btn {
     margin-left: 10px;
@@ -84,23 +74,6 @@
 .lock-wrap {
   label {
     margin-bottom: 0;
-  }
-}
-
-.inline-data-content {
-  display:inline-block;
-  line-height:30px;
-  margin: 10px 0;
-  text-overflow: ellipsis;
-  word-wrap:no-wrap;
-  width:100%;
-  &.oneline {
-    display: block;
-    width: fit-content;
-  }
-
-  .deleteTrigger {
-    margin-left: 10px;
   }
 }
 
@@ -246,14 +219,16 @@
       align-items: center;
       flex: 1 1 25%;
 
+      & .task-group-task__column-field {
+        display:inline-block;
+        line-height:30px;
+        margin: 10px 0;
+        width: 100%;
+      }
+
       &-action {
         padding-top: 10px;
         width: 60px;
-      }
-
-      &-drag {
-        padding-top: 17px;
-        width: 40px;
       }
 
       > .people-list {
