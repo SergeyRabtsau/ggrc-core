@@ -5,7 +5,6 @@
 
 import template from './mapping-tree-view.mustache';
 import '../object-list-item/editable-document-object-list-item';
-import {notifierXHR} from '../../plugins/utils/notifiers-utils';
 import Mappings from '../../models/mappers/mappings';
 
 export default can.Component.extend({
@@ -75,34 +74,5 @@ export default can.Component.extend({
       return _.orderBy(mappedObjects, sortField, sortOrder);
     }
     return mappedObjects;
-  },
-  events: {
-    '[data-toggle=unmap] click': function (el, ev) {
-      let instance = el.find('.result').data('result');
-      let mappings = Mappings.get_mapping(
-        this.viewModel.mapping,
-        this.viewModel.parentInstance);
-      let binding;
-
-      ev.stopPropagation();
-      // Refactor and show spinner instead (for all lists)
-      el.hide();
-      binding = _.find(mappings, function (mapping) {
-        return mapping.instance.id === instance.id &&
-          mapping.instance.type === instance.type;
-      });
-      _.forEach(binding.get_mappings(), function (mapping) {
-        mapping.refresh()
-          .then(function () {
-            return mapping.destroy();
-          })
-          .then(function () {
-            if (mapping.documentable) {
-              return mapping.documentable.reify();
-            }
-          })
-          .fail(notifierXHR('error'));
-      });
-    },
   },
 });

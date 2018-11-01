@@ -585,35 +585,6 @@ Mustache.registerHelper('using', function (options) {
   return deferRender('span', finish, refreshQueue.trigger());
 });
 
-Mustache.registerHelper('with_mapping', function (binding, options) {
-  let context = arguments.length > 2 ? resolveComputed(options) : this;
-  let frame = new can.Map();
-  let loader;
-
-  if (!context) { // can't find an object to map to.  Do nothing;
-    return;
-  }
-  binding = Mustache.resolve(binding);
-  loader = Mappings.get_binding(binding, context);
-  if (!loader) {
-    return;
-  }
-  frame.attr(binding, loader.list);
-
-  options = arguments[2] || options;
-
-  function finish(list) {
-    return options
-      .fn(options.contexts.add(_.assign({}, frame, {results: list})));
-  }
-  function fail(error) {
-    return options.inverse(options.contexts.add({error: error}));
-  }
-
-  return deferRender('span', {done: finish, fail: fail},
-    loader.refresh_instances());
-});
-
 Mustache.registerHelper('person_roles', function (person, scope, options) {
   let rolesDeferred = new $.Deferred();
   let refreshQueue = new RefreshQueue();

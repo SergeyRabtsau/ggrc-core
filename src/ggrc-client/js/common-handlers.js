@@ -5,7 +5,6 @@
 
 import Spinner from 'spin.js';
 import NotificationConfig from './models/service-models/notification-config';
-import Control from './models/business-models/control';
 
 let $body = $('body');
 let $window = $(window);
@@ -23,69 +22,8 @@ $body.on('click', '.lhn-no-init', function () {
     });
 });
 
-$body.on('click', 'a[data-toggle=unmap]', function (ev) {
-  let $el = $(this);
-  //  Prevent toggling `openclose` state in trees
-  ev.stopPropagation();
-  $el.fadeTo('fast', 0.25);
-  $el.children('.result').each(function (i, resultEl) {
-    let $resultEl = $(resultEl);
-    let result = $resultEl.data('result');
-    let mappings = result && result.get_mappings();
-
-    function notify(instance) {
-      $(document.body).trigger(
-        'ajax:flash',
-        {success: 'Unmap successful.'}
-      );
-    }
-
-    can.each(mappings, function (mapping) {
-      mapping.refresh().done(function () {
-        if (mapping instanceof Control) {
-          mapping.removeAttr('directive');
-          mapping.save().then(notify);
-        } else {
-          mapping.destroy().then(notify);
-        }
-      });
-    });
-  });
-});
-
 // Initialize delegated event handlers
 jQuery(function ($) {
-  window.natural_comparator = function (a, b) {
-    let i;
-    a = a.slug.toString();
-    b = b.slug.toString();
-    if (a === b) {
-      return 0;
-    }
-
-    a = a.replace(/(?=\D\d)(.)|(?=\d\D)(.)/g, '$1$2|').split('|');
-    b = b.replace(/(?=\D\d)(.)|(?=\d\D)(.)/g, '$1$2|').split('|');
-
-    for (i = 0; i < Math.max(a.length, b.length); i++) {
-      if (Number(a[i]) === Number(a[i]) && Number(b[i]) === Number(b[i])) {
-        if (Number(a[i]) < Number(b[i])) {
-          return -1;
-        }
-        if (Number(b[i]) < Number(a[i])) {
-          return 1;
-        }
-      } else {
-        if (a[i] < b[i]) {
-          return -1;
-        }
-        if (b[i] < a[i]) {
-          return 1;
-        }
-      }
-    }
-    return 0;
-  };
-
   // After the modal template has loaded from the server, but before the
   //  data has loaded to populate into the body, show a spinner
   $body.on('loaded', '.modal.modal-slim, .modal.modal-wide', function (e) {

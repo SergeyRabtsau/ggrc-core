@@ -83,10 +83,6 @@ export default can.Component.extend({
   tag: 'object-mapper',
   template,
   viewModel: function (attrs, parentViewModel) {
-    const refreshCounts = parentViewModel.attr('refresh_counts') !== undefined
-      ? parentViewModel.attr('refresh_counts')
-      : true;
-
     let config = {
       general: parentViewModel.attr('general'),
       special: parentViewModel.attr('special'),
@@ -103,7 +99,6 @@ export default can.Component.extend({
         (getPageInstance() && getPageInstance().id),
       object: resolvedConfig.object,
       type: getDefaultType(resolvedConfig.type, resolvedConfig.object),
-      refreshCounts,
       config: config,
       useSnapshots: resolvedConfig.useSnapshots,
       isLoadingOrSaving: function () {
@@ -299,10 +294,8 @@ export default can.Component.extend({
           });
           instance.dispatch(REFRESH_SUB_TREE);
 
-          if (viewModel.attr('refreshCounts')) {
-            // This Method should be modified to event
-            refreshCounts();
-          }
+          // This Method should be modified to event
+          refreshCounts();
         })
         .catch((response, message) => {
           $('body').trigger('ajax:flash', {error: message});
