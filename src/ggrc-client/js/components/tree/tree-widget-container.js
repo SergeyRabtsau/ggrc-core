@@ -141,6 +141,7 @@ viewModel = can.Map.extend({
       },
     },
   },
+  infoPaneLoadDfd: $.Deferred(),
   /**
    *
    */
@@ -611,7 +612,8 @@ export default can.Component.extend({
       }
 
       if (!isSubTreeItem) {
-        this.viewModel.attr('selectedItem', itemNumber);
+        const infoPaneLoadDfd = this.selectedItem(itemNumber);
+        infoPaneOptions.attr('options.infoPaneLoadDfd', infoPaneLoadDfd);
       }
 
       this.viewModel.attr('canOpenInfoPin', false);
@@ -626,9 +628,8 @@ export default can.Component.extend({
         this.viewModel.attr('canOpenInfoPin', true);
       }.bind(this));
     },
-    '{viewModel} selectedItem': function () {
+    selectedItem(itemIndex) {
       let componentSelector = 'assessment-info-pane';
-      let itemIndex = this.viewModel.attr('selectedItem');
       let pageInfo = this.viewModel.attr('pageInfo');
 
       let relativeIndex = this.viewModel
@@ -643,7 +644,7 @@ export default can.Component.extend({
 
       pinControl.setLoadingIndicator(componentSelector, true);
 
-      pageLoadDfd
+      return pageLoadDfd
         .then(function () {
           const items = this.viewModel.attr('showedItems');
           const newInstance = items[relativeIndex];

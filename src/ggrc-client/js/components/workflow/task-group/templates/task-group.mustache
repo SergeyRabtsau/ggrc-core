@@ -51,12 +51,13 @@
 
       <div class="pane-content">
         {{> /static/mustache/task_groups/tier2_content.mustache}}
-        {{#options}}
         <div class="info-pane__section">
+        {{#if readyToRenderTaskGroupObjects}}
           <task-group-objects
             {task-group}="instance"
             {can-edit}="canEdit"
           ></task-group-objects>
+        {{/if}}
         </div>
         <div class="info-pane__section">
           <h5 class="info-pane__section-title">
@@ -67,7 +68,6 @@
             {workflow}="workflow"
           ></task-list>
         </div>
-        {{/options}}
       </div>
     </div>
   </div>
