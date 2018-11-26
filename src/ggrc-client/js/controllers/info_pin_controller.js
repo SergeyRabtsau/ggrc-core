@@ -147,9 +147,6 @@ export default can.Control({
     let vm = this.element.find(selector).viewModel();
 
     vm.attr('instance', instance);
-    vm.attr('instance').dispatch({
-      type: 'update',
-    });
   },
   setLoadingIndicator: function (selector, isLoading) {
     this.element.toggleClass('loading');
