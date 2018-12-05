@@ -114,7 +114,11 @@ const viewModel = can.Map.extend({
     item.attr('disabled', false);
 
     // remove unmapped object from the list
-    items.splice(itemIndex, 1);
+    // Need to get updated index because
+    // "items" collection can be changed
+    // in case when the user unmaps several objects -
+    // "itemIndex" will store old index of item.
+    items.splice(items.indexOf(item), 1);
     notifier('success', 'Unmap successful.');
   },
 });
@@ -132,7 +136,7 @@ const events = {
     this.viewModel.map(objects);
   },
   '.task-group-objects__unmap click'(el) {
-    this.viewModel.unmapByItemIndex(el.data('item-index'));
+    this.viewModel.unmapByItemIndex(el.attr('data-item-index'));
   },
 };
 
