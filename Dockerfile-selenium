@@ -1,7 +1,7 @@
 # Copyright (C) 2018 Google Inc.
 # Licensed under http://www.apache.org/licenses/LICENSE-2.0 <see LICENSE file>
 
-ARG CHROME_CT_VERSION="3.14.0-krypton"
+ARG CHROME_CT_VERSION="3.141.59-copernicium"
 FROM selenium/standalone-chrome:${CHROME_CT_VERSION}
 
 USER root
@@ -19,7 +19,7 @@ USER seluser
 
 # Specify version of Chrome webdriver using 'CHROME_DRIVER_VERSION' argument
 # Latest released version will be used by default
-ARG CHROME_DRIVER_VERSION="2.43"
+ARG CHROME_DRIVER_VERSION="2.45"
 RUN CD_VER=$(if [ ${CHROME_DRIVER_VERSION:-latest} = "latest" ]; then echo\
   $(wget -qO- https://chromedriver.storage.googleapis.com/LATEST_RELEASE); \
   else echo $CHROME_DRIVER_VERSION; fi) \

@@ -4,17 +4,17 @@
 attrs==18.2.0
 inflection==0.3.1
 holidays==0.3.1  # version should match version in requirements.txt
-nerodia==0.12.1
+nerodia==0.13.0
 pytest==3.6.4
-pytest-cov==2.5.1
+pytest-cov==2.6.0
 pytest-env==0.6.2
 pytest-html==1.19.0
 pytest-pycharm==0.5.0
-pytest-repeat==0.6.0
-pytest-rerunfailures==4.1
-pytest-selenium==1.13.0
-pytest-xdist==1.22.5
-python-dateutil==2.7.3
-requests==2.20.0
-selenium==3.14.1
+pytest-repeat==0.7.0
+pytest-rerunfailures==5.0
+pytest-selenium==1.14.0
+pytest-xdist==1.24.1
+python-dateutil==2.7.5
+requests==2.21.0
+selenium==3.141.0
 tenacity==5.0.2
