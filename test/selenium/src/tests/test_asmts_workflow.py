@@ -794,6 +794,10 @@ class TestRelatedAssessments(base.Test):
                                  objs_to_map=[control_mapped_to_program])
       related_asmts_titles.append(
           (asmt.title, control_mapped_to_program.title, audit.title))
+      # If two assessments are created within the same second, they may have
+      # the same `created_at` so will be sorted in an unexpected order.
+      if audit != audits[-1]:
+        time.sleep(1)
     assert self._related_asmts_of_obj(control_mapped_to_program, selenium) ==\
         related_asmts_titles[::-1]
 
@@ -820,7 +824,7 @@ class TestRelatedAssessments(base.Test):
       if i == 0:
         # If two assessments are created within the same second, they may have
         # the same `created_at` so will be sorted in an unexpected order.
-        time.sleep(0.8)
+        time.sleep(1)
     related_asmts_titles = [
         (assessment.title, obj.title, audit.title)
         for assessment in assessments]
