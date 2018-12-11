@@ -60,6 +60,7 @@ class People(Widget):
         self._driver, self._locators.FILTER_BY_NAME_EMAIL_COM_FIELD_SELECTOR)
     filter_tf.enter_text(str_to_filter_by)
     filter_tf.send_enter_key()
+    selenium_utils.wait_for_js_to_load(self._driver)
 
 
 class Roles(Widget):
