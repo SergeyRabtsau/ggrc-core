@@ -52,7 +52,7 @@ services:
     networks:
       - selenium
     environment:
-     - "TZ=America/Los_Angeles"
+     - "TZ=Europe/London"
      - PYTHONDONTWRITEBYTECODE=true
      - PYTHONPATH=/selenium/src
      - SCREEN_WIDTH=1440
