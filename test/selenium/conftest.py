@@ -11,22 +11,22 @@ import urlparse
 
 import pytest
 # Workaround https://github.com/pytest-dev/pytest/issues/3775
-from pytest_selenium import pytest_selenium as pt_selenium
+from pytest_selenium import datetime, pytest_selenium as pt_selenium
 from selenium.webdriver.remote.remote_connection import (
-    LOGGER as SELENIUM_LOGGER)
+  LOGGER as SELENIUM_LOGGER)
 
-from lib import dynamic_fixtures, environment, url, users, browsers
+from lib import browsers, dynamic_fixtures, environment, url, users
 from lib.constants import element, workflow_repeat_units
 from lib.constants.test_runner import DESTRUCTIVE_TEST_METHOD_PREFIX
 from lib.custom_pytest_scheduling import CustomPytestScheduling
 from lib.entities import entities_factory
 from lib.page import dashboard
-from lib.rest_services import workflow_rest_service
 from lib.rest_facades import (
-    control_rest_facade, person_rest_facade, workflow_rest_facade)
-from lib.service import rest_service, rest_facade
+  control_rest_facade, person_rest_facade, workflow_rest_facade)
+from lib.rest_services import workflow_rest_service
+from lib.service import rest_facade, rest_service
 from lib.service.rest import session_pool
-from lib.utils import conftest_utils, help_utils, selenium_utils, app_utils
+from lib.utils import app_utils, conftest_utils, help_utils, selenium_utils
 from lib.utils.selenium_utils import get_full_screenshot_as_base64
 
 
@@ -624,8 +624,10 @@ def activated_workflow(app_workflow):
 @pytest.fixture()
 def app_repeat_on_workflow():
   """Creates a repeat on workflow."""
+  # workaround for GGRC-6491 issue
+  repeat_period = 2 if datetime.utcnow().hour in range(0, 9) else 1
   return workflow_rest_facade.create_workflow(
-      repeat_every=1, repeat_unit=workflow_repeat_units.WEEKDAY)
+      repeat_every=repeat_period, repeat_unit=workflow_repeat_units.WEEKDAY)
 
 
 @pytest.fixture()
