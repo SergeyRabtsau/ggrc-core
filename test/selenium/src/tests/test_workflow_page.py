@@ -166,8 +166,6 @@ class TestWorkflowSetupTab(base.Test):
         obj=app_control, task_group=app_task_group)
     selenium.refresh()  # reload page to check mapping is saved
     objs = workflow_ui_facade.get_objs_added_to_task_group(app_task_group)
-    if not objs:
-      pytest.xfail("This is a bug, see GGRC-6125")
     test_utils.list_obj_assert(objs, [app_control])
 
   def test_delete_task_group(self, app_workflow, app_task_group, selenium):

@@ -141,7 +141,7 @@ class SetupTab(object_page.ObjectPage):
   def get_objs_added_to_task_group(self, task_group):
     """Returns objects added to the task group."""
     self.open_task_group(task_group)
-    return self._task_group_panel.added_objs()
+    return self._task_group_panel.added_objs
 
   def delete_task_group(self, task_group):
     """Deletes task group."""

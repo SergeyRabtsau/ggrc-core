@@ -5,7 +5,7 @@ from lib import base
 from lib.app_entity_factory import entity_factory_common
 from lib.element import three_bbs
 from lib.page.widget import table_with_headers
-from lib.utils import ui_utils
+from lib.utils import selenium_utils, ui_utils
 
 
 class TaskGroupInfoPanel(base.WithBrowser):
@@ -40,15 +40,24 @@ class TaskGroupInfoPanel(base.WithBrowser):
     """Clicks `Add Object` button."""
     self._root.link(text="Add Object").click()
 
+  @property
   def added_objs(self):
     """Returns objects added to the task group."""
+    prefix = "fa-"
     objs = []
-    for obj_row in self._root.element(class_name="tree-structure").lis():
-      obj_id = int(obj_row.data_object_id)
-      obj_name = obj_row.data_object_type
+    selenium_utils.wait_for_js_to_load(self._driver)
+    obj_rows = (self._root.element(class_name="tree-structure").lis(
+        class_name="task-group-objects__list-item"))
+    for obj_row in obj_rows:
+      # define object type by icon class
+      icon = obj_row.element(tag_name="i").wait_until(lambda e: e.present)
+      obj_name = [
+        item.replace(prefix,"")
+        for item in icon.classes
+        if item.startswith(prefix) and item != prefix + "fw"][0]
       obj_title = obj_row.text
       factory = entity_factory_common.get_factory_by_obj_name(obj_name)()
-      objs.append(factory.create_empty(obj_id=obj_id, title=obj_title))
+      objs.append(factory.create_empty(title=obj_title))
     return objs
 
   def _task_header_elements(self):
